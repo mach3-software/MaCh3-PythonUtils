@@ -47,7 +47,8 @@ class RandomForestInterface(FmlInterface):
         print(f"Score : {metrics.mean_absolute_error(prediction,train_as_numpy)}")
         
         
-        plt.plot(100*(prediction-train_as_numpy)/(0.5*(train_as_numpy+prediction)), color='r', label="Percentage Difference", linewidth=0.1)
+        plt.hist(abs(100*(prediction-train_as_numpy)/(0.5*(train_as_numpy+prediction))), bins=40, color='r', label="Percentage Difference", linewidth=0.1, log=True)
+        plt.xlabel("Log Percentage Difference")
         plt.legend()
         plt.savefig("DummyTest.pdf")
         

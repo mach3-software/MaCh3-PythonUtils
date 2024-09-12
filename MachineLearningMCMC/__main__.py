@@ -28,7 +28,7 @@ if __name__=="__main__":
     regressor = RandomForestInterface(file_handler, toml_config["FileSettings"]["LabelName"])
     
     # Setup random forest  
-    random_forest = RandomForestRegressor(verbose=True)
+    random_forest = RandomForestRegressor(verbose=True, n_jobs=8)
     
     regressor.add_model(random_forest)
     features, predictions = regressor.separate_dataframe()
