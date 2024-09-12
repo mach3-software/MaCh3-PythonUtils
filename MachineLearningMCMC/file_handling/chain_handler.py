@@ -71,7 +71,7 @@ class ChainHandler:
 
         self._plotting_branches = useful_branches
 
-    def add_additional_plots(self, additional_branches: List[str])->None:
+    def add_additional_plots(self, additional_branches: List[str] | str, exact=False)->None:
         '''
         To add more branches to the plotting branch list
         :param additional_branches: List of branches to add to the plotting list
@@ -80,9 +80,14 @@ class ChainHandler:
         if not self._is_file_open:
             raise Warning("Adding branches after shutting the file has no effect")
 
+        if isinstance(additional_branches, str):
+            additional_branches = [additional_branches]
+
         branch_list = []
         for key in self._posterior_ttree.keys():
-            if any(var in key for var in additional_branches): # Not the most efficient but adds variables to our list of variables
+            if any(var in key for var in additional_branches) and not exact: # Not the most efficient but adds variables to our list of variables
+                branch_list.append(key)
+            elif exact and key in additional_branches:
                 branch_list.append(key)
 
         self._plotting_branches.extend(branch_list)

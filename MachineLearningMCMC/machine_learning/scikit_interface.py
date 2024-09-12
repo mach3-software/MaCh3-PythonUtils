@@ -1,6 +1,5 @@
 from typing import Any
 from pandas import DataFrame
-from sklearn.ensemble import RandomForestRegressor
 
 from file_handling.chain_handler import ChainHandler
 from machine_learning.fml_interface import FmlInterface
@@ -8,11 +7,11 @@ from machine_learning.fml_interface import FmlInterface
 from sklearn import metrics
 import matplotlib.pyplot as plt
 
-class RandomForestInterface(FmlInterface):
+class SciKitInterface(FmlInterface):
     def __init__(self, chain: ChainHandler, prediction_variable: str) -> None:
         super().__init__(chain, prediction_variable)
         
-        self._model: RandomForestRegressor | None = None
+        self._model = None
     
     def train_model(self):
         print(f"Training Model")

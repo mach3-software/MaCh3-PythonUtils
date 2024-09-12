@@ -1,6 +1,6 @@
 [FileSettings]
-    FileName = "/Users/henryisrael/T2K/regeneration_times_project/inputs/markov_chains/oscpar_only_datafit.root"
-    ChainName = "osc_posteriors"
-    ParameterNames = ["theta23", "theta13", "dm23", "dm12", "dcp"]
+    FileName = "/users/php20hti/php20hti/public/chains/non_adaptive_normal_chain/Delayed_Fit_Long_Chains_no_delay_adapt_0_1.root"
+    ChainName = "posteriors"
+    ParameterNames = ["sin2th", "sin2th","delm2_12", "delta", "xsec"]
     LabelName = "LogL"
 
