@@ -26,12 +26,16 @@ if __name__=="__main__":
     regressor = SciKitInterface(file_handler, toml_config["FileSettings"]["LabelName"])
     
     # Setup random forest  
-#    random_forest = RandomForestRegressor(verbose=True, n_jobs=8)
-    random_forest = GradientBoostingRegressor(verbose=True, n_estimators=300)
+    if toml_config["FitterSettings"]["FitterObject"]=="RandomForest":
+        model = RandomForestRegressor(verbose=True, n_jobs=8)
+    elif toml_config["FitterSettings"]["FitterObject"]=="GradientBoost":
+        model = GradientBoostingRegressor(verbose=True, n_estimators=300)
+    else:
+        raise ValueError(f"Couldn't find correct input type sorry")
     
-    regressor.add_model(random_forest)
-    features, predictions = regressor.separate_dataframe()
-    regressor.set_training_test_set(features, predictions, 0.40)
+    
+    regressor.add_model(model)
+    regressor.set_training_test_set(0.40)
     
     regressor.train_model()
     regressor.test_model()
