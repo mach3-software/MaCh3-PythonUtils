@@ -4,3 +4,5 @@
     ParameterNames = ["sin2th", "sin2th","delm2_12", "delta", "xsec"]
     LabelName = "LogL"
 
+[FitterSettings]
+    FitterObject = "GradientBoost" # "RandomForest"
