@@ -13,9 +13,11 @@
 
 [FitterSettings]
     FitterPackage = "SciKit"
-    FitterName = "RandomForest" # "RandomForest"
+    FitterName = "RandomForest"
+    # FitterName = "AdaBoost"
     TestSize = 0.2
     # Set fitter Hyper Parameters
     [FitterSettings.FitterKwargs]
             n_jobs = 32
             verbose=true
+            # n_estimators = 200
