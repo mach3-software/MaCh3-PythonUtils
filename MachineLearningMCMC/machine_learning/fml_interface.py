@@ -3,10 +3,29 @@ from file_handling.chain_handler import ChainHandler
 from typing import Any, Tuple
 from sklearn.model_selection import train_test_split
 import pandas as pd
+import mpl_scatter_density
+from matplotlib.colors import LinearSegmentedColormap
+
+from sklearn import metrics
+import matplotlib.pyplot as plt
+import scipy.stats as stats
+import numpy as np
+from astropy.visualization import LogStretch
+from astropy.visualization.mpl_normalize import ImageNormalize
+
 
 class FmlInterface(ABC):
     """Abstract interface with file handler which should be used for ML models
     """
+    white_viridis = LinearSegmentedColormap.from_list('white_viridis', [
+        (0, '#ffffff'),
+        (1e-20, '#440053'),
+        (0.2, '#404388'),
+        (0.3, '#2a788e'),
+        (0.4, '#21a784'),
+        (0.7, '#78d151'),
+        (1, '#fde624'),
+    ], N=256)
     
     def __init__(self, chain: ChainHandler, prediction_variable: str) -> None:
         self._chain = chain
@@ -32,7 +51,7 @@ class FmlInterface(ABC):
     
     def set_training_test_set(self, test_size: float):
         # Splits in traing + test_spit
-        features_labels = self.__separate_dataframe()
+        features, labels = self.__separate_dataframe()
         self._training_data, self._test_data, self._training_labels, self._test_labels =  train_test_split(features, labels, test_size=test_size)
 
     @property
@@ -60,7 +79,39 @@ class FmlInterface(ABC):
         # Test Model
         pass
     
-    @abstractmethod
-    def evaluate_model():
-        # Evalulate Model
-        pass
+    def evaluate_model(self, predicted_values, true_values, outfile: str=""):
+        print(f"Mean Absolute Error : {metrics.mean_absolute_error(predicted_values,true_values)}")
+        
+        lobf = np.poly1d(np.polyfit(predicted_values, true_values, 1))
+        
+        print(f"Line of best fit : y={lobf.c[0]}x + {lobf.c[1]}")
+        
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1, projection='scatter_density')
+        norm = ImageNormalize(vmin=0., vmax=10000, stretch=LogStretch())
+
+        density = ax.scatter_density(predicted_values, true_values, cmap=self.white_viridis)
+        fig.colorbar(density, label="number of points per pixel")
+        
+        lims = [
+            np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+            np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+        ]
+
+        ax.plot(lims, lobf(lims), "w-", label=f"Best fit: true={lobf.c[0]}pred + {lobf.c[1]}")
+
+        ax.plot(lims, lims, 'r-', alpha=0.75, zorder=0, label="true=predicted")
+        ax.set_aspect('equal')
+        ax.set_xlim(lims)
+        ax.set_ylim(lims)
+
+        
+        ax.set_xlabel("Predicted Log likelihood")
+        ax.set_ylabel("True Log Likelihood")
+        
+        fig.legend()
+        if outfile=="": outfile = "evaluated_model_qq.pdf"
+        
+        print(f"Saving QQ to {outfile}")
+            
+        fig.savefig(outfile)

@@ -4,8 +4,7 @@ ML Factory implementation, effectively a selector for making models
 
 from typing import Any, Dict
 
-from scikit_interface import SciKitInterface
-from fml_interface import FmlInterface
+from machine_learning.scikit_interface import SciKitInterface
 import sklearn.ensemble as ske
 
 from file_handling.chain_handler import ChainHandler
@@ -18,7 +17,7 @@ class MLFactory:
     __IMPLEMENTED_ALGORITHMS = {
         "scikit" : {
             "randomforest"  : ske.RandomForestRegressor,
-            "gradientboost" : ske.GradientBoostingClassifier,
+            "gradientboost" : ske.GradientBoostingRegressor,
             "adaboost"      : ske.AdaBoostRegressor
         },
         "tensorflow":
@@ -43,16 +42,16 @@ class MLFactory:
         
         package   = package.lower()
         if package not in self.__IMPLEMENTED_ALGORITHMS:
-            raise ValueError(f"{package} not included, currently accepted packages are :\n 
+            raise ValueError(f"{package} not included, currently accepted packages are :\n  \
                              {list(self.__IMPLEMENTED_ALGORITHMS.keys())}")
         
         algorithm = algorithm.lower()
         
         if algorithm not in self.__IMPLEMENTED_ALGORITHMS[package]:
-            raise ValueError(f"{algorithm} not implemented for {package}, currently accepted algorithms for {package} are:\n 
+            raise ValueError(f"{algorithm} not implemented for {package}, currently accepted algorithms for {package} are:\n \
                              {list(self.__IMPLEMENTED_ALGORITHMS[package].keys())}")
             
-        return self.__IMPLEMENTED_ALGORITHMS[package][algorithm](kwargs)
+        return self.__IMPLEMENTED_ALGORITHMS[package][algorithm](**kwargs)
 
     def setup_scikit_model(self, algorithm: str, **kwargs)->SciKitInterface:
         # Simple wrapper for scikit packages

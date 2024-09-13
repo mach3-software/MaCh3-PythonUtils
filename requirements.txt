@@ -4,3 +4,6 @@ scikit-learn
 toml
 uproot
 pandas
+statsmodels
+mpl_scatter_density
+scipy

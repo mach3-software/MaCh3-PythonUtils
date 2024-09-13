@@ -18,7 +18,7 @@ class ChainHandler:
     :param ttree_name: Name of TTree contained in ROOT file
     :type ttree_name: str, optional
     """
-    def __init__(self, file_name: str, ttree_name: str="posteriors")->None:
+    def __init__(self, file_name: str, ttree_name: str="posteriors", verbose=False)->None:
         '''
         Constructor method
         '''
@@ -40,6 +40,9 @@ class ChainHandler:
         self._ttree_array = None #For storing the eventual TTree
         
         self._is_file_open = True
+        
+        self._verbose = verbose
+        self._ignored_branches = []
 
     def close_file(self)->None:
         '''
@@ -85,12 +88,28 @@ class ChainHandler:
 
         branch_list = []
         for key in self._posterior_ttree.keys():
+            
+            if key in self._ignored_branches: continue
+            
             if any(var in key for var in additional_branches) and not exact: # Not the most efficient but adds variables to our list of variables
                 branch_list.append(key)
             elif exact and key in additional_branches:
                 branch_list.append(key)
 
         self._plotting_branches.extend(branch_list)
+    
+    def ignore_plots(self, ignored_branches: List[str]| str)->None:
+        if isinstance(ignored_branches, str):
+            ignored_branches = list(ignored_branches)
+            
+        for branch in ignored_branches:
+            if branch in self._ignored_branches: continue
+
+            self._ignored_branches.append(branch)
+    
+            if branch in self._plotting_branches:
+                self._plotting_branches.remove(branch)
+        
     
     def add_new_cuts(self, new_cuts: Union[str, List[str]])->None:
         '''
@@ -127,7 +146,11 @@ class ChainHandler:
             # Ensures we don't run into funny behaviour when uncompressing
             total_memory_needed = 8*self._posterior_ttree.uncompressed_bytes*(executor._max_workers) #in bytes
 
-            print(f"Using {executor._max_workers} threads and requiring {np.round(self._posterior_ttree.uncompressed_bytes*1e-9,3)} Gb memory")
+            if self._verbose:
+                print(f"Using {executor._max_workers} threads and requiring {np.round(self._posterior_ttree.uncompressed_bytes*1e-9,3)} Gb memory")
+                print("Using the following branches: ")
+                for i in self._plotting_branches:
+                    print(f"  -> {i}")
             
             # To make sure we don't run into any unpleasantness
             # total_available_memory = int(psutil.virtual_memory().available)
@@ -139,10 +162,12 @@ class ChainHandler:
             # warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
             # Now we generate an array object
             if len(self._plotting_branches)==0:
-                self._ttree_array = self._posterior_ttree.arrays(self._posterior_ttree.keys(), library='pd', decompression_executor=executor, interpretation_executor=executor) # Load in ROOT TTree
+                self._ttree_array = self._posterior_ttree.arrays(self._posterior_ttree.keys(), cut=cuts, library='pd', decompression_executor=executor, interpretation_executor=executor) # Load in ROOT TTree
             else:
-                self._ttree_array = self._posterior_ttree.arrays(self._plotting_branches, library='pd', array_cache=f"{total_memory_needed} b", decompression_executor=executor, interpretation_executor=executor) # Load in ROOT TTree
-            print(f"Converted TTree to pandas dataframe with {len(self._ttree_array)} elements")
+                self._ttree_array = self._posterior_ttree.arrays(self._plotting_branches, cut=cuts, library='pd', array_cache=f"{total_memory_needed} b", decompression_executor=executor, interpretation_executor=executor) # Load in ROOT TTree
+
+            if self._verbose:
+                print(f"Converted TTree to pandas dataframe with {len(self._ttree_array)} elements")
 
         if close_file:
             self.close_file()
