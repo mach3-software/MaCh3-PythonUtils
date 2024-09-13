@@ -27,17 +27,18 @@ if __name__=="__main__":
     file_handler.add_new_cuts(toml_config["FileSettings"]["ParameterCuts"])
 
     file_handler.convert_ttree_to_array()
-    
-    # Do some ML
+        
     factory = MLFactory(file_handler, toml_config["FileSettings"]["LabelName"])
-    
-    
     if toml_config["FitterSettings"]["FitterPackage"].lower() == "scikit":        
         interface = factory.setup_scikit_model(toml_config["FitterSettings"]["FitterName"],
                                    **toml_config["FitterSettings"]["FitterKwargs"])
         
     else:
         raise ValueError("Input not recognised!")
+    
+    if toml_config["FitterSettings"].get("AddFromExternalModel"):
+        external_model = toml_config["FitterSettings"]["ExternalModel"]
+        interface.load_model(external_model)
     
     interface.set_training_test_set(toml_config["FitterSettings"]["TestSize"])
     

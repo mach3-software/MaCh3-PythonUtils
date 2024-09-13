@@ -18,7 +18,8 @@ class MLFactory:
         "scikit" : {
             "randomforest"  : ske.RandomForestRegressor,
             "gradientboost" : ske.GradientBoostingRegressor,
-            "adaboost"      : ske.AdaBoostRegressor
+            "adaboost"      : ske.AdaBoostRegressor,
+            "histboost"     : ske.HistGradientBoostingRegressor
         },
         "tensorflow":
             {      

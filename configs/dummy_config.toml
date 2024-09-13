@@ -1,23 +1,24 @@
 [FileSettings]
-    FileName = "/users/php20hti/php20hti/public/chains/non_adaptive_normal_chain/Delayed_Fit_Long_Chains_no_delay_adapt_0_1.root"
+    FileName = "/users/php20hti/php20hti/public/chains/all_par_chain_without_adaption.root"
     # FileName = "/users/php20hti/t2ksft/regeneration_times_project/inputs/markov_chains/oscpar_only_datafit.root"
     ChainName = "posteriors"
     # ChainName = "osc_posteriors"
-    ParameterNames = ["sin2th","delm2_12", "delta", "xsec"]
+    ParameterNames = ["sin2th","delm2", "delta", "xsec", "sk", "nd"]
     # ParameterNames = ["d", "th"]
     LabelName = "LogL"
-    IgnoredParameters = ["LogL_systematic_xsec_cov"]
+    IgnoredParameters = ["LogL_systematic_xsec_cov", "Log", "LogL_systematic_nddet_cov", ]
     ParameterCuts = ["LogL<12345678", "step>10000"]
-    Verbose = true
+    Verbose = false
 
 
 [FitterSettings]
     FitterPackage = "SciKit"
-    FitterName = "RandomForest"
-    # FitterName = "AdaBoost"
+#    FitterName = "RandomForest"
+    FitterName = "HistBoost"
     TestSize = 0.2
     # Set fitter Hyper Parameters
     [FitterSettings.FitterKwargs]
-            n_jobs = 32
+            # n_jobs = 32
             verbose=true
+            max_iter = 100000
             # n_estimators = 200

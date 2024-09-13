@@ -13,6 +13,7 @@ import numpy as np
 from astropy.visualization import LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
 
+import pickle
 
 class FmlInterface(ABC):
     """Abstract interface with file handler which should be used for ML models
@@ -79,6 +80,14 @@ class FmlInterface(ABC):
         # Test Model
         pass
     
+    def save_model(self, output_file: str):
+        print(f"Saving to {output_file}")
+        pickle.dump(self._model, f"{output_file}")
+        
+    def load_model(self, input_file: str):
+        print(f"Attempting to load file from {input_file}")
+        self._model = pickle.load(input_file)
+    
     def evaluate_model(self, predicted_values, true_values, outfile: str=""):
         print(f"Mean Absolute Error : {metrics.mean_absolute_error(predicted_values,true_values)}")
         
@@ -88,7 +97,6 @@ class FmlInterface(ABC):
         
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1, projection='scatter_density')
-        norm = ImageNormalize(vmin=0., vmax=10000, stretch=LogStretch())
 
         density = ax.scatter_density(predicted_values, true_values, cmap=self.white_viridis)
         fig.colorbar(density, label="number of points per pixel")
@@ -98,9 +106,9 @@ class FmlInterface(ABC):
             np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
         ]
 
-        ax.plot(lims, lobf(lims), "w-", label=f"Best fit: true={lobf.c[0]}pred + {lobf.c[1]}")
+        ax.plot(lims, lobf(lims), "w-", label=f"Best fit: true={lobf.c[0]}pred + {lobf.c[1]}", linestyle="dashed", linewidth=0.3)
 
-        ax.plot(lims, lims, 'r-', alpha=0.75, zorder=0, label="true=predicted")
+        ax.plot(lims, lims, 'r-', alpha=0.75, zorder=0, label="true=predicted", linestyle="dashed", linewidth=0.3)
         ax.set_aspect('equal')
         ax.set_xlim(lims)
         ax.set_ylim(lims)
