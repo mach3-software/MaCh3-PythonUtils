@@ -34,7 +34,7 @@ class SciKitInterface(FmlInterface):
         if self._test_data is None or self._test_labels is None:
             raise ValueError("No training data set")
 
-        prediction = self.model_predict(self._test_data)
+        prediction = self.model_predict(self._test_data)~
         test_as_numpy = self._test_labels.to_numpy().T[0]
         
         self.evaluate_model(prediction, test_as_numpy)

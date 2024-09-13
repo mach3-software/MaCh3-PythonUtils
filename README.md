@@ -3,46 +3,46 @@
 Very simple tool for predicting likelihoods from Markov Chains Using ML tools. Currently only accepts chains where all variables are saved within a ROOT TTree. 
 
 # Configs
-Configs are in TOML format
+Configs are in YAML format
 
-```toml
-[FileSettings]
-    FileName = "/path/to/file"  # Name of File
-    ChainName = "/tree/name"    # Name of Tree in file containing chain
+```yaml
+FileSettings:
+    FileName : "/path/to/file"  # Name of File
+    ChainName : "/tree/name"    # Name of Tree in file containing chain
 
     # Names of parameters to fit, finds all parameters containing names in this string as sub-string
-    ParameterNames = ["sin2th", "sin2th","delm2_12", "delta", "xsec"]
+    ParameterNames : ["sin2th", "sin2th","delm2_12", "delta", "xsec"]
 
     # Name of variable you're fitting in
-    LabelName = "LogL"
+    LabelName : "LogL"
     
     # Parameters you don't want to include in the model
-    IgnoredParameters = ["LogL_systematic_xsec_cov", "Log", "LogL_systematic_nddet_cov", ]
+    IgnoredParameters : ["LogL_systematic_xsec_cov", "Log", "LogL_systematic_nddet_cov", ]
 
     # Any cuts, for MaCh3 I'd recommend capping LogL
-    ParameterCuts = ["LogL<12345678", "step>10000"]
+    ParameterCuts : ["LogL<12345678", "step>10000"]
 
     # Do you want it to be verbose?
-    Verbose = false
+    Verbose:= false
 
     # Where is the model being pickled?
-    ModelOutputName="histboost_model_full.pkl"
+    ModelOutputName : "histboost_model_full.pkl"
 
 
-[FitterSettings]
+FitterSettings:
     # Package model is included in
-    FitterPackage = "SciKit" 
+    FitterPackage : "SciKit" 
 
     # Fitter Name
-    FitterName = "HistBoost"
+    FitterName : "HistBoost"
 
     # Size of test set (range is 0-1)
-    TestSize = 0.8
+    TestSize : 0.8
     # Set fitter Hyper Parameters, these are found in the fitter's readme
-    [FitterSettings.FitterKwargs]
+    FitterKwargs:
             # n_jobs = 32
-            verbose=true
-            max_iter = 10000
+            verbose: True
+            max_iter: 10000
             # n_estimators = 200
 
 ```
