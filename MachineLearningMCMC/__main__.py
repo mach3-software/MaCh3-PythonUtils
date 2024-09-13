@@ -2,8 +2,8 @@ import toml
 import argparse
 
 from file_handling.chain_handler import ChainHandler
+from machine_learning.ml_factory import MLFactory
 from machine_learning.scikit_interface import SciKitInterface
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 
 if __name__=="__main__":
         
@@ -23,19 +23,16 @@ if __name__=="__main__":
     file_handler.convert_ttree_to_array()
     
     # Do some ML
-    regressor = SciKitInterface(file_handler, toml_config["FileSettings"]["LabelName"])
+    factory = MLFactory(file_handler, toml_config["FileSettings"]["LabelName"])
     
-    # Setup random forest  
-    if toml_config["FitterSettings"]["FitterObject"]=="RandomForest":
-        model = RandomForestRegressor(verbose=True, n_jobs=8)
-    elif toml_config["FitterSettings"]["FitterObject"]=="GradientBoost":
-        model = GradientBoostingRegressor(verbose=True, n_estimators=300)
+    if toml_config["FitterSettings"]["FitterPackage"].lower() == "scikit":        
+        interface = factory.setup_scikit_model(toml_config["FitterSettings"]["FitterName"],
+                                   **toml_config["FitterSettings"]["FitterKwargs"])
+        
     else:
-        raise ValueError(f"Couldn't find correct input type sorry")
+        raise ValueError("Input not recognised!")
     
+    interface.set_training_test_set(toml_config["FitterSettings"]["TestSize"])
     
-    regressor.add_model(model)
-    regressor.set_training_test_set(0.40)
-    
-    regressor.train_model()
-    regressor.test_model()
+    interface.train_model()
+    interface.train_model()

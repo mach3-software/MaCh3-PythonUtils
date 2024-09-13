@@ -5,4 +5,11 @@
     LabelName = "LogL"
 
 [FitterSettings]
-    FitterObject = "GradientBoost" # "RandomForest"
+    FitterPackage = "SciKit"
+    FitterName = "AdaBoost" # "RandomForest"
+    TestSize = 40
+    # Set fitter Hyper Parameters
+    [FitterKwargs]
+        n_estimators = 50
+        loss = "square"
+        learning_rate = 1.0
