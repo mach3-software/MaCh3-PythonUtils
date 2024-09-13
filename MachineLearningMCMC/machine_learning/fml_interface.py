@@ -82,11 +82,13 @@ class FmlInterface(ABC):
     
     def save_model(self, output_file: str):
         print(f"Saving to {output_file}")
-        pickle.dump(self._model, f"{output_file}")
+        with open(output_file, 'wb') as f:
+            pickle.dump(self._model, f)
         
     def load_model(self, input_file: str):
         print(f"Attempting to load file from {input_file}")
-        self._model = pickle.load(input_file)
+        with open(input_file, 'r') as f:
+            self._model = pickle.load(f)
     
     def evaluate_model(self, predicted_values, true_values, outfile: str=""):
         print(f"Mean Absolute Error : {metrics.mean_absolute_error(predicted_values,true_values)}")

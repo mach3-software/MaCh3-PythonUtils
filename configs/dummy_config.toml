@@ -9,16 +9,17 @@
     IgnoredParameters = ["LogL_systematic_xsec_cov", "Log", "LogL_systematic_nddet_cov", ]
     ParameterCuts = ["LogL<12345678", "step>10000"]
     Verbose = false
+    ModelOutputName="histboost_model_full.pkl"
 
 
 [FitterSettings]
     FitterPackage = "SciKit"
 #    FitterName = "RandomForest"
     FitterName = "HistBoost"
-    TestSize = 0.2
+    TestSize = 0.8
     # Set fitter Hyper Parameters
     [FitterSettings.FitterKwargs]
             # n_jobs = 32
             verbose=true
-            max_iter = 100000
+            max_iter = 10000
             # n_estimators = 200

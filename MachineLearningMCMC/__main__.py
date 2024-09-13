@@ -44,3 +44,4 @@ if __name__=="__main__":
     
     interface.train_model()
     interface.test_model()
+    interface.save_model(toml_config["FileSettings"]["ModelOutputName"])

@@ -30,11 +30,7 @@ class MLFactory:
         # Common chain across all instances of factory
         self._chain = input_chain
         self._prediction_variable = prediction_variable
-        
-        
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
-        pass
-    
+            
 
     def __setup_package_factory(self, package: str, algorithm: str, **kwargs):
         """
