@@ -12,7 +12,7 @@ if __name__=="__main__":
     args = parser.parse_args()
     
     with open(args.config, 'r') as c:
-        yaml_config = pyyaml.load(c)    
+        yaml_config = yaml.safe_load(c)    
     
     # Process MCMC chain    
     file_handler = ChainHandler(yaml_config["FileSettings"]["FileName"],

@@ -8,8 +8,8 @@ FileSettings:
     LabelName : "LogL"
     IgnoredParameters : ["LogL_systematic_xsec_cov", "Log", "LogL_systematic_nddet_cov", ]
     ParameterCuts : ["LogL<12345678", "step>10000"]
-    Verbose : false
-    ModelOutputName:"histboost_model_full.pkl"
+    Verbose : False
+    ModelOutputName: "histboost_model_full.pkl"
 
 
 FitterSettings:

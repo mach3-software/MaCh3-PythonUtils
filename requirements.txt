@@ -8,3 +8,4 @@ statsmodels
 mpl_scatter_density
 scipy
 astropy
+pyyaml
