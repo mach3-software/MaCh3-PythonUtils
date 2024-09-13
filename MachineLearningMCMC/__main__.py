@@ -1,4 +1,4 @@
-import pyyaml
+import yaml
 import argparse
 
 from file_handling.chain_handler import ChainHandler
