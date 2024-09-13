@@ -1,0 +1,33 @@
+# This scans MaCh3 and tries to find vulnerabilities
+
+name: "CodeQL"
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Every Sunday at midnight
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        language: [ 'python' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ matrix.language }}
+
+    - name: Build
+      run: |
+        pip install -r requirements.txt
+        # Add commands to build your code if necessary
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
