@@ -3,7 +3,7 @@ HI : Contains a set of base classes with methods common to posterior plotting co
 Separated into 1D and 2D-like objects to make life easier
 '''
 from file_handling.chain_handler import ChainHandler
-from diagnostics.plotters.plotter_base import _PlottingBaseClass
+from diagnostics.mcmc_plots.plotter_base import _PlottingBaseClass
 from typing import List
 import numpy as np
 from tqdm.auto import tqdm

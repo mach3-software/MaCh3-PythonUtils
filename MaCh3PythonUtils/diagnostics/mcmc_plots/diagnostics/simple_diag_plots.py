@@ -6,7 +6,7 @@ from typing import List
 from file_handling.chain_handler import ChainHandler
 import arviz as az
 from matplotlib import pyplot as plt
-from diagnostics.plotters.plotter_base import _PlottingBaseClass
+from diagnostics.mcmc_plots.plotter_base import _PlottingBaseClass
 from matplotlib.figure import Figure
 
 class EffectiveSampleSizePlotter(_PlottingBaseClass):

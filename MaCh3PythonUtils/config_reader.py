@@ -4,8 +4,8 @@ from file_handling.chain_handler import ChainHandler
 from machine_learning.ml_factory import MLFactory
 from machine_learning.fml_interface import FmlInterface
 from diagnostics.interface.plotting_interface import PlottingInterface
-import diagnostics.plotters.posteriors as m3post
-import diagnostics.plotters.diagnostics as m3diag
+import diagnostics.mcmc_plots.posteriors as m3post
+import diagnostics.mcmc_plots.diagnostics as m3diag
 from pydantic.utils import deep_update
 
 class ConfigReader:    

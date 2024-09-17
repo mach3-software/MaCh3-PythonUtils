@@ -6,7 +6,7 @@ import arviz as az
 from typing import List, Any
 from matplotlib import pyplot as plt
 from itertools import combinations
-from diagnostics.plotters.posteriors.posterior_base_classes import _PosteriorPlottingBase
+from diagnostics.mcmc_plots.posteriors.posterior_base_classes import _PosteriorPlottingBase
 from matplotlib.figure import Figure
 import numpy as np
 import numpy.typing as npt

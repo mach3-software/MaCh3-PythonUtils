@@ -3,7 +3,7 @@ Interface class for making plots!
 '''
 from typing import List
 from file_handling.chain_handler import ChainHandler
-import diagnostics.plotters as pt
+import diagnostics.mcmc_plots as pt
 from matplotlib.backends.backend_pdf import PdfPages
 import arviz as az
 
@@ -124,7 +124,7 @@ class PlottingInterface:
         inputs :
             latex_output_name : [type=str, optional] name of output file
         '''
-        summary = az.summary(self._file_loader.ttree_array, kind='stats', hdi_prob=0.9)
+        summary = az.summary(self._file_loader.arviz_tree, kind='stats', hdi_prob=0.9)
         if latex_output_name is None:
             return
 
