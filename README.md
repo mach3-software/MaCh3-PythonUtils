@@ -5,6 +5,8 @@ Very simple tool for predicting likelihoods from Markov Chains Using ML tools. C
 # Configs
 Configs are in YAML format
 
+For all pacakges the initial setup is very similar:
+
 ```yaml
 FileSettings:
     FileName : "/path/to/file"  # Name of File
@@ -27,8 +29,10 @@ FileSettings:
 
     # Where is the model being pickled?
     ModelOutputName : "histboost_model_full.pkl"
+```
 
-
+For scikit learn based pacakges the settings are then set in the following way, where FitterKwargs directly sets the keyword arguments for the scikit fitting tool being used
+```yaml
 FitterSettings:
     # Package model is included in
     FitterPackage : "SciKit" 
@@ -44,8 +48,41 @@ FitterSettings:
             verbose: True
             max_iter: 10000
             # n_estimators = 200
+```
+
+For TensorFlow based packages the settings are more complex
+```yaml
+FitterSettings:
+
+    FitterPackage : "TensorFlow"
+    FitterName : "Sequential"
+    TestSize : 0.9
+
+    FitterKwargs:
+        BuildSettings:
+            optimizer: 'adam'
+            loss: 'mse'
+
+        FitSettings:
+            epochs: 20
+            batch_size: 20
+
+        Layers:
+            - dense:
+                units: 128
+            - dense:
+                units: 64
+            - dropout:
+                rate: 0.5
+            - dense: 
+                units: 16
+            - dense:
+                units: 1
 
 ```
+
+Here FitterKwargs is now split into sub-settings with `BuildSettings` being passed to the model `compile` method, `FitSettings` setting up training information, and `Layers` defining the types + kwargs of each layer in the model. New layers can be implemented in the `__TF_LAYER_IMPLEMENTATIONS` object which lives in `machine_learning/tf_interface`
+
 # Executables
 Simply run `python MachineLearningMCMC -c /path/to/toml/config` and it'll automatically run the chain. 
 

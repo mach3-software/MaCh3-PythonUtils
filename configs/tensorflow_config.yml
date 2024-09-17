@@ -7,16 +7,37 @@ FileSettings:
     # ParameterNames : ["d", "th"]
     LabelName : "LogL"
     IgnoredParameters : ["LogL_systematic_xsec_cov", "Log", "LogL_systematic_nddet_cov", ]
-    ParameterCuts : ["LogL<12345678", "step>10000"]
+    ParameterCuts : ["step>10000"] #["LogL<12345678", "step>10000"]
     Verbose : False
-    ModelOutputName: "histboost_model_full.pkl"
-
+    ModelOutputName: "tf_model_full.pkl"
 
 FitterSettings:
-    FitterPackage : "SciKit"
-    FitterName : "HistBoost"
-    TestSize : 0.8
+
+    FitterPackage : "TensorFlow"
+    FitterName : "Sequential"
+    TestSize : 0.9
+
     FitterKwargs:
-            # n_jobs : 32
-            verbose: True
-            max_iter: 10000
+        BuildSettings:
+            optimizer: 'adam'
+            loss: 'mse'
+
+        TrainSettings:
+            epochs: 20
+            batch_size: 20
+
+        Layers:
+            - dense:
+                units: 128
+            - dense:
+                units: 64
+            - dropout:
+                rate: 0.5
+            - dense: 
+                units: 16
+            - dense:
+                units: 1
+
+        FitSettings:
+            batch_size: 20
+            epochs: 100
