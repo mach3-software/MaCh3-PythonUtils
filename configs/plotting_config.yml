@@ -6,7 +6,7 @@ FileSettings:
   Verbose : False
   # Model Settings
   MakeDiagnostics: True
-  MakePosteriors: True
+  MakePosteriors: False
 
 ParameterSettings:
   ParameterNames : ["xsec"]
@@ -35,10 +35,16 @@ PlottingSettings:
     PrintSummary: True
 
   PosteriorSettings:
+    # Output PDF
     PosteriorOutputFile: "posteriors.pdf"
+    # Do you want 1D CIs?
     Make1DPosteriors: True
+    # Plotted CIs
     CredibleIntervals: [0.6, 0.90, 0.95]
+    # Do you want 2D CIs?
     Make2DPosteriors: False
+    # Do you want a triangle plot?
     MakeTrianglePlot: False
+    # variables to put in the triangle plot
     TrianglePlot: []
   

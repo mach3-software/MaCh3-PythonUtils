@@ -4,8 +4,6 @@ FileSettings:
     ChainName : "posteriors"
     # ChainName : "osc_posteriors"
     Verbose : False
-    ModelOutputName: "tf_model_full.pkl"
-
     # Model Settings
     MakeMLModel: True
 

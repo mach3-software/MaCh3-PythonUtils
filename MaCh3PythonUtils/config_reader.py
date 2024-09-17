@@ -158,19 +158,19 @@ class ConfigReader:
         diagnostic_labels = []
 
         if self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['MakeViolin']:
-            self._plotting_interface.initialise_new_plotter(m3diag.ViolinPlotter(self._file_handler), 'violin_plotter')
+            self._plot_interface.initialise_new_plotter(m3diag.ViolinPlotter(self._file_handler), 'violin_plotter')
             diagnostic_labels.append('violin_plotter')
         if self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['MakeTraceAC']:
-            self._plotting_interface.initialise_new_plotter(m3diag.AutocorrelationTracePlotter(self._file_handler), 'trace_autocorr')
+            self._plot_interface.initialise_new_plotter(m3diag.AutocorrelationTracePlotter(self._file_handler), 'trace_autocorr')
             diagnostic_labels.append('trace_autocorr')
         if self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['MakeESS']:
-            self._plotting_interface.initialise_new_plotter(m3diag.EffectiveSampleSizePlotter(self._file_handler), 'ess_plot')
+            self._plot_interface.initialise_new_plotter(m3diag.EffectiveSampleSizePlotter(self._file_handler), 'ess_plot')
             diagnostic_labels.append('ess_plot')
         if self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['MakeMCSE']:
-            self._plotting_interface.initialise_new_plotter(m3diag.MarkovChainStandardError(self._file_handler), 'msce_plot')
+            self._plot_interface.initialise_new_plotter(m3diag.MarkovChainStandardError(self._file_handler), 'msce_plot')
             diagnostic_labels.append('msce_plot')
 
-        self._plotting_interface.make_plots(self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['DiagnosticsOutputFile'], diagnostic_labels)
+        self._plot_interface.make_plots(self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['DiagnosticsOutputFile'], diagnostic_labels)
 
         # Final one, covariance plotter
         if self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['MakeSuboptimality']:
@@ -180,7 +180,7 @@ class ConfigReader:
 
         # Finally let's make a quick simmary
         if self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['PrintSummary']:
-            self._plotting_interface.print_summary(f"summary_{self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['DiagnosticsOutputFile']}.txt")
+            self._plot_interface.print_summary(f"summary_{self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['DiagnosticsOutputFile']}.txt")
 
     def make_ml_interface(self)->None:
         if self._file_handler is None:
