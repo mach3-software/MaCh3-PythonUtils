@@ -20,6 +20,7 @@ MLSettings:
     FitterPackage : "TensorFlow"
     FitterName : "Sequential"
     TestSize : 0.4
+    MLOutputName: "tf_model_full.keras"
 
     FitterKwargs:
         BuildSettings:
@@ -43,6 +44,3 @@ MLSettings:
 
         FitSettings:
             batch_size: 100
-            epochs: 200
-    
-    MLOutputName: "tf_model_full.keras"
