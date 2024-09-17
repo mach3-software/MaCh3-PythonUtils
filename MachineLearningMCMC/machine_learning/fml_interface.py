@@ -109,6 +109,8 @@ class FmlInterface(ABC):
     def evaluate_model(self, predicted_values, true_values, outfile: str=""):
         print(f"Mean Absolute Error : {metrics.mean_absolute_error(predicted_values,true_values)}")
         
+        print(predicted_values)
+        
         lobf = np.poly1d(np.polyfit(predicted_values, true_values, 1))
         
         print(f"Line of best fit : y={lobf.c[0]}x + {lobf.c[1]}")

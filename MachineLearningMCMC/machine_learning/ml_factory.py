@@ -44,7 +44,6 @@ class MLFactory:
                              {list(self.__IMPLEMENTED_ALGORITHMS.keys())}")
         
         algorithm = algorithm.lower()
-        print(package)
         
         if algorithm not in self.__IMPLEMENTED_ALGORITHMS[package].keys():
             raise ValueError(f"{algorithm} not implemented for {package}, currently accepted algorithms for {package} are:\n \

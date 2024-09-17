@@ -36,7 +36,7 @@ class TfInterface(FmlInterface):
         self._model.compile(**kwargs_dict)
             
     def set_training_settings(self, kwargs):
-        self._training_settings = kwargs    
+        self._training_settings = kwargs 
         
     def train_model(self):
         self._model.fit(self._training_data, self._training_labels, **self._training_settings)
@@ -48,4 +48,4 @@ class TfInterface(FmlInterface):
         self._model = tf.saved_model.load(input_file)
     
     def model_predict(self, testing_data):
-        return self._model.predict_on_batch(testing_data)
+        return self._model.predict_on_batch(testing_data).reshape(1,-1)

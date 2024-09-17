@@ -22,10 +22,6 @@ FitterSettings:
             optimizer: 'adam'
             loss: 'mse'
 
-        TrainSettings:
-            epochs: 20
-            batch_size: 20
-
         Layers:
             - dense:
                 units: 128
