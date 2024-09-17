@@ -9,7 +9,6 @@ from matplotlib.colors import LinearSegmentedColormap
 from sklearn import metrics
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
-import scipy.stats as stats
 import numpy as np
 
 import pickle
