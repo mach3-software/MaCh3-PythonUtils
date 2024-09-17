@@ -9,7 +9,7 @@ FileSettings:
     IgnoredParameters : ["LogL_systematic_xsec_cov", "Log", "LogL_systematic_nddet_cov", ]
     ParameterCuts : ["step>10000"] #["LogL<12345678", "step>10000"]
     Verbose : False
-    ModelOutputName: "tf_model_full.pkl"
+    ModelOutputName: "tf_model_full.keras"
 
 FitterSettings:
 
@@ -35,5 +35,5 @@ FitterSettings:
                 units: 1
 
         FitSettings:
-            batch_size: 20
-            epochs: 100
+            batch_size: 100
+            epochs: 10
