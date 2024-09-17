@@ -25,6 +25,7 @@ class TfInterface(FmlInterface):
         self._layers.append(self.__TF_LAYER_IMPLEMENTATIONS[layer_id.lower()](**layer_args))
     
     def build_model(self, kwargs_dict):
+        
         if self._model is None or not self._layers:
             raise ValueError("No model can be built! Please setup model and layers")
         
@@ -42,10 +43,11 @@ class TfInterface(FmlInterface):
         self._model.fit(self._training_data, self._training_labels, **self._training_settings)
     
     def save_model(self, output_file: str):
-        self._model.export(output_file)
+        self._model.save(output_file)
         
     def load_model(self, input_file: str):
         self._model = tf.saved_model.load(input_file)
     
     def model_predict(self, testing_data):
-        return self._model.predict_on_batch(testing_data).reshape(1,-1)
+        # Hacky but means it's consistent with sci-kit interface
+        return self._model.predict_on_batch(testing_data).T[0]
