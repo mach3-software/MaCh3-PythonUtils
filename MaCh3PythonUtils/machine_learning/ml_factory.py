@@ -51,13 +51,13 @@ class MLFactory:
             
         return self.__IMPLEMENTED_ALGORITHMS[package][algorithm](*kwargs)
 
-    def setup_scikit_model(self, algorithm: str, **kwargs)->SciKitInterface:
+    def make_scikit_model(self, algorithm: str, **kwargs)->SciKitInterface:
         # Simple wrapper for scikit packages
         interface = SciKitInterface(self._chain, self._prediction_variable)
         interface.add_model(self.__setup_package_factory(package="scikit", algorithm=algorithm, **kwargs))
         return interface
     
-    def setup_tensorflow_model(self, algorithm: str,  **kwargs):
+    def make_tensorflow_model(self, algorithm: str,  **kwargs):
         interface = TfInterface(self._chain, self._prediction_variable)
         
         interface.add_model(self.__setup_package_factory(package="tensorflow", algorithm=algorithm))

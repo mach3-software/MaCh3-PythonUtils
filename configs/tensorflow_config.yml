@@ -44,4 +44,3 @@ MLSettings:
 
         FitSettings:
             batch_size: 100
-            epochs: 200
