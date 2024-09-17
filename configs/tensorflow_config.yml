@@ -1,0 +1,39 @@
+FileSettings:
+    FileName : "/users/php20hti/php20hti/public/chains/all_par_chain_without_adaption.root"
+    # FileName : "/users/php20hti/t2ksft/regeneration_times_project/inputs/markov_chains/oscpar_only_datafit.root"
+    ChainName : "posteriors"
+    # ChainName : "osc_posteriors"
+    ParameterNames : ["sin2th","delm2", "delta", "xsec", "sk", "nd"]
+    # ParameterNames : ["d", "th"]
+    LabelName : "LogL"
+    IgnoredParameters : ["LogL_systematic_xsec_cov", "Log", "LogL_systematic_nddet_cov", ]
+    ParameterCuts : ["step>10000"] #["LogL<12345678", "step>10000"]
+    Verbose : False
+    ModelOutputName: "tf_model_full.keras"
+
+FitterSettings:
+
+    FitterPackage : "TensorFlow"
+    FitterName : "Sequential"
+    TestSize : 0.9
+
+    FitterKwargs:
+        BuildSettings:
+            optimizer: 'adam'
+            loss: 'mse'
+
+        Layers:
+            - dense:
+                units: 128
+            - dense:
+                units: 64
+            - dropout:
+                rate: 0.5
+            - dense: 
+                units: 16
+            - dense:
+                units: 1
+
+        FitSettings:
+            batch_size: 100
+            epochs: 10

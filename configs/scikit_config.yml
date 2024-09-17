@@ -7,16 +7,16 @@ FileSettings:
     # ParameterNames : ["d", "th"]
     LabelName : "LogL"
     IgnoredParameters : ["LogL_systematic_xsec_cov", "Log", "LogL_systematic_nddet_cov", ]
-    ParameterCuts : ["LogL<12345678", "step>10000"]
+    ParameterCuts : ["step>10000"] #["LogL<12345678", "step>10000"]
     Verbose : False
-    ModelOutputName: "histboost_model_full.pkl"
-
+    ModelOutputName: "tf_model_full.pkl"
 
 FitterSettings:
+
     FitterPackage : "SciKit"
-    FitterName : "HistBoost"
-    TestSize : 0.8
+    FitterName : "histboost"
+    TestSize : 0.9
+
     FitterKwargs:
-            # n_jobs : 32
-            verbose: True
-            max_iter: 10000
+        max_iter: 10000
+        

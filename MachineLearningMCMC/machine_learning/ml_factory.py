@@ -5,12 +5,11 @@ ML Factory implementation, effectively a selector for making models
 from typing import Any, Dict
 
 from machine_learning.scikit_interface import SciKitInterface
+from machine_learning.tf_interface import TfInterface
 import sklearn.ensemble as ske
+import tensorflow.keras as tfk
 
 from file_handling.chain_handler import ChainHandler
-from functools import partial
-
-
 
 class MLFactory:
     # Implement algorithms here
@@ -22,7 +21,8 @@ class MLFactory:
             "histboost"     : ske.HistGradientBoostingRegressor
         },
         "tensorflow":
-            {      
+            {
+                "sequential" : tfk.Sequential
             }
     }
 
@@ -37,18 +37,19 @@ class MLFactory:
         Rough method for setting up a package
         """
         
+        
         package   = package.lower()
-        if package not in self.__IMPLEMENTED_ALGORITHMS:
+        if package not in self.__IMPLEMENTED_ALGORITHMS.keys():
             raise ValueError(f"{package} not included, currently accepted packages are :\n  \
                              {list(self.__IMPLEMENTED_ALGORITHMS.keys())}")
         
         algorithm = algorithm.lower()
         
-        if algorithm not in self.__IMPLEMENTED_ALGORITHMS[package]:
+        if algorithm not in self.__IMPLEMENTED_ALGORITHMS[package].keys():
             raise ValueError(f"{algorithm} not implemented for {package}, currently accepted algorithms for {package} are:\n \
                              {list(self.__IMPLEMENTED_ALGORITHMS[package].keys())}")
             
-        return self.__IMPLEMENTED_ALGORITHMS[package][algorithm](**kwargs)
+        return self.__IMPLEMENTED_ALGORITHMS[package][algorithm](*kwargs)
 
     def setup_scikit_model(self, algorithm: str, **kwargs)->SciKitInterface:
         # Simple wrapper for scikit packages
@@ -56,7 +57,18 @@ class MLFactory:
         interface.add_model(self.__setup_package_factory(package="scikit", algorithm=algorithm, **kwargs))
         return interface
     
-    def setup_tensorflow_model(self, algorithm: str, network_structure: Dict[str, Any], **kwargs):
-        model = self.__setup_package_factory(package="tesnorflow", algorithm=algorithm, kwargs=kwargs)
-        return model
-    
+    def setup_tensorflow_model(self, algorithm: str,  **kwargs):
+        interface = TfInterface(self._chain, self._prediction_variable)
+        
+        interface.add_model(self.__setup_package_factory(package="tensorflow", algorithm=algorithm))
+        
+        
+        for layer in kwargs["Layers"]:
+            layer_id = list(layer.keys())[0]
+            
+            interface.add_layer(layer_id, layer[layer_id])
+            
+        interface.build_model(kwargs["BuildSettings"])
+        
+        interface.set_training_settings(kwargs["FitSettings"])
+        return interface
