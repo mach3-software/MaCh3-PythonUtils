@@ -10,8 +10,6 @@ from sklearn import metrics
 import matplotlib.pyplot as plt
 import scipy.stats as stats
 import numpy as np
-from astropy.visualization import LogStretch
-from astropy.visualization.mpl_normalize import ImageNormalize
 
 import pickle
 
@@ -60,6 +58,10 @@ class FmlInterface(ABC):
         # Returns model being used
         return self._model    
     
+    @property
+    def training_data(self)->pd.DataFrame:
+        return self._training_data
+    
     def add_model(self, ml_model: Any)->None:
         # Add ML model into your interface
         self._model = ml_model
@@ -89,6 +91,20 @@ class FmlInterface(ABC):
         print(f"Attempting to load file from {input_file}")
         with open(input_file, 'r') as f:
             self._model = pickle.load(f)
+        
+    def test_model(self):
+        
+        if self._model is None:
+            raise ValueError("No Model has been set!")
+
+        if self._test_data is None or self._test_labels is None:
+            raise ValueError("No test data set")
+
+        prediction = self.model_predict(self._test_data)
+        test_as_numpy = self._test_labels.to_numpy().T[0]
+        
+        self.evaluate_model(prediction, test_as_numpy)
+            
     
     def evaluate_model(self, predicted_values, true_values, outfile: str=""):
         print(f"Mean Absolute Error : {metrics.mean_absolute_error(predicted_values,true_values)}")
@@ -125,3 +141,11 @@ class FmlInterface(ABC):
         print(f"Saving QQ to {outfile}")
             
         fig.savefig(outfile)
+        plt.close()
+        
+        # Gonna draw a hist
+        difs = true_values-predicted_values
+        print(f"mean: {np.mean(difs)}, std dev: {np.std(difs)}")
+        plt.hist(difs, bins=100, density=True, range=(np.std(difs)*-5, np.std(difs)*5))
+        plt.xlabel("True - Pred")
+        plt.savefig(f"diffs_5sigma_range_{outfile}")

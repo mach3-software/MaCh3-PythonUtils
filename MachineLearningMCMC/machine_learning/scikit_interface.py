@@ -4,6 +4,11 @@ from pandas import DataFrame
 from file_handling.chain_handler import ChainHandler
 from machine_learning.fml_interface import FmlInterface
 
+"""
+TODO: 
+ - Add staged predict
+"""
+
 class SciKitInterface(FmlInterface):
     def __init__(self, chain: ChainHandler, prediction_variable: str) -> None:
         super().__init__(chain, prediction_variable)
@@ -26,15 +31,3 @@ class SciKitInterface(FmlInterface):
 
         return self._model.predict(test_data)
     
-    def test_model(self):
-        
-        if self._model is None:
-            raise ValueError("No Model has been set!")
-
-        if self._test_data is None or self._test_labels is None:
-            raise ValueError("No training data set")
-
-        prediction = self.model_predict(self._test_data)
-        test_as_numpy = self._test_labels.to_numpy().T[0]
-        
-        self.evaluate_model(prediction, test_as_numpy)
