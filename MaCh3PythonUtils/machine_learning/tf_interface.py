@@ -48,6 +48,9 @@ class TfInterface(FmlInterface):
     def load_model(self, input_file: str):
         self._model = tf.saved_model.load(input_file)
     
-    def model_predict(self, testing_data):
+    def model_predict(self, test_data):
+        
+        scale_data = self._scalar.transform(test_data)
+
         # Hacky but means it's consistent with sci-kit interface
-        return self._model.predict_on_batch(testing_data).T[0]
+        return self._model.predict_on_batch(scale_data).T[0]

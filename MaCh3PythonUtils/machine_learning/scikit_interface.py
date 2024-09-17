@@ -26,8 +26,11 @@ class SciKitInterface(FmlInterface):
         self._model.fit(self._training_data, self._training_labels)
         
     def model_predict(self, test_data: DataFrame):
+        
+        scale_data = self._scalar.transform(test_data)
+        
         if self._model is None:
             raise ValueError("No Model has been set!")
 
-        return self._model.predict(test_data)
+        return self._model.predict(scale_data)
     
