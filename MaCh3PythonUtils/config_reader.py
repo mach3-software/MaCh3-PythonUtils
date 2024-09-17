@@ -6,7 +6,7 @@ from machine_learning.fml_interface import FmlInterface
 from diagnostics.interface.plotting_interface import PlottingInterface
 import diagnostics.mcmc_plots.posteriors as m3post
 import diagnostics.mcmc_plots.diagnostics as m3diag
-from pydantic.utils import deep_update
+from pydantic.v1.utils import deep_update
 
 class ConfigReader:    
     
