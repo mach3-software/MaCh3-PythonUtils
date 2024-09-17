@@ -8,6 +8,7 @@ import warnings
 from concurrent.futures import ThreadPoolExecutor
 import gc
 import numpy as np
+import arviz as az
 
 class ChainHandler:
     """
@@ -43,6 +44,8 @@ class ChainHandler:
         
         self._verbose = verbose
         self._ignored_branches = []
+
+        self._arviz_tree = None
 
     def close_file(self)->None:
         '''
@@ -183,7 +186,7 @@ class ChainHandler:
         :rtype: Union[np.array, pd.DataFrame, ak.Array]
         '''
         return self._ttree_array
-
+    
     @ttree_array.setter
     def ttree_array(self, new_array: Any=None)->None:
         '''
@@ -193,3 +196,15 @@ class ChainHandler:
         '''
         # Implemented in case someone tries to do something daft!
         raise NotImplementedError("Cannot set converted TTree array to new type")
+    
+    def make_arviz_tree(self):
+        if self._ttree_array is None:
+            raise RuntimeError("Error have not converted ROOT TTree to pandas data frame yet!")
+
+        print("Generating Arviz data struct [this may take some time!]")
+        self._arviz_tree = az.dict_to_dataset(self._ttree_array.to_dict(orient='list'))
+        
+ 
+    @property
+    def arviz_tree(self):
+        return self._arviz_tree

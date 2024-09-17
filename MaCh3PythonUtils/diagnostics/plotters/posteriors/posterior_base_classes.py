@@ -2,8 +2,8 @@
 HI : Contains a set of base classes with methods common to posterior plotting code
 Separated into 1D and 2D-like objects to make life easier
 '''
-from MaCh3_plot_lib.file_handlers import root_file_loader
-from MaCh3_plot_lib.plotters import _plotting_base_class
+from file_handling.chain_handler import ChainHandler
+from diagnostics.plotters.plotter_base import _PlottingBaseClass
 from typing import List
 import numpy as np
 from tqdm.auto import tqdm
@@ -11,13 +11,13 @@ import numpy.typing as npt
 
 
 # Base class for all posterior plotters
-class _posterior_plotting_base(_plotting_base_class):
+class _PosteriorPlottingBase(_PlottingBaseClass):
     # Small extension of _plotting_base class for posterior specific stuff
-    def __init__(self, file_loader: root_file_loader)->None:
+    def __init__(self, file_loader: ChainHandler)->None:
         # Setup additional features for posteriors
         super().__init__(file_loader)
         self._credible_intervals = np.array([0.6, 0.9, 0.95])
-        self._parameter_multimodal = np.zeros(len(self._file_loader.ttree_array)).astype(bool)
+        self._parameter_multimodal = np.zeros(len(self._file_loader.arviz_tree)).astype(bool)
     
     def __str__(self) -> str:
         return "posterior_plotting_base_class"

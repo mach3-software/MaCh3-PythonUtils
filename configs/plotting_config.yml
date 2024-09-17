@@ -1,0 +1,44 @@
+FileSettings:
+  FileName : "/users/php20hti/php20hti/public/chains/all_par_chain_without_adaption.root"
+  # FileName : "/users/php20hti/t2ksft/regeneration_times_project/inputs/markov_chains/oscpar_only_datafit.root"
+  ChainName : "posteriors"
+  # ChainName : "osc_posteriors"
+  Verbose : False
+  # Model Settings
+  MakeDiagnostics: True
+  MakePosteriors: True
+
+ParameterSettings:
+  ParameterNames : ["xsec"]
+  # ParameterNames : ["d", "th"]
+  IgnoredParameters : ["LogL_systematic_xsec_cov", "LogL_systematic_nddet_cov", ]
+  ParameterCuts : ["step>10000"] #["LogL<12345678", "step>10000"]
+  CircularParameters: []
+
+PlottingSettings:
+  DiagnosticsSettings:
+    # Where are we prioting?
+    DiagnosticsOutputFile: "diagnostics_output.pdf"
+    # Make Trace/AC Plot?
+    MakeTraceAC: True
+    # Make Violin Plot?
+    MakeViolin: False
+    #Make ESS Plot?
+    MakeESS: False
+    # Make MCSE Plot
+    MakeMCSE: False
+    # Make suboptimality Plot
+    MakeSuboptimality: False
+    # Steps/calculation for subopt.
+    SuboptimalitySteps: 10000
+    # Print summary stats
+    PrintSummary: True
+
+  PosteriorSettings:
+    PosteriorOutputFile: "posteriors.pdf"
+    Make1DPosteriors: True
+    CredibleIntervals: [0.6, 0.90, 0.95]
+    Make2DPosteriors: False
+    MakeTrianglePlot: False
+    TrianglePlot: []
+  

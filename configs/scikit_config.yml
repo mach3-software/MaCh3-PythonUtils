@@ -3,15 +3,21 @@ FileSettings:
     # FileName : "/users/php20hti/t2ksft/regeneration_times_project/inputs/markov_chains/oscpar_only_datafit.root"
     ChainName : "posteriors"
     # ChainName : "osc_posteriors"
+    Verbose : False
+    ModelOutputName: "tf_model_full.pkl"
+
+    # Model Settings
+    MakeMLModel: True
+
+ParameterSettings:
     ParameterNames : ["sin2th","delm2", "delta", "xsec", "sk", "nd"]
     # ParameterNames : ["d", "th"]
     LabelName : "LogL"
     IgnoredParameters : ["LogL_systematic_xsec_cov", "Log", "LogL_systematic_nddet_cov", ]
     ParameterCuts : ["step>10000"] #["LogL<12345678", "step>10000"]
-    Verbose : False
-    ModelOutputName: "tf_model_full.pkl"
 
-FitterSettings:
+
+MLSettings:
 
     FitterPackage : "SciKit"
     FitterName : "histboost"
@@ -20,3 +26,4 @@ FitterSettings:
     FitterKwargs:
         max_iter: 10000
         
+    MLOutputName: "tf_model_full.pkl"

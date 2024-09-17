@@ -2,26 +2,27 @@
 Interface class for making plots!
 '''
 from typing import List
-from MaCh3_plot_lib.file_handlers import root_file_loader
-import MaCh3_plot_lib.plotters as pt
+from file_handling.chain_handler import ChainHandler
+import diagnostics.plotters as pt
 from matplotlib.backends.backend_pdf import PdfPages
 import arviz as az
 
-class plotting_interface:
+class PlottingInterface:
     '''
     full interface object for making plots
     inputs:
         file_loader : root_file_loader instance
     '''
-    def __init__(self, file_loader: root_file_loader):
+    def __init__(self, file_loader: ChainHandler):
         '''
         Constructor object
         '''
         self._file_loader =  file_loader
         self._plotter_object_dict = {} # dict of objects from plotting tools
 
+        self._file_loader.make_arviz_tree()
     
-    def initialise_new_plotter(self, new_plotter: pt.plotter_base._plotting_base_class , plot_label: str)->None:
+    def initialise_new_plotter(self, new_plotter: pt.plotter_base._PlottingBaseClass , plot_label: str)->None:
         '''
         Adds new plot object to our array
         inputs :
@@ -44,7 +45,7 @@ class plotting_interface:
             raise ValueError(f"Cannot set credible intervals to {credible_intervals}")
     
         for plotter in list(self._plotter_object_dict.values()):
-            if not isinstance(plotter, pt.posterior_base_classes._posterior_plotting_base):
+            if not isinstance(plotter, pt.posterior_base_classes._PosteriorPlottingBase):
                 continue  
             
             # set credible intervals
@@ -84,7 +85,7 @@ class plotting_interface:
 
         # Loop over our plotters
         for plotter in self._plotter_object_dict.values():
-            if not isinstance(plotter, pt.posterior_base_classes._posterior_plotting_base):
+            if not isinstance(plotter, pt.posterior_base_classes._PosteriorPlottingBase):
                 continue   
             
             plotter.set_pars_circular(param_ids)

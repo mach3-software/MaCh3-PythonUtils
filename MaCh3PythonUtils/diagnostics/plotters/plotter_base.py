@@ -2,7 +2,7 @@
 HI : Mostly abstract base class, contains common methods for use by most other plotting classes
 '''
 
-from MaCh3_plot_lib.file_handlers import root_file_loader
+from file_handling.chain_handler import ChainHandler
 import arviz as az
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
@@ -20,20 +20,19 @@ from collections.abc import Iterable
 
 
 # Base class with common methods
-class _plotting_base_class(ABC):
+class _PlottingBaseClass(ABC):
     '''
     Abstract class with common methods for creating plots
     inputs:
-        file_loader : [type=root_file_loader] root_file_loader class instance
+        file_loader : [type=ChainHandler] ChainHandler class instance
     '''
-    def __init__(self, file_loader: root_file_loader)->None:
+    def __init__(self, file_loader: ChainHandler)->None:
         '''
         Constructor
         '''
         # I'm very lazy but this should speed up parallelisation since we won't have this warning
         plt.rcParams.update({'figure.max_open_warning': 0})        
         
-        file_loader.get_ttree_as_arviz() # Ensure that we have things in the correct format
         self._file_loader=file_loader # Make sure we don't use crazy amount of memory
         # Setup plotting styles
         az.style.use(hep.style.ROOT)
@@ -45,7 +44,7 @@ class _plotting_base_class(ABC):
         self._all_plots_generated = False # Stops us making plots multiple times
 
         # Setting it like this replicates the old behaviour!
-        self._circular_params=np.ones(len(self._file_loader.ttree_array)).astype(bool)
+        self._circular_params=np.ones(len(self._file_loader.arviz_tree)).astype(bool)
         warnings.filterwarnings("ignore", category=DeprecationWarning) #Some imports are a little older
         warnings.filterwarnings("ignore", category=UserWarning) #Some imports are a little older
 
@@ -57,7 +56,7 @@ class _plotting_base_class(ABC):
         self._text_location = (0.05, 0.85)
 
         # Default option
-        self._params_to_plot = list(self._file_loader.ttree_array.keys())
+        self._params_to_plot = list(self._file_loader.arviz_tree.keys())
     
     def __str__(self) -> str:
         return "plotting_base_class"
@@ -116,7 +115,6 @@ class _plotting_base_class(ABC):
         elif isinstance(new_plot_parameter_list[0][0], str):
             for param_list in new_plot_parameter_list:
                 for param in param_list: 
-                    print(param)
                     self._parameter_not_found_error(param)
             
         else:
@@ -127,14 +125,14 @@ class _plotting_base_class(ABC):
 
 
     def _parameter_not_found_error(self, parameter_name: str):
-        if parameter_name not in list(self._file_loader.ttree_array.keys()):
+        if parameter_name not in list(self._file_loader.arviz_tree.keys()):
             raise ValueError(f"{parameter_name} not in list of parameters!")
 
     def _get_param_index_from_name(self, parameter_name: str)->int:
         # Gets index of parameter in our arviz array
 
         self._parameter_not_found_error(parameter_name)
-        param_id = list(self._file_loader.ttree_array.keys()).index(parameter_name)
+        param_id = list(self._file_loader.arviz_tree.keys()).index(parameter_name)
         return param_id
 
     def set_pars_circular(self, par_id_list: List[str] | List[int])->None:

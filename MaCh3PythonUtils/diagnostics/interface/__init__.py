@@ -1,1 +1,1 @@
-from .plotting_interface import plotting_interface
+from .plotting_interface import PlottingInterface

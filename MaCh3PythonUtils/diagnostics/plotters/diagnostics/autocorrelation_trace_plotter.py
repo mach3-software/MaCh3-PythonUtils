@@ -1,14 +1,14 @@
 '''
 HI : Class to make autocorrelations and traces, puts them all onto a single plot
 '''
-from MaCh3_plot_lib.file_handlers import root_file_loader
+from file_handling.chain_handler import ChainHandler
 import arviz as az
 from matplotlib import pyplot as plt
-from MaCh3_plot_lib.plotters.plotter_base import _plotting_base_class
+from diagnostics.plotters.plotter_base import _PlottingBaseClass
 from matplotlib.figure import Figure
 
-class autocorrelation_trace_plotter(_plotting_base_class):
-    def __init__(self, file_loader: root_file_loader)->None:
+class AutocorrelationTracePlotter(_PlottingBaseClass):
+    def __init__(self, file_loader: ChainHandler)->None:
         # Constructor
         super().__init__(file_loader)
 
@@ -22,7 +22,7 @@ class autocorrelation_trace_plotter(_plotting_base_class):
         fig, (trace_ax, autocorr_ax) = plt.subplots(nrows=2, sharex=False) 
 
         # We want the numpy array containing our parameter
-        param_array = self._file_loader.ttree_array[parameter_name].to_numpy()[0]
+        param_array = self._file_loader.arviz_tree[parameter_name].to_numpy()[0]
 
         # Okay now we can plot our trace (might as well!)
         trace_ax.plot(param_array, linewidth=0.05, color='purple')

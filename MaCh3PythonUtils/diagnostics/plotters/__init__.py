@@ -1,3 +1,3 @@
-from .plotter_base import _plotting_base_class
+from .plotter_base import _PlottingBaseClass
 from .posteriors import *
 from .diagnostics import *

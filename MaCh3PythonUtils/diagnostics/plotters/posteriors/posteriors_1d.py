@@ -1,15 +1,15 @@
-from MaCh3_plot_lib.file_handlers import root_file_loader
+from config_reader import ChainHandler
 import arviz as az
 from matplotlib import pyplot as plt
 import numpy as np
-from MaCh3_plot_lib.plotters.posteriors.posterior_base_classes import _posterior_plotting_base
+from diagnostics.plotters.posteriors.posterior_base_classes import _PosteriorPlottingBase
 from matplotlib.figure import Figure
 
 '''
 Plotting class for 1D plots. Slightly overcomplicated by various special cases but works a treat!
 '''
-class posterior_plotter_1D(_posterior_plotting_base):
-    def __init__(self, file_loader: root_file_loader)->None:
+class PosteriorPlotter1D(_PosteriorPlottingBase):
+    def __init__(self, file_loader: ChainHandler)->None:
         '''
         Constructor
         '''
@@ -24,7 +24,7 @@ class posterior_plotter_1D(_posterior_plotting_base):
             parameter name : [type=str] Name of parameter
         '''
         if not isinstance(parameter_name, str):
-            raise ValueError("Can only pass single parameters to posterior plotting class")
+            raise ValueError(f"Can only pass single parameters to posterior plotting class. Cannot plot {parameter_name}")
 
         # Checks if parameter is in our array+gets the index
         param_index = self._get_param_index_from_name(parameter_name)
@@ -38,7 +38,7 @@ class posterior_plotter_1D(_posterior_plotting_base):
         line_colour = next(line_colour_generator)
         hist_kwargs={'density' : True, 'bins' : n_bins, "alpha": 1.0, 'linewidth': None, 'edgecolor': line_colour, 'color': 'white'}
         
-        _, bins, patches =  axes.hist(self._file_loader.ttree_array[parameter_name].to_numpy()[0], **hist_kwargs)
+        _, bins, patches =  axes.hist(self._file_loader.arviz_tree[parameter_name].to_numpy()[0], **hist_kwargs)
         # Make lines for each CI
 
         cred_rev = self.credible_intervals[::-1]
@@ -46,7 +46,7 @@ class posterior_plotter_1D(_posterior_plotting_base):
             line_colour = next(line_colour_generator)
 
             # We want the bayesian credible interval, for now we set the maximum number of modes for multi-modal parameters to 2
-            hdi = az.hdi(self._file_loader.ttree_array, var_names=[parameter_name], hdi_prob=credible,
+            hdi = az.hdi(self._file_loader.arviz_tree, var_names=[parameter_name], hdi_prob=credible,
                         multimodal=self._parameter_multimodal[param_index], max_modes=20, circular=self._circular_params[param_index])
             
             # Might be multimodal so we want all our credible intervals in a 1D array to make plotting easier!

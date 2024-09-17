@@ -4,7 +4,7 @@ Additional Diagnostics that can be used with MCMC but don't rely on plotting
 Suboptimality : https://www.jstor.org/stable/25651249?seq=3
 '''
 
-from MaCh3_plot_lib.file_handlers import root_file_loader
+from file_handling.chain_handler import ChainHandler
 import numpy as np
 from scipy.linalg import sqrtm
 from tqdm.auto import tqdm
@@ -15,21 +15,21 @@ import mplhep as hep
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
-class covariance_matrix_utils:
-    def __init__(self, file_loader: root_file_loader)->None:
+class CovarianceMatrixUtils:
+    def __init__(self, file_loader: ChainHandler)->None:
         '''
         For calculating the covariance matrix + suboptimality
         inputs:
-            ->file_loader : [type=root_file_loader] file handler object
+            ->file_loader : [type=ChainHandler] file handler object
         '''
         # Let's just ignore some warnings :grin:
         warnings.filterwarnings("ignore", category=DeprecationWarning) #Some imports are a little older
         warnings.filterwarnings("ignore", category=UserWarning) #Some imports are a little older
 
         file_loader.get_ttree_as_arviz() # Ensure that we have things in the correct format
-        self._parameter_names = list(file_loader.ttree_array.keys())
+        self._parameter_names = list(file_loader.arviz_tree.keys())
         self._total_parameters = len(self._parameter_names)
-        self._ttree_data_frame = file_loader.ttree_array.to_dataframe() # All our handling will be done using thi s object
+        self._ttree_data_frame = file_loader.arviz_tree.to_dataframe() # All our handling will be done using thi s object
         # Various useful class properties
         self._suboptimality_array = [] # For filling with suboptimality
         self._suboptimality_evaluation_points = [] #Where did we evalutate this?

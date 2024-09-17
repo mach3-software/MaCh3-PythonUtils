@@ -1,19 +1,19 @@
 '''
 HI : Makes 2D posterior plots. Currently no way of putting a legend on the plot (thanks arviz...)
 '''
-from MaCh3_plot_lib.file_handlers import root_file_loader
+from config_reader import ChainHandler
 import arviz as az
 from typing import List, Any
 from matplotlib import pyplot as plt
 from itertools import combinations
-from MaCh3_plot_lib.plotters.posteriors.posterior_base_classes import _posterior_plotting_base
+from diagnostics.plotters.posteriors.posterior_base_classes import _PosteriorPlottingBase
 from matplotlib.figure import Figure
 import numpy as np
 import numpy.typing as npt
 
-class posterior_plotter_2D(_posterior_plotting_base):
+class PosteriorPlotter2D(_PosteriorPlottingBase):
     # For making 2D possteriors
-    def __init__(self, file_loader: root_file_loader)->None:
+    def __init__(self, file_loader: ChainHandler)->None:
         '''
         Constructor
         '''
@@ -37,8 +37,8 @@ class posterior_plotter_2D(_posterior_plotting_base):
             
             fig, axes = plt.subplots(figsize=(30, 30))
 
-            par_1_numpy_arr = self._file_loader.ttree_array[par_1].to_numpy()[0]
-            par_2_numpy_arr = self._file_loader.ttree_array[par_2].to_numpy()[0]
+            par_1_numpy_arr = self._file_loader.arviz_tree[par_1].to_numpy()[0]
+            par_2_numpy_arr = self._file_loader.arviz_tree[par_2].to_numpy()[0]
 
             ciruclar = self._circular_params[self._get_param_index_from_name(par_1)] | self._circular_params[self._get_param_index_from_name(par_2)]
 
@@ -60,9 +60,9 @@ class posterior_plotter_2D(_posterior_plotting_base):
 
 
 
-class triangle_plotter(_posterior_plotting_base):
+class TrianglePlotter(_PosteriorPlottingBase):
     # Makes triangle plots
-    def __init__(self, file_loader: root_file_loader)->None:
+    def __init__(self, file_loader: ChainHandler)->None:
         '''
         Constructor
         '''
@@ -86,7 +86,7 @@ class triangle_plotter(_posterior_plotting_base):
         
         fig, axes = plt.subplots(nrows=len(parameter_names), ncols=len(parameter_names), figsize=(30, 30))
 
-        az.plot_pair(self._file_loader.ttree_array, var_names=parameter_names,         
+        az.plot_pair(self._file_loader.arviz_tree, var_names=parameter_names,         
             marginals=True, ax=axes, colorbar=True, figsize=(30,30),
             kind='kde',
             textsize=30,
