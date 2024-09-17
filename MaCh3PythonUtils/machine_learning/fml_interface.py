@@ -7,6 +7,7 @@ import mpl_scatter_density
 from matplotlib.colors import LinearSegmentedColormap
 
 from sklearn import metrics
+from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import scipy.stats as stats
 import numpy as np
@@ -40,6 +41,7 @@ class FmlInterface(ABC):
         self._training_labels=None
         self._test_data=None
         self._test_labels=None
+        self._scalar = StandardScaler()
             
     def __separate_dataframe(self)->Tuple[pd.DataFrame, pd.DataFrame]:
         # Separates dataframe into features + labels
@@ -52,6 +54,8 @@ class FmlInterface(ABC):
         # Splits in traing + test_spit
         features, labels = self.__separate_dataframe()
         self._training_data, self._test_data, self._training_labels, self._test_labels =  train_test_split(features, labels, test_size=test_size)
+        self._training_data = self._scalar.fit_transform(self._training_data)
+
 
     @property
     def model(self)->Any:
