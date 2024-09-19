@@ -22,6 +22,7 @@ MLSettings:
     TestSize : 0.9
 
     FitterKwargs:
+        loss: 'absolute_error'
         max_iter: 10000
         
     MLOutputName: "tf_model_full.pkl"
