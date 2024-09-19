@@ -4,3 +4,4 @@
 *pdf
 *.pkl
 *.keras
+*.egg-info
