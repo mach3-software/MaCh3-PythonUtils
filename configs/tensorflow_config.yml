@@ -27,18 +27,36 @@ MLSettings:
 
         Layers:
             - dense:
-                units: 128
-                activation: 'relu'
+                units: 450
+                activation: 'sigmoid'
             - dropout:
-                rate: 0.2
+                rate: 0.3
             - dense:
-                units: 64
-                activation: 'relu'
-            - dense: 
-                units: 16
-                activation: 'relu'
+                units: 300
+                activation: 'swish'
+            - dropout:
+                rate: 0.3
+            - dense:
+                units: 150
+                activation: 'swish'
+            - dense:
+                units: 75
+                activation: 'swish'
+            - dense:
+                units: 30
+                activation: 'swish'
+            - dense:
+                units: 15
+                activation: 'swish'
+            - dense:
+                units: 7
+                activation: 'swish'
+            - dense:
+                units: 3
+                activation: 'sigmoid'
             - dense:
                 units: 1
+                activation: 'relu'
 
         FitSettings:
             batch_size: 20000

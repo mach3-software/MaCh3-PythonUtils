@@ -49,7 +49,7 @@ class MLFactory:
             raise ValueError(f"{algorithm} not implemented for {package}, currently accepted algorithms for {package} are:\n \
                              {list(self.__IMPLEMENTED_ALGORITHMS[package].keys())}")
             
-        return self.__IMPLEMENTED_ALGORITHMS[package][algorithm](*kwargs)
+        return self.__IMPLEMENTED_ALGORITHMS[package][algorithm](**kwargs)
 
     def make_scikit_model(self, algorithm: str, **kwargs)->SciKitInterface:
         # Simple wrapper for scikit packages
