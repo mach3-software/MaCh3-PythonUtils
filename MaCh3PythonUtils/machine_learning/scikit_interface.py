@@ -1,8 +1,5 @@
-from typing import Any
 from pandas import DataFrame
-
-from file_handling.chain_handler import ChainHandler
-from MaCh3PythonUtils.machine_learning.file_ml_interface import FileMLInterface
+from .file_ml_interface import FileMLInterface
 
 """
 TODO: 
