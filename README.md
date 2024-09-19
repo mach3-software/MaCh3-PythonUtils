@@ -16,6 +16,9 @@ The required modules can then be installed with
 ```bash
 pip install -r requirements.txt
 ```
+or 
+`pip install .`
+which will install the entire package via pip
 
 # Running
 Running the package is also simple. Simply do
@@ -148,9 +151,6 @@ FitterSettings:
 
 
 Here FitterKwargs is now split into sub-settings with `BuildSettings` being passed to the model `compile` method, `FitSettings` setting up training information, and `Layers` defining the types + kwargs of each layer in the model. New layers can be implemented in the `__TF_LAYER_IMPLEMENTATIONS` object which lives in `machine_learning/tf_interface`
-
-# Executables
-Simply run `python MachineLearningMCMC -c /path/to/toml/config` and it'll automatically run the chain. 
 
 # Implementing a New Fitter
 Implementing a new fitter is relatively simple. Most implementing is done in `machine_learining/ml_factory/MLFactory`. For Scikit-Learn based models, the new method just needs to imported and added to the `scikit` entry in `__IMPLEMENTED_ALGORITHMS`.
