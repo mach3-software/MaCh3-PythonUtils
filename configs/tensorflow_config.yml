@@ -31,7 +31,6 @@ MLSettings:
                 activation: 'sigmoid'
             - dropout:
                 rate: 0.3
-            
             - dense:
                 units: 300
                 activation: 'swish'
