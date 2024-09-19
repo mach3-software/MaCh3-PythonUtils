@@ -102,6 +102,11 @@ class ChainHandler:
         self._plotting_branches.extend(branch_list)
     
     def ignore_plots(self, ignored_branches: List[str]| str)->None:
+        """List of plots to ignore
+
+        :param ignored_branches: _description_
+        :type ignored_branches: List[str] | str
+        """        
         if isinstance(ignored_branches, str):
             ignored_branches = list(ignored_branches)
             
@@ -206,5 +211,10 @@ class ChainHandler:
         
  
     @property
-    def arviz_tree(self):
+    def arviz_tree(self)->az.InferenceData:
+        """Gets arviz version of dataframe
+
+        :return: Arviz version of tree
+        :rtype: arviz.InferenceData
+        """        
         return self._arviz_tree

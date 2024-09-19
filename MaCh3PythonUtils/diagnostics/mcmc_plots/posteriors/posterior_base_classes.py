@@ -14,6 +14,11 @@ import numpy.typing as npt
 class _PosteriorPlottingBase(_PlottingBaseClass):
     # Small extension of _plotting_base class for posterior specific stuff
     def __init__(self, file_loader: ChainHandler)->None:
+        """Base class for all posterior plotters
+
+        :param file_loader: ChainHandler instance
+        :type file_loader: ChainHandler
+        """        
         # Setup additional features for posteriors
         super().__init__(file_loader)
         self._credible_intervals = np.array([0.6, 0.9, 0.95])
@@ -24,21 +29,32 @@ class _PosteriorPlottingBase(_PlottingBaseClass):
 
     @property
     def credible_intervals(self)->List[float]:
+        """Get Credible Intervals
+
+        :return: List of credible intervals
+        :rtype: List[float]
+        """        
         return self._credible_intervals
     
     @credible_intervals.setter
     def credible_intervals(self, new_creds: List[float])->None:
+        """Set new credible intervals
+
+        :param new_creds: Sets list of credible intervals
+        :type new_creds: List[float]
+        """        
         # Sets credible intervals from list
         self._credible_intervals = np.array(new_creds) # Make sure it's 1D
         self._credible_intervals.sort() # Flatten it
 
     def set_pars_multimodal(self, par_id_list: List[str] | List[int], is_multimodal: bool=True)->None:
-        '''
-        Let the plotter know parameter set is multimodal
-        inputs:
-            par_id_list : List[str/int] List of Parameter indices or name
-            is_multi_modal : Is the parameter multi-modal?
-        '''
+        """Let arviz know which parameters are multi-modal
+
+        :param par_id_list: List of multimodal parameter names/ids
+        :type par_id_list: List[str] | List[int]
+        :param is_multimodal: Sets parameters to either be multimodal [True] or uni-modal [False], defaults to True
+        :type is_multimodal: bool, optional
+        """
         # If it's an int this is easy
         if not isinstance(par_id_list, list):
             par_id_list = list(par_id_list)

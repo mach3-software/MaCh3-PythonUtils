@@ -11,24 +11,15 @@ from matplotlib.figure import Figure
 import numpy as np
 import numpy.typing as npt
 
-class PosteriorPlotter2D(_PosteriorPlottingBase):
-    # For making 2D possteriors
-    def __init__(self, file_loader: ChainHandler)->None:
-        '''
-        Constructor
-        '''
-        # Inherit the abstract base class
-        super().__init__(file_loader) 
-    
+class PosteriorPlotter2D(_PosteriorPlottingBase):    
     def _generate_plot(self, parameter_names: List[str]) -> npt.NDArray[Any]:
-        '''
-        Generates a 2D posterior plot
-        inputs :
-            -> Parameter Names [type=List[str]] list of parameters, will plot all combinations of pairs
+        """Generates 2D posterior plot
 
-        returns :
-            -> figure
-        '''
+        :param parameter_names: List of parameters to plot [plots all combinations of provided parameters]
+        :type parameter_names: List[str]
+        :return: List of figures containing plots
+        :rtype: npt.NDArray[Any]
+        """
         # Let's get pairs of names
         name_pairs_list = list(combinations(parameter_names, 2))
         fig_list = np.empty(len(name_pairs_list), dtype=Figure)

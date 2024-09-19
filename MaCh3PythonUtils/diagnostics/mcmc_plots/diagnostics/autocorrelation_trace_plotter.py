@@ -8,21 +8,18 @@ from diagnostics.mcmc_plots.plotter_base import _PlottingBaseClass
 from matplotlib.figure import Figure
 
 class AutocorrelationTracePlotter(_PlottingBaseClass):
-    def __init__(self, file_loader: ChainHandler)->None:
-        # Constructor
-        super().__init__(file_loader)
-
     def _generate_plot(self, parameter_name: str) -> Figure:
-        '''
-        Makes a combined trace and auto-correlation plot
-        inputs : 
-        parameter_name : [type=str] Single parameter name
-        '''
-        # Setup axes
+        """Generates auto-correlation and trace plots for a single parameter
+
+        :param parameter_name: Name of parameter to plot
+        :type parameter_name: str
+        :return: Figure containing auto-correlation and trace plots
+        :rtype: Figure
+        """
         fig, (trace_ax, autocorr_ax) = plt.subplots(nrows=2, sharex=False) 
 
         # We want the numpy array containing our parameter
-        param_array = self._file_loader.arviz_tree[parameter_name].to_numpy()[0]
+        param_array = self._chain_handler.arviz_tree[parameter_name].to_numpy()[0]
 
         # Okay now we can plot our trace (might as well!)
         trace_ax.plot(param_array, linewidth=0.05, color='purple')
