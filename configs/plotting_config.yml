@@ -12,7 +12,7 @@ ParameterSettings:
   ParameterNames : ["xsec"]
   # ParameterNames : ["d", "th"]
   IgnoredParameters : ["LogL_systematic_xsec_cov", "LogL_systematic_nddet_cov", ]
-  ParameterCuts : ["step>10000"] #["LogL<12345678", "step>10000"]
+  ParameterCuts : ["step>900000"] #["LogL<12345678", "step>10000"]
   CircularParameters: []
 
 PlottingSettings:

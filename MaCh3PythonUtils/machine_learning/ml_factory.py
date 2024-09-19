@@ -2,13 +2,10 @@
 ML Factory implementation, effectively a selector for making models
 """
 
-from typing import Any, Dict
-
-from machine_learning.scikit_interface import SciKitInterface
-from machine_learning.tf_interface import TfInterface
+from .scikit_interface import SciKitInterface
+from .tf_interface import TfInterface
 import sklearn.ensemble as ske
 import tensorflow.keras as tfk
-
 from file_handling.chain_handler import ChainHandler
 
 class MLFactory:

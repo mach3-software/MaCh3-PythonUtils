@@ -1,10 +1,7 @@
 # Let's make a tensor flow interface!
-from typing import Any
-from MaCh3PythonUtils.machine_learning.file_ml_interface import FileMLInterface
+from machine_learning.file_ml_interface import FileMLInterface
 import tensorflow as tf
-from file_handling.chain_handler import ChainHandler
 import pandas as pd
-from numpy.typing import NDArray
 
 class TfInterface(FileMLInterface):
     __TF_LAYER_IMPLEMENTATIONS = {

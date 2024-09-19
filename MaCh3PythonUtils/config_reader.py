@@ -2,7 +2,6 @@ import yaml
 
 from file_handling.chain_handler import ChainHandler
 from machine_learning.ml_factory import MLFactory
-from MaCh3PythonUtils.machine_learning.file_ml_interface import FileMLInterface
 from diagnostics.interface.plotting_interface import PlottingInterface
 import diagnostics.mcmc_plots.posteriors as m3post
 import diagnostics.mcmc_plots.diagnostics as m3diag
