@@ -21,19 +21,15 @@ from collections.abc import Iterable
 
 # Base class with common methods
 class _PlottingBaseClass(ABC):
-    '''
-    Abstract class with common methods for creating plots
-    inputs:
-        file_loader : [type=ChainHandler] ChainHandler class instance
-    '''
-    def __init__(self, file_loader: ChainHandler)->None:
-        '''
-        Constructor
-        '''
-        # I'm very lazy but this should speed up parallelisation since we won't have this warning
+    def __init__(self, chain_handler: ChainHandler)->None:
+        """Abstract plotting class for generating plots
+
+        :param chain_handler: ChainHandler instance
+        :type chain_handler: ChainHandler
+        """        # I'm very lazy but this should speed up parallelisation since we won't have this warning
         plt.rcParams.update({'figure.max_open_warning': 0})        
         
-        self._file_loader=file_loader # Make sure we don't use crazy amount of memory
+        self._chain_handler=chain_handler # Make sure we don't use crazy amount of memory
         # Setup plotting styles
         az.style.use(hep.style.ROOT)
         plt.style.use(hep.style.ROOT)
@@ -44,7 +40,7 @@ class _PlottingBaseClass(ABC):
         self._all_plots_generated = False # Stops us making plots multiple times
 
         # Setting it like this replicates the old behaviour!
-        self._circular_params=np.ones(len(self._file_loader.arviz_tree)).astype(bool)
+        self._circular_params=np.ones(len(self._chain_handler.arviz_tree)).astype(bool)
         warnings.filterwarnings("ignore", category=DeprecationWarning) #Some imports are a little older
         warnings.filterwarnings("ignore", category=UserWarning) #Some imports are a little older
 
@@ -56,13 +52,18 @@ class _PlottingBaseClass(ABC):
         self._text_location = (0.05, 0.85)
 
         # Default option
-        self._params_to_plot = list(self._file_loader.arviz_tree.keys())
+        self._params_to_plot = list(self._chain_handler.arviz_tree.keys())
     
     def __str__(self) -> str:
         return "plotting_base_class"
 
     @property
     def figure_list(self)->npt.NDArray[Any]:
+        """Get list of figures
+
+        :return: List of figures generated
+        :rtype: npt.NDArray[Any]
+        """        
         return self._figure_list
 
     @figure_list.setter
@@ -71,10 +72,17 @@ class _PlottingBaseClass(ABC):
 
     @abstractmethod
     def _generate_plot(self, parameter_name: str | List[str])->None:
+        """Abstract method for generating plot
+
+        :param parameter_name: Name/Names of parameters wanted for plotting
+        :type parameter_name: str | List[str]
+        """        
         # Abstract method to generate a single plot
         pass
 
     def generate_all_plots(self)->None:
+        """Generates all plots requested by user
+        """        
         # Generates plots for every parameter [can be overwritten]
         if self._all_plots_generated: # No need to make all possible plots again!
             return
@@ -96,13 +104,18 @@ class _PlottingBaseClass(ABC):
     # Lets us select a subset/add list of parameters we'd like to plot
     @property
     def plot_params(self)-> List[str] | List[List[str]]:
-        '''
-        Getter for parameters we want to plot
-        '''
+        """Get all parameters that are going to be plotted
+
+        :return: List of parameters/groups of parameteres used in each plot
+        :rtype: List[str] | List[List[str]]
+        """        
         return self._params_to_plot
     
     @plot_params.setter
     def plot_params(self, new_plot_parameter_list: List[str]|List[List[str]]):
+        '''
+        Allows for the addition of new parameters
+        '''
         if len(new_plot_parameter_list)==0:
             raise ValueError("Parameter list cannot have length 0")
 
@@ -125,22 +138,29 @@ class _PlottingBaseClass(ABC):
 
 
     def _parameter_not_found_error(self, parameter_name: str):
-        if parameter_name not in list(self._file_loader.arviz_tree.keys()):
+        if parameter_name not in list(self._chain_handler.arviz_tree.keys()):
             raise ValueError(f"{parameter_name} not in list of parameters!")
 
     def _get_param_index_from_name(self, parameter_name: str)->int:
+        """Gets parameter index in list based on parameter name
+
+        :param parameter_name: Parameter name
+        :type parameter_name: str
+        :return: Parameter index in self._params_to_plot
+        :rtype: int
+        """        
         # Gets index of parameter in our arviz array
 
         self._parameter_not_found_error(parameter_name)
-        param_id = list(self._file_loader.arviz_tree.keys()).index(parameter_name)
+        param_id = list(self._chain_handler.arviz_tree.keys()).index(parameter_name)
         return param_id
 
     def set_pars_circular(self, par_id_list: List[str] | List[int])->None:
-        '''
-        Let the plotter know parameter set is cyclical
-        inputs:
-            par_id_list : List[str/int] List of Parameter indices or name
-        '''
+        """Sets parameter to be cyclical about -pi, pi
+
+        :param par_id_list: List of a parameter names/parameter ids
+        :type par_id_list: List[str] | List[int]
+        """
         # If it's an int this is easy
         if not isinstance(par_id_list, list):
             par_id_list = list(par_id_list)
@@ -154,17 +174,25 @@ class _PlottingBaseClass(ABC):
             self._circular_params[true_index] = True
     
     def add_text_to_figures(self, text: str, text_location: tuple=(0.05, 0.95))->None:
-        '''
-        Add text to all figures
-        inputs:
-            text : Text to add
-            text_location : location of text
-        '''
+        """Add text to figures
+
+        :param text: Text to be added to figure
+        :type text: str
+        :param text_location: Location of text on figures, defaults to (0.05, 0.95)
+        :type text_location: tuple, optional
+        """
         self._figure_text = text
         self._text_location = text_location
 
     def write_to_pdf(self, output_pdf_name: str=None, existing_pdf_fig: PdfPages=None)->None:
-        '''
+        """Dump all plots to PDF file
+
+        :param output_pdf_name: Output PDF file, defaults to None
+        :type output_pdf_name: str, optional
+        :param existing_pdf_fig: Write to existing PDF instance, defaults to None
+        :type existing_pdf_fig: PdfPages, optional
+        :raises ValueError: No file used
+        """        '''
         Dump all our plots to PDF file must either set output name or existing_pdf_fig
 
         inputs : 

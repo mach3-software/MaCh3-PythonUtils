@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from file_handling.chain_handler import ChainHandler
-from typing import Any, Tuple
+from typing import Any, Tuple, Iterable
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import mpl_scatter_density
@@ -13,9 +13,7 @@ import numpy as np
 
 import pickle
 
-class FmlInterface(ABC):
-    """Abstract interface with file handler which should be used for ML models
-    """
+class FileMLInterface(ABC):
     white_viridis = LinearSegmentedColormap.from_list('white_viridis', [
         (0, '#ffffff'),
         (1e-20, '#440053'),
@@ -27,6 +25,14 @@ class FmlInterface(ABC):
     ], N=256)
     
     def __init__(self, chain: ChainHandler, prediction_variable: str) -> None:
+        """General Interface for all ML models
+
+        :param chain: ChainHandler instance
+        :type chain: ChainHandler
+        :param prediction_variable: "Label" used for prediction
+        :type prediction_variable: str
+        :raises ValueError: Checks to see if label exists in tree
+        """        
         self._chain = chain
         
         self._prediction_variable = prediction_variable
@@ -43,6 +49,11 @@ class FmlInterface(ABC):
         self._scalar = StandardScaler()
             
     def __separate_dataframe(self)->Tuple[pd.DataFrame, pd.DataFrame]:
+        """Split data frame into feature + label objects
+
+        :return: features, labels
+        :rtype: Tuple[pd.DataFrame, pd.DataFrame]
+        """        
         # Separates dataframe into features + labels
         features = self._chain.ttree_array.copy()
         labels   = pd.DataFrame(features.pop(self._prediction_variable) )
@@ -50,6 +61,11 @@ class FmlInterface(ABC):
         return features, labels
     
     def set_training_test_set(self, test_size: float):
+        """Splits data/labels into training and testing tests
+
+        :param test_size: Proportion of data used for testing
+        :type test_size: float
+        """        
         # Splits in traing + test_spit
         features, labels = self.__separate_dataframe()
         self._training_data, self._test_data, self._training_labels, self._test_labels =  train_test_split(features, labels, test_size=test_size)
@@ -58,45 +74,74 @@ class FmlInterface(ABC):
 
     @property
     def model(self)->Any:
+        """Model used
+
+        :return: Returns ML model being used
+        :rtype: Any
+        """        
         # Returns model being used
         return self._model    
     
     @property
     def training_data(self)->pd.DataFrame:
+        """Gets training data
+
+        :return: Training data set
+        :rtype: pd.DataFrame
+        """        
         return self._training_data
     
     def add_model(self, ml_model: Any)->None:
+        """Add model to data set
+
+        :param ml_model: Sets model to be ml_model
+        :type ml_model: Any
+        """        
         # Add ML model into your interface
         self._model = ml_model
     
     @abstractmethod
     def train_model(self):
+        """Abstract method, should be overwritten with model training
+        """        
         # Train Model method
         pass
     
-    
     @abstractmethod
-    def model_predict(self, testing_data):
-        # Run model prediction
+    def model_predict(self, testing_data: pd.DataFrame)->Iterable:
+        """Abstract method, should return model prediction
+
+        :param testing_data: Data to test model on 
+        :type testing_data: pd.DataFrame
+        """        
         pass
-    
-    @abstractmethod
-    def test_model(self):
-        # Test Model
-        pass
-    
+        
     def save_model(self, output_file: str):
+        """Save model to pickle
+
+        :param output_file: Pickle file to save to
+        :type output_file: str
+        """        
         print(f"Saving to {output_file}")
         with open(output_file, 'wb') as f:
             pickle.dump(self._model, f)
         
     def load_model(self, input_file: str):
+        """Unpickle model
+
+        :param input_file: Pickled Model
+        :type input_file: str
+        """        
         print(f"Attempting to load file from {input_file}")
         with open(input_file, 'r') as f:
             self._model = pickle.load(f)
         
     def test_model(self):
-        
+        """Test model
+
+        :raises ValueError: No model set
+        :raises ValueError: No test data set 
+        """        
         if self._model is None:
             raise ValueError("No Model has been set!")
 
@@ -109,7 +154,16 @@ class FmlInterface(ABC):
         self.evaluate_model(prediction, test_as_numpy)
             
     
-    def evaluate_model(self, predicted_values, true_values, outfile: str=""):
+    def evaluate_model(self, predicted_values: Iterable, true_values: Iterable, outfile: str=""):
+        """Evalulates model
+
+        :param predicted_values: Label values predicted by model
+        :type predicted_values: Iterable
+        :param true_values: Actual label values
+        :type true_values: Iterable
+        :param outfile: File to output plots to, defaults to ""
+        :type outfile: str, optional
+        """        
         print(predicted_values)
         print(true_values)
         

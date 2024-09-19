@@ -2,7 +2,7 @@ import yaml
 
 from file_handling.chain_handler import ChainHandler
 from machine_learning.ml_factory import MLFactory
-from machine_learning.fml_interface import FmlInterface
+from MaCh3PythonUtils.machine_learning.file_ml_interface import FileMLInterface
 from diagnostics.interface.plotting_interface import PlottingInterface
 import diagnostics.mcmc_plots.posteriors as m3post
 import diagnostics.mcmc_plots.diagnostics as m3diag
@@ -101,6 +101,11 @@ class ConfigReader:
     
     
     def __init__(self, config: str):
+        """Constructor
+
+        :param config: Name of yaml config
+        :type config: str
+        """        
         with open(config, 'r') as c:
             self._yaml_config = yaml.safe_load(c)    
 
@@ -108,6 +113,8 @@ class ConfigReader:
         self.__chain_settings = deep_update(self.__default_settings, self._yaml_config)
     
     def make_file_handler(self)->None:
+        """Sets up file handler object
+        """        
         # Process MCMC chain    
         self._file_handler = ChainHandler(self.__chain_settings["FileSettings"]["FileName"],
                                     self.__chain_settings["FileSettings"]["ChainName"],
@@ -125,6 +132,8 @@ class ConfigReader:
     
     
     def make_posterior_plots(self):
+        """Generates posterior plots
+        """        
         if self._plot_interface is None:
             self._plot_interface = PlottingInterface(self._file_handler)
         
@@ -152,6 +161,8 @@ class ConfigReader:
         self._plot_interface.make_plots(self.__chain_settings['PlottingSettings']['PosteriorSettings']['PosteriorOutputFile'], posterior_labels)
 
     def make_diagnostics_plots(self):
+        """Generates diagnostics plots
+        """        
         if self._plot_interface is None:
             self._plot_interface = PlottingInterface(self._file_handler)
 
@@ -183,8 +194,8 @@ class ConfigReader:
             self._plot_interface.print_summary(f"summary_{self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['DiagnosticsOutputFile']}.txt")
 
     def make_ml_interface(self)->None:
-        if self._file_handler is None:
-            raise Exception("Cannot initialise ML interface without first setting up file handler!")
+        """Generates ML interface objects
+        """        
         
         
         factory = MLFactory(self._file_handler, self.__chain_settings["ParameterSettings"]["LabelName"])
@@ -213,7 +224,8 @@ class ConfigReader:
     
     
     def __call__(self) -> None:
-        
+        """Runs over all files from config
+        """        
         self.make_file_handler()
         if self.__chain_settings["FileSettings"]["MakePosteriors"]:
             self.make_posterior_plots()
@@ -223,13 +235,3 @@ class ConfigReader:
         
         if self.__chain_settings["FileSettings"]["MakeMLModel"]:
             self.make_ml_interface()
-
-    
-    @property
-    def chain_handler(self)->ChainHandler | None:
-        return self._file_handler
-    
-    @property
-    def ml_interface(self)->FmlInterface | None:
-        return self._interface
-    

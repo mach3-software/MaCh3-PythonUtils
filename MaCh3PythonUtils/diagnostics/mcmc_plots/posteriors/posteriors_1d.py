@@ -9,15 +9,15 @@ from matplotlib.figure import Figure
 Plotting class for 1D plots. Slightly overcomplicated by various special cases but works a treat!
 '''
 class PosteriorPlotter1D(_PosteriorPlottingBase):
-    def __init__(self, file_loader: ChainHandler)->None:
-        '''
-        Constructor
-        '''
-        # Inherit the abstract base class
-        super().__init__(file_loader)
-
     def _generate_plot(self, parameter_name: str) -> Figure:
-        '''
+        """Generate 1D posterior plot for a single parameter
+
+        :param parameter_name: Name of parameter to plot
+        :type parameter_name: str
+        :raises ValueError: if parameter is not a string
+        :return: 1D Posterior plot
+        :rtype: Figure
+        """        '''
         Generates a single posterior plot for a parameter
         
         inputs :
