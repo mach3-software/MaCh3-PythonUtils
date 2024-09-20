@@ -1,5 +1,3 @@
-# MachineLearningMCMC
-
 Very simple tool for analysing MCMC. Currently only accepts chains where all variables are saved within a ROOT TTree. 
 
 # Setup
