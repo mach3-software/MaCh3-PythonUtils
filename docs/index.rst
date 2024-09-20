@@ -6,9 +6,7 @@
 MaCh3PythonUtils documentation
 ==============================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+Python utils for use with MaCh3-style MCMC outputs! All code is designed to be run via `mach3_python_utils -c /path/to/yaml`
 
 
 .. toctree::
