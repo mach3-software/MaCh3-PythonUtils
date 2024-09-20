@@ -1,6 +1,6 @@
 import sys
 import os
-sys.path.insert(0,os.path.abspath('../MaCh3PythonUtils'))
+sys.path.insert(0,os.path.abspath('../src/MaCh3PythonUtils'))
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
