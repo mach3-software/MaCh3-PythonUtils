@@ -1,6 +1,6 @@
 # MachineLearningMCMC
 
-Very simple tool for predicting likelihoods from Markov Chains Using ML tools. Currently only accepts chains where all variables are saved within a ROOT TTree. 
+Very simple tool for analysing MCMC. Currently only accepts chains where all variables are saved within a ROOT TTree. 
 
 # Setup
 Setup is relatively simple. The recommended way of running this is using a virtual environment
@@ -99,7 +99,7 @@ PlottingSettings:
 
 # ML Settings
 
-For scikit learn based pacakges the settings are then set in the following way, where FitterKwargs directly sets the keyword arguments for the scikit fitting tool being used
+For scikit learn based packages the settings are then set in the following way (where FitterKwargs directly sets the keyword arguments for the scikit fitting tool being used):
 ```yaml
 MLSettings:
     # Package model is included in
@@ -150,9 +150,9 @@ FitterSettings:
 ```
 
 
-Here FitterKwargs is now split into sub-settings with `BuildSettings` being passed to the model `compile` method, `FitSettings` setting up training information, and `Layers` defining the types + kwargs of each layer in the model. New layers can be implemented in the `__TF_LAYER_IMPLEMENTATIONS` object which lives in `machine_learning/tf_interface`
+Here FitterKwargs is now split into sub-settings with `BuildSettings` being passed to the model `compile` method, `FitSettings` setting up training information, and `Layers` which defines the types + kwargs of each layer in the model. New layers can be implemented in the `__TF_LAYER_IMPLEMENTATIONS` object which lives in `machine_learning/tf_interface`
 
 # Implementing a New Fitter
-Implementing a new fitter is relatively simple. Most implementing is done in `machine_learining/ml_factory/MLFactory`. For Scikit-Learn based models, the new method just needs to imported and added to the `scikit` entry in `__IMPLEMENTED_ALGORITHMS`.
+Implementing a new fitter is relatively simple. Mostly this is done in `machine_learining/ml_factory/MLFactory`. For Scikit-Learn based models, the new method just needs to imported and added to the `scikit` entry in `__IMPLEMENTED_ALGORITHMS`.
 
-For non-scikit based algorithms currentlt no implementation exists. For such cases a new interface class (which inherits from `FMLInterface`) needs to be implemented. Hopefully in future this is easy to do!
+For non-scikit/tf based algorithms currently no implementation exists. For such cases a new interface class (which inherits from `FMLInterface`) needs to be implemented. Hopefully in future this is easy to do!
