@@ -14,10 +14,5 @@ def find_requirements()->list:
 
 setup(
     name="MaCh3PythonUtils",
-    version="1.0.0",
-    url="https://github.com/mach3-software/MaCh3-PythonUtils",
-    author="Henry Wallace",
-    author_email="henry.wallace@rhul.ac.uk",
-    packages=["MaCh3PythonUtils"],
     install_requires=find_requirements(),
 )

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MaCh3PythonUtils.machine_learning package &mdash; MaCh3-PythonUtils v1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=d29a5c0e"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MaCh3-PythonUtils
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">MaCh3PythonUtils.machine_learning package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-MaCh3PythonUtils.machine_learning.file_ml_interface">MaCh3PythonUtils.machine_learning.file_ml_interface module</a><ul>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface"><code class="docutils literal notranslate"><span class="pre">FileMLInterface</span></code></a><ul>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.add_model"><code class="docutils literal notranslate"><span class="pre">FileMLInterface.add_model()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.evaluate_model"><code class="docutils literal notranslate"><span class="pre">FileMLInterface.evaluate_model()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.load_model"><code class="docutils literal notranslate"><span class="pre">FileMLInterface.load_model()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.model"><code class="docutils literal notranslate"><span class="pre">FileMLInterface.model</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.model_predict"><code class="docutils literal notranslate"><span class="pre">FileMLInterface.model_predict()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.save_model"><code class="docutils literal notranslate"><span class="pre">FileMLInterface.save_model()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.set_training_test_set"><code class="docutils literal notranslate"><span class="pre">FileMLInterface.set_training_test_set()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.test_model"><code class="docutils literal notranslate"><span class="pre">FileMLInterface.test_model()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.train_model"><code class="docutils literal notranslate"><span class="pre">FileMLInterface.train_model()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.training_data"><code class="docutils literal notranslate"><span class="pre">FileMLInterface.training_data</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.white_viridis"><code class="docutils literal notranslate"><span class="pre">FileMLInterface.white_viridis</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-MaCh3PythonUtils.machine_learning.ml_factory">MaCh3PythonUtils.machine_learning.ml_factory module</a><ul>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.ml_factory.MLFactory"><code class="docutils literal notranslate"><span class="pre">MLFactory</span></code></a><ul>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.ml_factory.MLFactory.make_scikit_model"><code class="docutils literal notranslate"><span class="pre">MLFactory.make_scikit_model()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.ml_factory.MLFactory.make_tensorflow_model"><code class="docutils literal notranslate"><span class="pre">MLFactory.make_tensorflow_model()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-MaCh3PythonUtils.machine_learning.scikit_interface">MaCh3PythonUtils.machine_learning.scikit_interface module</a><ul>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.scikit_interface.SciKitInterface"><code class="docutils literal notranslate"><span class="pre">SciKitInterface</span></code></a><ul>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.scikit_interface.SciKitInterface.model_predict"><code class="docutils literal notranslate"><span class="pre">SciKitInterface.model_predict()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.scikit_interface.SciKitInterface.train_model"><code class="docutils literal notranslate"><span class="pre">SciKitInterface.train_model()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-MaCh3PythonUtils.machine_learning.tf_interface">MaCh3PythonUtils.machine_learning.tf_interface module</a><ul>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface"><code class="docutils literal notranslate"><span class="pre">TfInterface</span></code></a><ul>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.add_layer"><code class="docutils literal notranslate"><span class="pre">TfInterface.add_layer()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.build_model"><code class="docutils literal notranslate"><span class="pre">TfInterface.build_model()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.load_model"><code class="docutils literal notranslate"><span class="pre">TfInterface.load_model()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.model_predict"><code class="docutils literal notranslate"><span class="pre">TfInterface.model_predict()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.save_model"><code class="docutils literal notranslate"><span class="pre">TfInterface.save_model()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.set_training_settings"><code class="docutils literal notranslate"><span class="pre">TfInterface.set_training_settings()</span></code></a></li>
+<li><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.train_model"><code class="docutils literal notranslate"><span class="pre">TfInterface.train_model()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-MaCh3PythonUtils.machine_learning">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MaCh3-PythonUtils</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">MaCh3PythonUtils.machine_learning package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/MaCh3PythonUtils.machine_learning.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="mach3pythonutils-machine-learning-package">
+<h1>MaCh3PythonUtils.machine_learning package<a class="headerlink" href="#mach3pythonutils-machine-learning-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-MaCh3PythonUtils.machine_learning.file_ml_interface">
+<span id="mach3pythonutils-machine-learning-file-ml-interface-module"></span><h2>MaCh3PythonUtils.machine_learning.file_ml_interface module<a class="headerlink" href="#module-MaCh3PythonUtils.machine_learning.file_ml_interface" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">MaCh3PythonUtils.machine_learning.file_ml_interface.</span></span><span class="sig-name descname"><span class="pre">FileMLInterface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="MaCh3PythonUtils.file_handling.html#MaCh3PythonUtils.file_handling.chain_handler.ChainHandler" title="MaCh3PythonUtils.file_handling.chain_handler.ChainHandler"><span class="pre">ChainHandler</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/file_ml_interface.html#FileMLInterface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.add_model">
+<span class="sig-name descname"><span class="pre">add_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ml_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/file_ml_interface.html#FileMLInterface.add_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.add_model" title="Link to this definition"></a></dt>
+<dd><p>Add model to data set</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ml_model</strong> (<em>Any</em>) – Sets model to be ml_model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.evaluate_model">
+<span class="sig-name descname"><span class="pre">evaluate_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predicted_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/file_ml_interface.html#FileMLInterface.evaluate_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.evaluate_model" title="Link to this definition"></a></dt>
+<dd><p>Evalulates model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>predicted_values</strong> (<em>Iterable</em>) – Label values predicted by model</p></li>
+<li><p><strong>true_values</strong> (<em>Iterable</em>) – Actual label values</p></li>
+<li><p><strong>outfile</strong> (<em>str</em><em>, </em><em>optional</em>) – File to output plots to, defaults to “”</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.load_model">
+<span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/file_ml_interface.html#FileMLInterface.load_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.load_model" title="Link to this definition"></a></dt>
+<dd><p>Unpickle model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_file</strong> (<em>str</em>) – Pickled Model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.model">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">model</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span></em><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.model" title="Link to this definition"></a></dt>
+<dd><p>Model used</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Returns ML model being used</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.model_predict">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">model_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">testing_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span></span></span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/file_ml_interface.html#FileMLInterface.model_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.model_predict" title="Link to this definition"></a></dt>
+<dd><p>Abstract method, should return model prediction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>testing_data</strong> (<em>pd.DataFrame</em>) – Data to test model on</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.save_model">
+<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/file_ml_interface.html#FileMLInterface.save_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.save_model" title="Link to this definition"></a></dt>
+<dd><p>Save model to pickle</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>output_file</strong> (<em>str</em>) – Pickle file to save to</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.set_training_test_set">
+<span class="sig-name descname"><span class="pre">set_training_test_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/file_ml_interface.html#FileMLInterface.set_training_test_set"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.set_training_test_set" title="Link to this definition"></a></dt>
+<dd><p>Splits data/labels into training and testing tests</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>test_size</strong> (<em>float</em>) – Proportion of data used for testing</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.test_model">
+<span class="sig-name descname"><span class="pre">test_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/file_ml_interface.html#FileMLInterface.test_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.test_model" title="Link to this definition"></a></dt>
+<dd><p>Test model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – No model set</p></li>
+<li><p><strong>ValueError</strong> – No test data set</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.train_model">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/file_ml_interface.html#FileMLInterface.train_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.train_model" title="Link to this definition"></a></dt>
+<dd><p>Abstract method, should be overwritten with model training</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.training_data">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">training_data</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">DataFrame</span></em><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.training_data" title="Link to this definition"></a></dt>
+<dd><p>Gets training data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Training data set</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.white_viridis">
+<span class="sig-name descname"><span class="pre">white_viridis</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;matplotlib.colors.LinearSegmentedColormap</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface.white_viridis" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-MaCh3PythonUtils.machine_learning.ml_factory">
+<span id="mach3pythonutils-machine-learning-ml-factory-module"></span><h2>MaCh3PythonUtils.machine_learning.ml_factory module<a class="headerlink" href="#module-MaCh3PythonUtils.machine_learning.ml_factory" title="Link to this heading"></a></h2>
+<p>ML Factory implementation, effectively a selector for making models</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.ml_factory.MLFactory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">MaCh3PythonUtils.machine_learning.ml_factory.</span></span><span class="sig-name descname"><span class="pre">MLFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_chain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="MaCh3PythonUtils.file_handling.html#MaCh3PythonUtils.file_handling.chain_handler.ChainHandler" title="MaCh3PythonUtils.file_handling.chain_handler.ChainHandler"><span class="pre">ChainHandler</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/ml_factory.html#MLFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.ml_factory.MLFactory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.ml_factory.MLFactory.make_scikit_model">
+<span class="sig-name descname"><span class="pre">make_scikit_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.scikit_interface.SciKitInterface" title="MaCh3PythonUtils.machine_learning.scikit_interface.SciKitInterface"><span class="pre">SciKitInterface</span></a></span></span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/ml_factory.html#MLFactory.make_scikit_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.ml_factory.MLFactory.make_scikit_model" title="Link to this definition"></a></dt>
+<dd><p>Generates scikit model instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>algorithm</strong> (<em>str</em>) – Algorithm from scikit</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SciKitInterface wrapper around model</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.scikit_interface.SciKitInterface" title="MaCh3PythonUtils.machine_learning.scikit_interface.SciKitInterface">SciKitInterface</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.ml_factory.MLFactory.make_tensorflow_model">
+<span class="sig-name descname"><span class="pre">make_tensorflow_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface" title="MaCh3PythonUtils.machine_learning.tf_interface.TfInterface"><span class="pre">TfInterface</span></a></span></span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/ml_factory.html#MLFactory.make_tensorflow_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.ml_factory.MLFactory.make_tensorflow_model" title="Link to this definition"></a></dt>
+<dd><p>Generates TensorFlow model interface</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>algorithm</strong> (<em>str</em>) – TensorFlow algorithm [NOT layers]</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TfInterface wrapper around model</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_type_</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-MaCh3PythonUtils.machine_learning.scikit_interface">
+<span id="mach3pythonutils-machine-learning-scikit-interface-module"></span><h2>MaCh3PythonUtils.machine_learning.scikit_interface module<a class="headerlink" href="#module-MaCh3PythonUtils.machine_learning.scikit_interface" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.scikit_interface.SciKitInterface">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">MaCh3PythonUtils.machine_learning.scikit_interface.</span></span><span class="sig-name descname"><span class="pre">SciKitInterface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="MaCh3PythonUtils.file_handling.html#MaCh3PythonUtils.file_handling.chain_handler.ChainHandler" title="MaCh3PythonUtils.file_handling.chain_handler.ChainHandler"><span class="pre">ChainHandler</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/scikit_interface.html#SciKitInterface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.scikit_interface.SciKitInterface" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface" title="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileMLInterface</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.scikit_interface.SciKitInterface.model_predict">
+<span class="sig-name descname"><span class="pre">model_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/scikit_interface.html#SciKitInterface.model_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.scikit_interface.SciKitInterface.model_predict" title="Link to this definition"></a></dt>
+<dd><p>Gets model prediction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>test_data</strong> (<em>DataFrame</em>) – Data to predict</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – No model set</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Model prediction for test_data</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.scikit_interface.SciKitInterface.train_model">
+<span class="sig-name descname"><span class="pre">train_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/scikit_interface.html#SciKitInterface.train_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.scikit_interface.SciKitInterface.train_model" title="Link to this definition"></a></dt>
+<dd><p>Trains model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – Model not initialised</p></li>
+<li><p><strong>ValueError</strong> – Data set not initialised</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-MaCh3PythonUtils.machine_learning.tf_interface">
+<span id="mach3pythonutils-machine-learning-tf-interface-module"></span><h2>MaCh3PythonUtils.machine_learning.tf_interface module<a class="headerlink" href="#module-MaCh3PythonUtils.machine_learning.tf_interface" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.tf_interface.TfInterface">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">MaCh3PythonUtils.machine_learning.tf_interface.</span></span><span class="sig-name descname"><span class="pre">TfInterface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="MaCh3PythonUtils.file_handling.html#MaCh3PythonUtils.file_handling.chain_handler.ChainHandler" title="MaCh3PythonUtils.file_handling.chain_handler.ChainHandler"><span class="pre">ChainHandler</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/tf_interface.html#TfInterface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface" title="MaCh3PythonUtils.machine_learning.file_ml_interface.FileMLInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileMLInterface</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.add_layer">
+<span class="sig-name descname"><span class="pre">add_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/tf_interface.html#TfInterface.add_layer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.add_layer" title="Link to this definition"></a></dt>
+<dd><p>Add new layer to TF model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layer_id</strong> (<em>str</em>) – Layer type [dense/dropout]</p></li>
+<li><p><strong>layer_args</strong> (<em>dict</em>) – kwargs for layer</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Layer type not implemented in __TF_LAYER_IMPLEMENTATIONS yet</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.build_model">
+<span class="sig-name descname"><span class="pre">build_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/tf_interface.html#TfInterface.build_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.build_model" title="Link to this definition"></a></dt>
+<dd><p>Build and compile TF model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model_args</strong> (<em>dict</em>) – Model arguments as dictionary</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Model not set up yet</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.load_model">
+<span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/tf_interface.html#TfInterface.load_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.load_model" title="Link to this definition"></a></dt>
+<dd><p>Load model from file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_file</strong> (<em>str</em>) – Name offile to load model from</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.model_predict">
+<span class="sig-name descname"><span class="pre">model_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/tf_interface.html#TfInterface.model_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.model_predict" title="Link to this definition"></a></dt>
+<dd><p>Get model prediction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>test_data</strong> (<em>pd.DataFrame</em>) – data to run model over for prediction</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>model predction</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.save_model">
+<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/tf_interface.html#TfInterface.save_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.save_model" title="Link to this definition"></a></dt>
+<dd><p>Save model to file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>output_file</strong> (<em>str</em>) – Output file to save model to</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.set_training_settings">
+<span class="sig-name descname"><span class="pre">set_training_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/tf_interface.html#TfInterface.set_training_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.set_training_settings" title="Link to this definition"></a></dt>
+<dd><p>Set training settings, needs to be done early for…reasons</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kwargs</strong> (<em>kwargs</em>) – training kwargs</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.train_model">
+<span class="sig-name descname"><span class="pre">train_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/MaCh3PythonUtils/machine_learning/tf_interface.html#TfInterface.train_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MaCh3PythonUtils.machine_learning.tf_interface.TfInterface.train_model" title="Link to this definition"></a></dt>
+<dd><p>train model</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-MaCh3PythonUtils.machine_learning">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-MaCh3PythonUtils.machine_learning" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, MaCh3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

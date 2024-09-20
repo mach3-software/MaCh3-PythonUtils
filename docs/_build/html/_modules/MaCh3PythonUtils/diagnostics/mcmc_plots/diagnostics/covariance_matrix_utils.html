@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.covariance_matrix_utils &mdash; MaCh3-PythonUtils v1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../../_static/documentation_options.js?v=d29a5c0e"></script>
+        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            MaCh3-PythonUtils
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">MaCh3-PythonUtils</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.covariance_matrix_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.covariance_matrix_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Additional Diagnostics that can be used with MCMC but don&#39;t rely on plotting</span>
+
+<span class="sd">Suboptimality : https://www.jstor.org/stable/25651249?seq=3</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">MaCh3PythonUtils.file_handling.chain_handler</span> <span class="kn">import</span> <span class="n">ChainHandler</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">sqrtm</span>
+<span class="kn">from</span> <span class="nn">tqdm.auto</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.backends.backend_pdf</span> <span class="kn">import</span> <span class="n">PdfPages</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">mplhep</span> <span class="k">as</span> <span class="nn">hep</span>
+<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+
+
+<div class="viewcode-block" id="CovarianceMatrixUtils">
+<a class="viewcode-back" href="../../../../../MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.html#MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.covariance_matrix_utils.CovarianceMatrixUtils">[docs]</a>
+<span class="k">class</span> <span class="nc">CovarianceMatrixUtils</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain_handler</span><span class="p">:</span> <span class="n">ChainHandler</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor for handling covariance matrix</span>
+
+<span class="sd">        :param chain_handler: Instance of a chain handler objec</span>
+<span class="sd">        :type chain_handler: ChainHandler</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Let&#39;s just ignore some warnings :grin:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">DeprecationWarning</span><span class="p">)</span> <span class="c1">#Some imports are a little older</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">UserWarning</span><span class="p">)</span> <span class="c1">#Some imports are a little older</span>
+
+        <span class="n">chain_handler</span><span class="o">.</span><span class="n">get_ttree_as_arviz</span><span class="p">()</span> <span class="c1"># Ensure that we have things in the correct format</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">chain_handler</span><span class="o">.</span><span class="n">arviz_tree</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_parameters</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_names</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ttree_data_frame</span> <span class="o">=</span> <span class="n">chain_handler</span><span class="o">.</span><span class="n">arviz_tree</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span> <span class="c1"># All our handling will be done using thi s object</span>
+        <span class="c1"># Various useful class properties</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_array</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># For filling with suboptimality</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_evaluation_points</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1">#Where did we evalutate this?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_full_covariance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_covariance_matrix</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sqrt_full_covariance_inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">sqrtm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_full_covariance</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">hep</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">ROOT</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CovarianceMatrixUtils.calculate_covariance_matrix">
+<a class="viewcode-back" href="../../../../../MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.html#MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.covariance_matrix_utils.CovarianceMatrixUtils.calculate_covariance_matrix">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculate_covariance_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_step</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_step</span><span class="p">:</span> <span class="nb">int</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;_summary_</span>
+
+<span class="sd">        :param min_step: Steps at which to calculate covariance matrix at, defaults to 0</span>
+<span class="sd">        :type min_step: int, optional</span>
+<span class="sd">        :param max_step: Maximum step to calculate covariance matrix at, defaults to -1 indicating you want to evaluate the full chain</span>
+<span class="sd">        :type max_step: int, optional</span>
+<span class="sd">        :return: Covariance matrix at each Nth step</span>
+<span class="sd">        :rtype: np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">max_step</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">):</span>
+            <span class="n">sub_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ttree_data_frame</span><span class="p">[</span><span class="n">min_step</span> <span class="p">:</span> <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sub_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ttree_data_frame</span><span class="p">[</span><span class="n">min_step</span> <span class="p">:</span> <span class="n">max_step</span><span class="p">]</span>
+
+
+        <span class="k">return</span> <span class="n">sub_array</span><span class="o">.</span><span class="n">cov</span><span class="p">()</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_calculate_matrix_suboptimality</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span><span class="o">-&gt;</span><span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the suboptimality value for the mtarix for step N</span>
+
+<span class="sd">        :param step_number: calculate the covariance matrix for the first step_number steps</span>
+<span class="sd">        :type step_number: int</span>
+<span class="sd">        :return: Suboptimality</span>
+<span class="sd">        :rtype: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_covariance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_covariance_matrix</span><span class="p">(</span><span class="n">max_step</span><span class="o">=</span><span class="n">step_number</span><span class="p">)</span>
+
+        <span class="n">sqrt_input_cov</span> <span class="o">=</span> <span class="n">sqrtm</span><span class="p">(</span><span class="n">new_covariance</span><span class="p">)</span>
+
+        <span class="c1"># Get product of square roots</span>
+        <span class="n">matrix_prod</span> <span class="o">=</span> <span class="n">sqrt_input_cov</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sqrt_full_covariance_inv</span>
+        
+        <span class="c1">#Get eigen values </span>
+        <span class="n">eigenvalues</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">matrix_prod</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_parameters</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">eigenvalues</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">))</span><span class="o">/</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">eigenvalues</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CovarianceMatrixUtils.calculate_suboptimality">
+<a class="viewcode-back" href="../../../../../MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.html#MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.covariance_matrix_utils.CovarianceMatrixUtils.calculate_suboptimality">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculate_suboptimality</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step_skip</span> <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">min_step</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the suboptimality for every step_skip steps</span>
+
+<span class="sd">        :param step_skip: Number of steps to skip, defaults to 1000</span>
+<span class="sd">        :type step_skip: int, optional</span>
+<span class="sd">        :param min_step: smallest number of starting steps, defaults to 0</span>
+<span class="sd">        :type min_step: int, optional</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_evaluation_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">min_step</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ttree_data_frame</span><span class="p">),</span> <span class="n">step_skip</span><span class="p">)</span>
+        <span class="c1"># Make sure we have the last step as well!</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_evaluation_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_evaluation_points</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ttree_data_frame</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># make array to fill with suboptimality values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_array</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_evaluation_points</span><span class="p">))</span> <span class="c1"># Reset our suboptimality values</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Calculating suboptimality for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_evaluation_points</span><span class="p">)</span><span class="si">}</span><span class="s2"> points&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Lets speed this up a bit!</span>
+        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="n">futures</span> <span class="o">=</span> <span class="p">{</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calculate_matrix_suboptimality</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span> <span class="n">step</span>
+                       <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_evaluation_points</span><span class="p">}</span>
+
+            <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span> <span class="n">ascii</span><span class="o">=</span><span class="s2">&quot;▖▘▝▗▚▞█&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_evaluation_points</span><span class="p">)):</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_evaluation_points</span><span class="o">==</span><span class="n">futures</span><span class="p">[</span><span class="n">future</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span></div>
+
+        
+
+<div class="viewcode-block" id="CovarianceMatrixUtils.plot_suboptimality">
+<a class="viewcode-back" href="../../../../../MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.html#MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.covariance_matrix_utils.CovarianceMatrixUtils.plot_suboptimality">[docs]</a>
+    <span class="k">def</span> <span class="nf">plot_suboptimality</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plots suboptimality value</span>
+
+<span class="sd">        :param output_file: Output PDF file</span>
+<span class="sd">        :type output_file: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving to </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">pdf</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+            <span class="n">axes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_evaluation_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suboptimality_array</span><span class="p">)</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Step Number&quot;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;Suboptimality&quot;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Suboptimality Plot&quot;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+
+            <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, MaCh3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

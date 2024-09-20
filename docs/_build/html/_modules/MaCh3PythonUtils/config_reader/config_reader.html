@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MaCh3PythonUtils.config_reader.config_reader &mdash; MaCh3-PythonUtils v1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=d29a5c0e"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            MaCh3-PythonUtils
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">MaCh3-PythonUtils</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">MaCh3PythonUtils.config_reader.config_reader</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MaCh3PythonUtils.config_reader.config_reader</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">yaml</span>
+
+<span class="kn">from</span> <span class="nn">MaCh3PythonUtils.file_handling.chain_handler</span> <span class="kn">import</span> <span class="n">ChainHandler</span>
+<span class="kn">from</span> <span class="nn">MaCh3PythonUtils.machine_learning.ml_factory</span> <span class="kn">import</span> <span class="n">MLFactory</span>
+<span class="kn">from</span> <span class="nn">MaCh3PythonUtils.diagnostics.interface.plotting_interface</span> <span class="kn">import</span> <span class="n">PlottingInterface</span>
+<span class="kn">from</span> <span class="nn">MaCh3PythonUtils.diagnostics.mcmc_plots.posteriors.posteriors_1d</span> <span class="kn">import</span> <span class="n">PosteriorPlotter1D</span>
+<span class="kn">from</span> <span class="nn">MaCh3PythonUtils.diagnostics.mcmc_plots.posteriors.posteriors_2d</span> <span class="kn">import</span> <span class="n">PosteriorPlotter2D</span><span class="p">,</span> <span class="n">TrianglePlotter</span>
+<span class="kn">from</span> <span class="nn">MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.covariance_matrix_utils</span> <span class="kn">import</span> <span class="n">CovarianceMatrixUtils</span>
+<span class="kn">from</span> <span class="nn">MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.autocorrelation_trace_plotter</span> <span class="kn">import</span> <span class="n">AutocorrelationTracePlotter</span>
+
+<span class="kn">from</span> <span class="nn">MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.simple_diag_plots</span> <span class="kn">import</span> <span class="n">EffectiveSampleSizePlotter</span><span class="p">,</span>\
+                                                                                     <span class="n">MarkovChainStandardError</span><span class="p">,</span> <span class="n">ViolinPlotter</span>
+
+<span class="kn">from</span> <span class="nn">deepmerge</span> <span class="kn">import</span> <span class="n">always_merger</span>
+
+<div class="viewcode-block" id="ConfigReader">
+<a class="viewcode-back" href="../../../MaCh3PythonUtils.config_reader.html#MaCh3PythonUtils.config_reader.config_reader.ConfigReader">[docs]</a>
+<span class="k">class</span> <span class="nc">ConfigReader</span><span class="p">:</span>    
+    
+    <span class="c1"># Strictly unecessary but nice conceptually</span>
+    <span class="n">_file_handler</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_interface</span>    <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_plot_interface</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="n">__default_settings</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># Settings for file and I/O</span>
+        <span class="s2">&quot;FileSettings&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="c1"># Name of input file</span>
+            <span class="s2">&quot;FileName&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="c1"># Name of chain in file</span>
+            <span class="s2">&quot;ChainName&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="c1"># More printouts</span>
+            <span class="s2">&quot;Verbose&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="c1"># Make posteriors from chain?</span>
+            <span class="s2">&quot;MakePosteriors&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="c1"># Run Diagnostics code?</span>
+            <span class="s2">&quot;MakeDiagnostics&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="c1"># Make an ML model to replicate the chain likelihood model</span>
+            <span class="s2">&quot;MakeMLModel&quot;</span><span class="p">:</span> <span class="kc">False</span>
+        <span class="p">},</span>
+        
+        <span class="s2">&quot;ParameterSettings&quot;</span><span class="p">:{</span>
+            <span class="s2">&quot;CircularParameters&quot;</span> <span class="p">:</span> <span class="p">[],</span>
+            <span class="c1"># List of parameter names</span>
+            <span class="s2">&quot;ParameterNames&quot;</span><span class="p">:[],</span>
+            <span class="c1"># List of cuts</span>
+            <span class="s2">&quot;ParameterCuts&quot;</span><span class="p">:[],</span>
+            <span class="c1"># Name of label branch, used in ML</span>
+            <span class="s2">&quot;LabelName&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="c1"># Any parameters we want to ignore</span>
+            <span class="s2">&quot;IgnoredParameters&quot;</span><span class="p">:[]</span>
+        <span class="p">},</span>
+        
+        <span class="c1"># Settings for plotting tools</span>
+        <span class="s2">&quot;PlottingSettings&quot;</span><span class="p">:{</span>
+        <span class="c1"># Specific Settings for posterior plots</span>
+            <span class="s2">&quot;PosteriorSettings&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="c1"># Make 2D Posterior Plots?</span>
+                <span class="s2">&quot;Make2DPosteriors&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="c1"># Make a triangle plot</span>
+                <span class="s2">&quot;MakeTrianglePlot&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="c1"># Variables in the triangle plot</span>
+                <span class="s2">&quot;TrianglePlot&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="c1"># 1D credible intervals</span>
+                <span class="s2">&quot;MakeCredibleIntervals&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="c1"># Output file</span>
+                <span class="s2">&quot;PosteriorOutputFile&quot;</span><span class="p">:</span> <span class="s2">&quot;posteriors.pdf&quot;</span>
+            <span class="p">},</span>
+            
+            <span class="c1"># Specific Settings for diagnostic plots</span>
+            <span class="s2">&quot;DiagnosticsSettings&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="c1"># Make violin plot?</span>
+                <span class="s2">&quot;MakeViolin&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="c1"># Make trace + AC plot?</span>
+                <span class="s2">&quot;MakeTraceAC&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="c1"># Make effective sample size plot?</span>
+                <span class="s2">&quot;MakeESS&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="c1"># Make MCSE plot?</span>
+                <span class="s2">&quot;MakeMCSE&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="c1"># Make suboptimality plot</span>
+                <span class="s2">&quot;MakeSuboptimality&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="c1"># Step for calculation</span>
+                <span class="s2">&quot;SuboptimalitySteps&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="c1"># Output file</span>
+                <span class="s2">&quot;DiagnosticsOutputFile&quot;</span><span class="p">:</span> <span class="s2">&quot;diagnostics.pdf&quot;</span><span class="p">,</span>
+                <span class="c1"># Print summary statistic</span>
+                <span class="s2">&quot;PrintSummary&quot;</span><span class="p">:</span> <span class="kc">False</span>
+        <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="c1"># Specific Settings for ML Applications</span>
+        <span class="s2">&quot;MLSettings&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="c1"># Fitter package either SciKit or TensorFlow</span>
+            <span class="s2">&quot;FitterPackage&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="c1"># Fitter Model</span>
+            <span class="s2">&quot;FitterName&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="c1"># Keyword arguments for fitter</span>
+            <span class="s2">&quot;FitterKwargs&quot;</span> <span class="p">:</span> <span class="p">{},</span>
+            <span class="c1">#Use an external model that&#39;s already been trained?</span>
+            <span class="s2">&quot;AddFromExternalModel&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="c1"># Proportion of input data set used for testing (range of 0-1 )</span>
+            <span class="s2">&quot;TestSize&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="c1"># Name to save ML model in</span>
+            <span class="s2">&quot;MLOutputFile&quot;</span><span class="p">:</span> <span class="s2">&quot;mlmodel&quot;</span>
+        <span class="p">}</span>
+        
+    <span class="p">}</span>
+    
+    
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor</span>
+
+<span class="sd">        :param config: Name of yaml config</span>
+<span class="sd">        :type config: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">c</span><span class="p">:</span>
+            <span class="n">yaml_config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>    
+
+        <span class="c1"># Update default settings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span> <span class="o">=</span> <span class="n">always_merger</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__default_settings</span><span class="p">,</span> <span class="n">yaml_config</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="ConfigReader.make_file_handler">
+<a class="viewcode-back" href="../../../MaCh3PythonUtils.config_reader.html#MaCh3PythonUtils.config_reader.config_reader.ConfigReader.make_file_handler">[docs]</a>
+    <span class="k">def</span> <span class="nf">make_file_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets up file handler object</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="c1"># Process MCMC chain    </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span> <span class="o">=</span> <span class="n">ChainHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;FileSettings&quot;</span><span class="p">][</span><span class="s2">&quot;FileName&quot;</span><span class="p">],</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;FileSettings&quot;</span><span class="p">][</span><span class="s2">&quot;ChainName&quot;</span><span class="p">],</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;FileSettings&quot;</span><span class="p">][</span><span class="s2">&quot;Verbose&quot;</span><span class="p">])</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="o">.</span><span class="n">ignore_plots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;ParameterSettings&quot;</span><span class="p">][</span><span class="s2">&quot;IgnoredParameters&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="o">.</span><span class="n">add_additional_plots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;ParameterSettings&quot;</span><span class="p">][</span><span class="s2">&quot;ParameterNames&quot;</span><span class="p">])</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="o">.</span><span class="n">add_additional_plots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;ParameterSettings&quot;</span><span class="p">][</span><span class="s2">&quot;LabelName&quot;</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="o">.</span><span class="n">add_new_cuts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;ParameterSettings&quot;</span><span class="p">][</span><span class="s2">&quot;ParameterCuts&quot;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="o">.</span><span class="n">convert_ttree_to_array</span><span class="p">()</span></div>
+
+
+    
+    
+<div class="viewcode-block" id="ConfigReader.make_posterior_plots">
+<a class="viewcode-back" href="../../../MaCh3PythonUtils.config_reader.html#MaCh3PythonUtils.config_reader.config_reader.ConfigReader.make_posterior_plots">[docs]</a>
+    <span class="k">def</span> <span class="nf">make_posterior_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates posterior plots</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span> <span class="o">=</span> <span class="n">PlottingInterface</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="p">)</span>
+        
+        <span class="n">posterior_labels</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;PosteriorSettings&#39;</span><span class="p">][</span><span class="s1">&#39;Make2DPosteriors&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span><span class="o">.</span><span class="n">initialise_new_plotter</span><span class="p">(</span><span class="n">PosteriorPlotter2D</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="p">),</span> <span class="s1">&#39;posterior_2d&#39;</span><span class="p">)</span>
+            <span class="n">posterior_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;posterior_2d&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;PosteriorSettings&#39;</span><span class="p">][</span><span class="s1">&#39;MakeTrianglePlot&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span><span class="o">.</span><span class="n">initialise_new_plotter</span><span class="p">(</span><span class="n">TrianglePlotter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="p">),</span> <span class="s1">&#39;posterior_triangle&#39;</span><span class="p">)</span>
+            <span class="n">posterior_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;posterior_triangle&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Which variables do we actually want 2D plots for?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span><span class="o">.</span><span class="n">set_variables_to_plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;PosteriorSettings&#39;</span><span class="p">][</span><span class="s1">&#39;TrianglePlot&#39;</span><span class="p">],</span> <span class="n">posterior_labels</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;PosteriorSettings&#39;</span><span class="p">][</span><span class="s1">&#39;Make1DPosteriors&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span><span class="o">.</span><span class="n">initialise_new_plotter</span><span class="p">(</span><span class="n">PosteriorPlotter1D</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="p">),</span> <span class="s1">&#39;posterior_1d&#39;</span><span class="p">)</span>
+            <span class="n">posterior_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;posterior_1d&#39;</span><span class="p">)</span>
+    
+    
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span><span class="o">.</span><span class="n">set_credible_intervals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;PosteriorSettings&#39;</span><span class="p">][</span><span class="s1">&#39;CredibleIntervals&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span><span class="o">.</span><span class="n">set_is_circular</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;ParameterSettings&#39;</span><span class="p">][</span><span class="s1">&#39;CircularParameters&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span><span class="o">.</span><span class="n">make_plots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;PosteriorSettings&#39;</span><span class="p">][</span><span class="s1">&#39;PosteriorOutputFile&#39;</span><span class="p">],</span> <span class="n">posterior_labels</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ConfigReader.make_diagnostics_plots">
+<a class="viewcode-back" href="../../../MaCh3PythonUtils.config_reader.html#MaCh3PythonUtils.config_reader.config_reader.ConfigReader.make_diagnostics_plots">[docs]</a>
+    <span class="k">def</span> <span class="nf">make_diagnostics_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates diagnostics plots</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span> <span class="o">=</span> <span class="n">PlottingInterface</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="p">)</span>
+
+        <span class="n">diagnostic_labels</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsSettings&#39;</span><span class="p">][</span><span class="s1">&#39;MakeViolin&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span><span class="o">.</span><span class="n">initialise_new_plotter</span><span class="p">(</span><span class="n">ViolinPlotter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="p">),</span> <span class="s1">&#39;violin_plotter&#39;</span><span class="p">)</span>
+            <span class="n">diagnostic_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;violin_plotter&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsSettings&#39;</span><span class="p">][</span><span class="s1">&#39;MakeTraceAC&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span><span class="o">.</span><span class="n">initialise_new_plotter</span><span class="p">(</span><span class="n">AutocorrelationTracePlotter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="p">),</span> <span class="s1">&#39;trace_autocorr&#39;</span><span class="p">)</span>
+            <span class="n">diagnostic_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;trace_autocorr&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsSettings&#39;</span><span class="p">][</span><span class="s1">&#39;MakeESS&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span><span class="o">.</span><span class="n">initialise_new_plotter</span><span class="p">(</span><span class="n">EffectiveSampleSizePlotter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="p">),</span> <span class="s1">&#39;ess_plot&#39;</span><span class="p">)</span>
+            <span class="n">diagnostic_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;ess_plot&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsSettings&#39;</span><span class="p">][</span><span class="s1">&#39;MakeMCSE&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span><span class="o">.</span><span class="n">initialise_new_plotter</span><span class="p">(</span><span class="n">MarkovChainStandardError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="p">),</span> <span class="s1">&#39;msce_plot&#39;</span><span class="p">)</span>
+            <span class="n">diagnostic_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;msce_plot&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span><span class="o">.</span><span class="n">make_plots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsOutputFile&#39;</span><span class="p">],</span> <span class="n">diagnostic_labels</span><span class="p">)</span>
+
+        <span class="c1"># Final one, covariance plotter</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsSettings&#39;</span><span class="p">][</span><span class="s1">&#39;MakeSuboptimality&#39;</span><span class="p">]:</span>
+            <span class="n">suboptimality_obj</span> <span class="o">=</span> <span class="n">CovarianceMatrixUtils</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="p">)</span>
+            <span class="n">suboptimality_obj</span><span class="o">.</span><span class="n">calculate_suboptimality</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsSettings&#39;</span><span class="p">][</span><span class="s1">&#39;SuboptimalitySteps&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsSettings&#39;</span><span class="p">][</span><span class="s1">&#39;SubOptimalityMin&#39;</span><span class="p">])</span>
+            <span class="n">suboptimality_obj</span><span class="o">.</span><span class="n">plot_suboptimality</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;suboptimality_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsOutputFile&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Finally let&#39;s make a quick simmary</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsSettings&#39;</span><span class="p">][</span><span class="s1">&#39;PrintSummary&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot_interface</span><span class="o">.</span><span class="n">print_summary</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;summary_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s1">&#39;PlottingSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsSettings&#39;</span><span class="p">][</span><span class="s1">&#39;DiagnosticsOutputFile&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.txt&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ConfigReader.make_ml_interface">
+<a class="viewcode-back" href="../../../MaCh3PythonUtils.config_reader.html#MaCh3PythonUtils.config_reader.config_reader.ConfigReader.make_ml_interface">[docs]</a>
+    <span class="k">def</span> <span class="nf">make_ml_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates ML interface objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        
+        
+        <span class="n">factory</span> <span class="o">=</span> <span class="n">MLFactory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;ParameterSettings&quot;</span><span class="p">][</span><span class="s2">&quot;LabelName&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;MLSettings&quot;</span><span class="p">][</span><span class="s2">&quot;FitterPackage&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;scikit&quot;</span><span class="p">:</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">_interface</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">make_scikit_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;MLSettings&quot;</span><span class="p">][</span><span class="s2">&quot;FitterName&quot;</span><span class="p">],</span>
+                                    <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;MLSettings&quot;</span><span class="p">][</span><span class="s2">&quot;FitterKwargs&quot;</span><span class="p">])</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;MLSettings&quot;</span><span class="p">][</span><span class="s2">&quot;FitterPackage&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;tensorflow&quot;</span><span class="p">:</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">_interface</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">make_tensorflow_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;MLSettings&quot;</span><span class="p">][</span><span class="s2">&quot;FitterName&quot;</span><span class="p">],</span>
+                                    <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;MLSettings&quot;</span><span class="p">][</span><span class="s2">&quot;FitterKwargs&quot;</span><span class="p">])</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input not recognised!&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;MLSettings&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;AddFromExternalModel&quot;</span><span class="p">):</span>
+            <span class="n">external_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;MLSettings&quot;</span><span class="p">][</span><span class="s2">&quot;ExternalModel&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_interface</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">external_model</span><span class="p">)</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_interface</span><span class="o">.</span><span class="n">set_training_test_set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;MLSettings&quot;</span><span class="p">][</span><span class="s2">&quot;TestSize&quot;</span><span class="p">])</span>
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">_interface</span><span class="o">.</span><span class="n">train_model</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_interface</span><span class="o">.</span><span class="n">test_model</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_interface</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;MLSettings&quot;</span><span class="p">][</span><span class="s2">&quot;MLOutputFile&quot;</span><span class="p">])</span></div>
+
+
+    
+    
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs over all files from config</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">make_file_handler</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;FileSettings&quot;</span><span class="p">][</span><span class="s2">&quot;MakePosteriors&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">make_posterior_plots</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;FileSettings&quot;</span><span class="p">][</span><span class="s2">&quot;MakeDiagnostics&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">make_diagnostics_plots</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__chain_settings</span><span class="p">[</span><span class="s2">&quot;FileSettings&quot;</span><span class="p">][</span><span class="s2">&quot;MakeMLModel&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">make_ml_interface</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, MaCh3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
