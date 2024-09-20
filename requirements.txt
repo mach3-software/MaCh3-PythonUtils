@@ -14,3 +14,4 @@ scipy==1.14.1
 tensorflow[and-cuda]==2.17.0
 tqdm==4.66.5
 uproot==5.3.12
+sphinx==5.0.2
