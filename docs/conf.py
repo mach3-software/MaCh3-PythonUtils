@@ -23,9 +23,8 @@ sys.path.insert(0,os.path.abspath('../src/MaCh3PythonUtils'))
 project = 'MaCh3-PythonUtils'
 copyright = '2024, MaCh3'
 author = 'MaCh3'
-
 # The full version, including alpha/beta/rc tags
-release = 'v1.0.1'
+release = 'v1.1.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -48,6 +47,7 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+add_module_names = False
 
 # -- Options for HTML output -------------------------------------------------
 
