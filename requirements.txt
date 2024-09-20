@@ -14,6 +14,6 @@ scipy==1.14.1
 tensorflow[and-cuda]==2.17.0
 tqdm==4.66.5
 uproot==5.3.12
-sphinx==5.0.2
-sphinx_rtd_theme==2.0.0
-sphinx-autoapi==3.3.1
+sphinx
+sphinx_rtd_theme
+sphinx-autoapi
