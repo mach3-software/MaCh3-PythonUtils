@@ -24,7 +24,7 @@ project = 'MaCh3-PythonUtils'
 copyright = '2024, MaCh3'
 author = 'MaCh3'
 # The full version, including alpha/beta/rc tags
-release = 'v1.1.0'
+release = 'v1.1.1'
 
 
 # -- General configuration ---------------------------------------------------
