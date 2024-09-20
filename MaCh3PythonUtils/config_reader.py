@@ -5,7 +5,7 @@ from machine_learning.ml_factory import MLFactory
 from diagnostics.interface.plotting_interface import PlottingInterface
 import diagnostics.mcmc_plots.posteriors as m3post
 import diagnostics.mcmc_plots.diagnostics as m3diag
-from pydantic.v1.utils import deep_update
+from deepmerge import always_merger
 
 class ConfigReader:    
     
@@ -106,10 +106,10 @@ class ConfigReader:
         :type config: str
         """        
         with open(config, 'r') as c:
-            self._yaml_config = yaml.safe_load(c)    
+            yaml_config = yaml.safe_load(c)    
 
         # Update default settings
-        self.__chain_settings = deep_update(self.__default_settings, self._yaml_config)
+        self.__chain_settings = always_merger.merge(self.__default_settings, yaml_config)
     
     def make_file_handler(self)->None:
         """Sets up file handler object

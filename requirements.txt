@@ -7,7 +7,7 @@ mpl_scatter_density
 scipy
 pyyaml
 tensorflow # the biggun'
-pydantic
+deepmerge
 arviz
 mplhep
 tqdm
