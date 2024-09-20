@@ -3,7 +3,7 @@ HI : Class to make autocorrelations and traces, puts them all onto a single plot
 '''
 import arviz as az
 from matplotlib import pyplot as plt
-from diagnostics.mcmc_plots.plotter_base import _PlottingBaseClass
+from MaCh3PythonUtils.diagnostics.mcmc_plots.plotter_base import _PlottingBaseClass
 from matplotlib.figure import Figure
 
 class AutocorrelationTracePlotter(_PlottingBaseClass):
