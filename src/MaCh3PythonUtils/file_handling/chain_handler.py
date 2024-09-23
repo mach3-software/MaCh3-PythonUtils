@@ -20,9 +20,16 @@ class ChainHandler:
     :type ttree_name: str, optional
     """
     def __init__(self, file_name: str, ttree_name: str="posteriors", verbose=False)->None:
-        '''
-        Constructor method
-        '''
+        """_summary_
+
+        :param file_name: Input file name
+        :type file_name: str
+        :param ttree_name: Input TTree name, defaults to "posteriors"
+        :type ttree_name: str, optional
+        :param verbose: Verbose or not, defaults to False
+        :type verbose: bool, optional
+        :raises IOError: No file found
+        """
         print(f"Attempting to open {file_name}")
         try:
             self._posterior_ttree =  ur.open(f"{file_name}:{ttree_name}")
@@ -203,6 +210,10 @@ class ChainHandler:
         raise NotImplementedError("Cannot set converted TTree array to new type")
     
     def make_arviz_tree(self):
+        """Generate Arivz tree
+
+        :raises RuntimeError: Not built TTree
+        """        
         if self._ttree_array is None:
             raise RuntimeError("Error have not converted ROOT TTree to pandas data frame yet!")
 
