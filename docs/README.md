@@ -153,3 +153,10 @@ Here FitterKwargs is now split into sub-settings with `BuildSettings` being pass
 Implementing a new fitter is relatively simple. Mostly this is done in `machine_learining/ml_factory/MLFactory`. For Scikit-Learn based models, the new method just needs to imported and added to the `scikit` entry in `__IMPLEMENTED_ALGORITHMS`.
 
 For non-scikit/tf based algorithms currently no implementation exists. For such cases a new interface class (which inherits from `FMLInterface`) needs to be implemented. Hopefully in future this is easy to do!
+
+
+# TO DO LIST:
+- Better diagnostic plotting (particularly for the NNs)
+- Smart hyper parameter tuning (Just a random grid search will do!)
+- Better sampling methods that "MCMC output go brrrrrr"
+
