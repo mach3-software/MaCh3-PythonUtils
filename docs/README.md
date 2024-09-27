@@ -156,7 +156,7 @@ For non-scikit/tf based algorithms currently no implementation exists. For such 
 
 
 # TO DO LIST:
-- Better diagnostic plotting (particularly for the NNs)
-- Smart hyper parameter tuning (Just a random grid search will do!)
-- Better sampling methods that "MCMC output go brrrrrr"
+- [] Better diagnostic plotting (particularly for the NNs)
+- [] Smart hyper parameter tuning (Just a random grid search will do!)
+- [] Better sampling methods that "MCMC output go brrrrrr"
 
