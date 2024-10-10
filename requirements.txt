@@ -11,6 +11,8 @@ PyYAML>=6.0.2
 scikit-learn>=1.4.0
 scipy>=1.10.0
 tensorflow
+torch>=1.0.0
+normflows
 tqdm>=4.0.0
 uproot>=5.3.0
 mplhep

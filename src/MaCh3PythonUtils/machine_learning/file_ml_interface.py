@@ -185,9 +185,9 @@ class FileMLInterface(ABC):
             np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
         ]
 
-        ax.plot(lims, lobf(lims), "w-", label=f"Best fit: true={lobf.c[0]}pred + {lobf.c[1]}", linestyle="dashed", linewidth=0.3)
+        ax.plot(lims, lobf(lims), "m", label=f"Best fit: true={lobf.c[0]}pred + {lobf.c[1]}", linestyle="dashed", linewidth=0.3)
 
-        ax.plot(lims, lims, 'r-', alpha=0.75, zorder=0, label="true=predicted", linestyle="dashed", linewidth=0.3)
+        ax.plot(lims, lims, 'r', alpha=0.75, zorder=0, label="true=predicted", linestyle="dashed", linewidth=0.3)
         ax.set_aspect('equal')
         ax.set_xlim(lims)
         ax.set_ylim(lims)

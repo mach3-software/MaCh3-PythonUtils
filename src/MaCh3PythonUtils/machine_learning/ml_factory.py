@@ -17,10 +17,9 @@ class MLFactory:
             "adaboost"      : ske.AdaBoostRegressor,
             "histboost"     : ske.HistGradientBoostingRegressor
         },
-        "tensorflow":
-            {
-                "sequential" : tfk.Sequential
-            }
+        "tensorflow": {
+            "sequential" : tfk.Sequential
+        }
     }
 
     def __init__(self, input_chain: ChainHandler, prediction_variable: str):
