@@ -222,6 +222,13 @@ class ChainHandler:
         
  
     @property
+    def ndim(self)->int:
+        if self._ttree_array is None:    
+            return 0
+
+        return self._ttree_array.shape[0]
+ 
+    @property
     def arviz_tree(self)->az.InferenceData:
         """Gets arviz version of dataframe
 

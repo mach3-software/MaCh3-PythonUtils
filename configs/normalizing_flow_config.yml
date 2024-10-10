@@ -11,14 +11,13 @@ ParameterSettings:
     ParameterCuts : [LogL<12345678] 
 
 MLSettings:
-    FitterPackage : "SciKit"
-    FitterName : "histboost"
+    FitterPackage : "Normalizing-Flow"
+    FitterName : "realnvp"
     TestSize : 0.6
 
     FitterKwargs:
-        loss: 'absolute_error'
-        max_iter: 300000
-        verbose: 1
-        max_leaf_nodes: 10000
+      n_iter: 1000
+      layer_structure: [64, 64, 1]
+      n_layers: 32
 
-    MLOutputName: "scikit_model_full.pkl"
+    MLOutputName: "flow_model_full.pkl"

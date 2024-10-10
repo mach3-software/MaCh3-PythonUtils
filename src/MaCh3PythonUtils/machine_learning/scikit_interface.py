@@ -38,3 +38,4 @@ class SciKitInterface(FileMLInterface):
 
         return self._model.predict(scale_data)
     
+    

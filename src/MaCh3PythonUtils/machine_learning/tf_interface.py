@@ -25,7 +25,9 @@ class TfInterface(FileMLInterface):
         if layer_id not in self.__TF_LAYER_IMPLEMENTATIONS.keys():
             raise ValueError(f"{layer_id} not implemented yet!")
 
-        self._layers.append(self.__TF_LAYER_IMPLEMENTATIONS[layer_id.lower()](**layer_args))
+        self._layers.append(self.__TF_LAYER_IMPLEMENTATIONS[layer_id.lower()](**layer_arg
+                                                                              `
+                                                                              s))
     
     def build_model(self, model_args: dict):
         """Build and compile TF model

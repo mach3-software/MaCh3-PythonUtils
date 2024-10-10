@@ -201,32 +201,25 @@ class ConfigReader:
     def make_ml_interface(self)->None:
         """Generates ML interface objects
         """        
-        
+        if self._file_handler is None:
+            raise Exception("Cannot make interface without opening a file!")
         
         factory = MLFactory(self._file_handler, self.__chain_settings["ParameterSettings"]["LabelName"])
-        if self.__chain_settings["MLSettings"]["FitterPackage"].lower() == "scikit":        
-            self._interface = factory.make_scikit_model(self.__chain_settings["MLSettings"]["FitterName"],
-                                    **self.__chain_settings["MLSettings"]["FitterKwargs"])
 
-        elif self.__chain_settings["MLSettings"]["FitterPackage"].lower() == "tensorflow":        
-            self._interface = factory.make_tensorflow_model(self.__chain_settings["MLSettings"]["FitterName"],
-                                    **self.__chain_settings["MLSettings"]["FitterKwargs"])
-
-        else:
-            raise ValueError("Input not recognised!")
-        
+        self._interface = factory.make_interface(self.__chain_settings["MLSettings"]["FitterPackage"],
+                                                 self.__chain_settings["MLSettings"]["FitterName"],
+                                                 **self.__chain_settings["MLSettings"]["FitterKwargs"])
+  
         if self.__chain_settings["MLSettings"].get("AddFromExternalModel"):
             external_model = self.__chain_settings["MLSettings"]["ExternalModel"]
             self._interface.load_model(external_model)
         
         else:
             self._interface.set_training_test_set(self.__chain_settings["MLSettings"]["TestSize"])
-        
             self._interface.train_model()
             self._interface.test_model()
             self._interface.save_model(self.__chain_settings["MLSettings"]["MLOutputFile"])
 
-    
     
     def __call__(self) -> None:
         """Runs over all files from config

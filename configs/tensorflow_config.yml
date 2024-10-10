@@ -1,20 +1,17 @@
 FileSettings:
-    FileName : "/users/php20hti/php20hti/public/chains/all_par_chain_without_adaption.root"
+    FileName : "/home/henryi/sft/MaCh3Tutorial/Test.root"
     ChainName : "posteriors"
     Verbose : False
-
-    # Model Settings
     MakeMLModel: True
 
 ParameterSettings:
     ParameterNames : ["sin2th","delm2", "delta", "xsec", "sk", "nd"]
     LabelName : "LogL"
     IgnoredParameters : ["LogL_systematic_xsec_cov", "Log", "LogL_systematic_nddet_cov", ]
-    ParameterCuts : ["step>10000", "LogL<12345678"]
+    ParameterCuts : ["LogL<12345678"]
 
 
 MLSettings:
-
     FitterPackage : "TensorFlow"
     FitterName : "Sequential"
     TestSize : 0.4
@@ -27,37 +24,17 @@ MLSettings:
 
         Layers:
             - dense:
-                units: 450
+                units: 10
                 activation: 'sigmoid'
             - dropout:
                 rate: 0.3
             - dense:
-                units: 300
-                activation: 'swish'
-            - dropout:
-                rate: 0.3
-            - dense:
-                units: 150
-                activation: 'swish'
-            - dense:
-                units: 75
-                activation: 'swish'
-            - dense:
-                units: 30
-                activation: 'swish'
-            - dense:
-                units: 15
-                activation: 'swish'
-            - dense:
-                units: 7
-                activation: 'swish'
-            - dense:
-                units: 3
-                activation: 'sigmoid'
+                units: 5
+                activation: 'relu'
             - dense:
                 units: 1
                 activation: 'relu'
 
         FitSettings:
-            batch_size: 20000
-            epochs: 10000
+            batch_size: 2000
+            epochs: 400

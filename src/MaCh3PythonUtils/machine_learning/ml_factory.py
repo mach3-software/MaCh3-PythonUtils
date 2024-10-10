@@ -4,9 +4,12 @@ ML Factory implementation, effectively a selector for making models
 
 from MaCh3PythonUtils.machine_learning.scikit_interface import SciKitInterface
 from MaCh3PythonUtils.machine_learning.tf_interface import TfInterface
+from MaCh3PythonUtils.machine_learning.normalizing_flow_interface import NormalisingFlowInterface
 import sklearn.ensemble as ske
 import tensorflow.keras as tfk
 from MaCh3PythonUtils.file_handling.chain_handler import ChainHandler
+import MaCh3PythonUtils.machine_learning.algorithms.normalizing_flow_structures as nfs
+
 
 class MLFactory:
     # Implement algorithms here
@@ -19,6 +22,10 @@ class MLFactory:
         },
         "tensorflow": {
             "sequential" : tfk.Sequential
+        },
+        
+        "normalizing_flow": {
+            "realnvp": nfs.RealNVPModel
         }
     }
 
@@ -61,7 +68,7 @@ class MLFactory:
             
         return self.__IMPLEMENTED_ALGORITHMS[package][algorithm](**kwargs)
 
-    def make_scikit_model(self, algorithm: str, **kwargs)->SciKitInterface:
+    def __make_scikit_model(self, algorithm: str, **kwargs)->SciKitInterface:
         """Generates scikit model instance
 
         :param algorithm: Algorithm from scikit
@@ -74,7 +81,7 @@ class MLFactory:
         interface.add_model(self.__setup_package_factory(package="scikit", algorithm=algorithm, **kwargs))
         return interface
     
-    def make_tensorflow_model(self, algorithm: str,  **kwargs)->TfInterface:
+    def __make_tensorflow_model(self, algorithm: str,  **kwargs)->TfInterface:
         """Generates TensorFlow model interface
 
         :param algorithm: TensorFlow algorithm [NOT layers]
@@ -86,7 +93,6 @@ class MLFactory:
         
         interface.add_model(self.__setup_package_factory(package="tensorflow", algorithm=algorithm))
         
-        
         for layer in kwargs["Layers"]:
             layer_id = list(layer.keys())[0]
             
@@ -96,3 +102,21 @@ class MLFactory:
         
         interface.set_training_settings(kwargs["FitSettings"])
         return interface
+    
+    def __make_normalizing_flow_model(self, algorithm: str, **kwargs):
+        interface = NormalisingFlowInterface(self._chain, self._prediction_variable)
+        kwargs['n_dim'] = self._chain.ndim-1
+        interface.add_model(self.__setup_package_factory(package="normalizing_flow", algorithm=algorithm, **kwargs))
+        return interface
+    
+    def make_interface(self, interface_type: str, algorithm: str, **kwargs):
+        interface_type = interface_type.lower()
+        match(interface_type):
+            case "scikit":
+                return self.__make_scikit_model(algorithm, **kwargs)
+            case "tensorflow":
+                return self.__make_tensorflow_model(algorithm, **kwargs)
+            case "normalizing_flow":
+                return self.__make_normalizing_flow_model(algorithm, **kwargs)
+            case _:
+                raise Exception(f"{interface_type} not implemented!")
