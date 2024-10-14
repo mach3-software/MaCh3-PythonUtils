@@ -29,7 +29,7 @@ class MLFactory:
         }
     }
 
-    def __init__(self, input_chain: ChainHandler, prediction_variable: str):
+    def __init__(self, input_chain: ChainHandler, prediction_variable: str, plot_name: str):
         """Constructor for ML factory method
 
         :param input_chain: ChainHandler instance
@@ -40,6 +40,7 @@ class MLFactory:
         # Common chain across all instances of factory
         self._chain = input_chain
         self._prediction_variable = prediction_variable
+        self._plot_name = plot_name
             
 
     def __setup_package_factory(self, package: str, algorithm: str, **kwargs):
@@ -77,7 +78,7 @@ class MLFactory:
         :rtype: SciKitInterface
         """        
         # Simple wrapper for scikit packages
-        interface = SciKitInterface(self._chain, self._prediction_variable)
+        interface = SciKitInterface(self._chain, self._prediction_variable, self._plot_name)
         interface.add_model(self.__setup_package_factory(package="scikit", algorithm=algorithm, **kwargs))
         return interface
     
@@ -89,7 +90,7 @@ class MLFactory:
         :return: TfInterface wrapper around model
         :rtype: _type_
         """        
-        interface = TfInterface(self._chain, self._prediction_variable)
+        interface = TfInterface(self._chain, self._prediction_variable, self._plot_name)
         
         interface.add_model(self.__setup_package_factory(package="tensorflow", algorithm=algorithm))
         
@@ -104,7 +105,7 @@ class MLFactory:
         return interface
     
     def __make_normalizing_flow_model(self, algorithm: str, **kwargs):
-        interface = NormalisingFlowInterface(self._chain, self._prediction_variable)
+        interface = NormalisingFlowInterface(self._chain, self._prediction_variable, self._plot_name)
         kwargs['n_dim'] = self._chain.ndim-1
         interface.add_model(self.__setup_package_factory(package="normalizing_flow", algorithm=algorithm, **kwargs))
         return interface
@@ -116,7 +117,7 @@ class MLFactory:
                 return self.__make_scikit_model(algorithm, **kwargs)
             case "tensorflow":
                 return self.__make_tensorflow_model(algorithm, **kwargs)
-            case "normalizing_flow":
+            case "normalizingflow":
                 return self.__make_normalizing_flow_model(algorithm, **kwargs)
             case _:
                 raise Exception(f"{interface_type} not implemented!")

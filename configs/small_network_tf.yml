@@ -10,6 +10,8 @@ ParameterSettings:
     LabelName : "LogL"
     IgnoredParameters : ["LogL_systematic_xsec_cov", "Log",
                          "LogL_systematic_nddet_cov"]
+                        #  , "xsec_4", "sin2th_23",
+                        #  "delm2_23", "delta_cp"]
     ParameterCuts : ["LogL<12345678"]
 
 
@@ -17,8 +19,8 @@ MLSettings:
     FitterPackage : "TensorFlow"
     FitterName : "Sequential"
     TestSize : 0.2
-    MLOutputFile: "tf_disable_dropout.keras"
-    PlotOutputName : "tf_disable_dropout.pdf"
+    MLOutputFile: "tf_model_full.keras"
+    PlotOutputName : "tf_small_config.pdf"
 
     FitterKwargs:
         BuildSettings:
@@ -28,44 +30,53 @@ MLSettings:
 
         Layers:
             - dense:
-                units: 75
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 75
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 75
+                units: 64
+                activation: 'relu'
+            - dense:
+                units: 64
                 activation: 'relu'
             - dropout:
-                rate: 0.2
-
+                rate: 0.1
             - dense:
-                units: 75
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 75
-                activation: 'relu'
-            - dropout:
-                rate: 0.2
-            - dense:
-                units: 75
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 75
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 75
-                activation: 'relu'
-            - dropout:
-                rate: 0.2
-            - dense:
-                units: 75
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 75
+                units: 64
+                activation: 'relu'
+            - dense:
+                units: 64
                 activation: 'relu'
             - dropout:
-                rate: 0.2
+                rate: 0.05
+            # - dropout:
+            #     rate: 0.1
+            # - dense:
+            #     units: 40
+            #     activation: 'relu'
+            # - dense:
+            #     units: 40
+            #     activation: 'relu'
+            # - dense:
+            #     units: 20
+            #     activation: 'relu'
+            # - dense:
+            #     units: 20
+            #     activation: 'relu'
             - dense:
                 units: 50
                 activation: 'relu'
@@ -75,13 +86,14 @@ MLSettings:
             - dense:
                 units: 8
                 activation: 'relu'
+
             - dense:
                 units: 1
                 activation: 'linear'
 
         FitSettings:
-            batch_size: 2048
-            epochs: 1024
+            batch_size: 1000
+            epochs: 500
 
 
 LikelihoodScanSettings:

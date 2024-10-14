@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 import gc
 import numpy as np
 import arviz as az
+from numpy.typing import NDArray
 
 class ChainHandler:
     """
@@ -159,10 +160,10 @@ class ChainHandler:
         with ThreadPoolExecutor() as executor:
             # Make sure we have loads of memory available!
             # Ensures we don't run into funny behaviour when uncompressing
-            total_memory_needed = 8*self._posterior_ttree.uncompressed_bytes*(executor._max_workers) #in bytes
+            total_memory_needed = 6*self._posterior_ttree.uncompressed_bytes*(executor._max_workers) #in bytes
 
             if self._verbose:
-                print(f"Using {executor._max_workers} threads and requiring {np.round(self._posterior_ttree.uncompressed_bytes*1e-9,3)} Gb memory")
+                print(f"Using {executor._max_workers} threads and requiring {6*np.round(self._posterior_ttree.uncompressed_bytes*1e-9,3)} Gb memory")
                 print("Using the following branches: ")
                 for i in self._plotting_branches:
                     print(f"  -> {i}")
@@ -188,7 +189,8 @@ class ChainHandler:
             self.close_file()
 
         # Just to really make sure we have no memory overuse we'll call the Garbage collector
-        gc.collect()        
+        gc.collect()    
+
 
     @property
     def ttree_array(self)->pd.DataFrame:
@@ -226,7 +228,23 @@ class ChainHandler:
         if self._ttree_array is None:    
             return 0
 
-        return self._ttree_array.shape[0]
+        return self._ttree_array.shape[1]
+ 
+    @property
+    def lower_bounds(self)->NDArray:
+        # Lower bounds for all params
+        if self._ttree_array is None:    
+            return np.empty(self.ndim)
+        return self._ttree_array.min(axis=0).to_numpy()
+
+    @property
+    def upper_bounds(self)->NDArray:
+        # Upper bounds for all params
+        if self._ttree_array is None:    
+            return np.empty(self.ndim)
+        
+        return self._ttree_array.max(axis=0).to_numpy()
+    
  
     @property
     def arviz_tree(self)->az.InferenceData:
