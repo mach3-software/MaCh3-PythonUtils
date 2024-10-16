@@ -23,10 +23,6 @@ class MLFactory:
         "tensorflow": {
             "sequential" : tfk.Sequential
         },
-        
-        "normalizing_flow": {
-            "realnvp": nfs.RealNVPModel
-        }
     }
 
     def __init__(self, input_chain: ChainHandler, prediction_variable: str, plot_name: str):
@@ -104,11 +100,6 @@ class MLFactory:
         interface.set_training_settings(kwargs["FitSettings"])
         return interface
     
-    def __make_normalizing_flow_model(self, algorithm: str, **kwargs):
-        interface = NormalisingFlowInterface(self._chain, self._prediction_variable, self._plot_name)
-        kwargs['n_dim'] = self._chain.ndim-1
-        interface.add_model(self.__setup_package_factory(package="normalizing_flow", algorithm=algorithm, **kwargs))
-        return interface
     
     def make_interface(self, interface_type: str, algorithm: str, **kwargs):
         interface_type = interface_type.lower()
