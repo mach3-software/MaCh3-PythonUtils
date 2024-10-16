@@ -12,6 +12,7 @@ from typing import List, Dict
 import tensorflow as tf
 import warnings
 from tqdm import tqdm
+from scipy.optimize import minimize
 
 from sklearn import metrics
 from sklearn.preprocessing import StandardScaler
@@ -184,18 +185,38 @@ class FileMLInterface(ABC):
         
         self.evaluate_model(test_prediction, test_as_numpy, outfile=f"{self._fit_name}")
         print("=====\n\n")
-        
-    def run_likelihood_scan(self, parameter_properties: Dict[str, List[int]], n_divisions: int = 500):
+       
+    def model_predict_single_sample(self, sample):
+        sample_shaped = sample.reshape(1,-1)
+        return self.model_predict(sample_shaped)[0]
+       
+    def run_likelihood_scan(self, n_divisions: int = 500):
         # Get nominals
         print("Running LLH Scan")
         
-        nominal_values = np.array([prop[0] for prop in parameter_properties.values()])
+        init_vals = self.training_data.iloc[[1]].to_numpy()[0]
+    
+        print("Calculating max LLH")        
+        maximal_likelihood = minimize(self.model_predict_single_sample, init_vals, bounds=zip(self._chain.lower_bounds[:-1], self._chain.upper_bounds[:-1]))
+
+        errors = np.sqrt(np.diag(maximal_likelihood.hess_inv(np.identity(self.chain.ndim-1))))
+        
+        print("Maximal Pars :")
+        for i in range(self.chain.ndim-1):
+            print(f"Param : {self.chain.plot_branches[i]} : {maximal_likelihood.x[i]}±{errors[i]}")
+
+
+        maximal_nominal=maximal_likelihood.x        
         
         with PdfPages("llh_scan.pdf") as pdf:
-            for i, (param_name, param_range) in tqdm(enumerate(parameter_properties.items()), total=len(parameter_properties)):
+            for i in tqdm(range(self.chain.ndim-1), total=self.chain.ndim-1):
                 # Make copy since we'll be modifying!
-                param_range = np.linspace(param_range[1], param_range[2], n_divisions)
-                modified_values = [nominal_values.copy() for _ in range(n_divisions)]
+                
+                lower_bound = self.chain.lower_bounds[i]
+                upper_bound = self.chain.upper_bounds[i]
+                
+                param_range = np.linspace(lower_bound, upper_bound, n_divisions)
+                modified_values = [maximal_nominal.copy() for _ in range(n_divisions)]
                 
                 
                 for j, div in enumerate(param_range):
@@ -204,10 +225,12 @@ class FileMLInterface(ABC):
                 prediction = self.model_predict(modified_values)
                 # Save as histogram
                 plt.plot(param_range, prediction)
-                plt.xlabel(param_name)
+                plt.xlabel(self.chain.plot_branches[i])
                 plt.ylabel("-2*loglikelihood")
                 pdf.savefig()
                 plt.close()
+                
+            
         
     
     def evaluate_model(self, predicted_values: Iterable, true_values: Iterable, outfile: str=""):
@@ -233,8 +256,9 @@ class FileMLInterface(ABC):
         ax = fig.add_subplot(1,1,1, projection='scatter_density')
         
         # Bit hacky put plotting code is... bad so we're going to ignore the error it raises! 
+        warnings.filterwarnings("ignore", message="All-NaN slice encountered")
         density = ax.scatter_density(predicted_values, true_values, cmap=self.white_viridis)
-            
+        # warnings.resetwarnings()
         
         fig.colorbar(density, label="number of points per pixel")
         

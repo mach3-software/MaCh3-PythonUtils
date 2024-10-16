@@ -110,7 +110,10 @@ class ConfigReader:
         },
 
         # Settings for LLH Scan
-        "LikelihoodScanSettings": {},
+        "LikelihoodScanSettings": {
+            "NDivisions": 100
+        },
+            
 
         # Settings for MCMC
         "MCMCSettings": {
@@ -250,7 +253,7 @@ class ConfigReader:
             self.make_ml_interface()
 
             if self.__chain_settings["FileSettings"]["RunLLHScan"] and self._interface is not None:
-                self._interface.run_likelihood_scan(self.__chain_settings["LikelihoodScanSettings"], 10_000)
+                self._interface.run_likelihood_scan(self.__chain_settings["LikelihoodScanSettings"]["NDivisions"])
                 
             if self.__chain_settings["FileSettings"]["RunMCMC"] and self._interface is not None:
                 mcmc = MCMC(self._interface, 0.1)

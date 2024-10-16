@@ -3,7 +3,9 @@ FileSettings:
     ChainName : "posteriors"
     Verbose : True
     MakeMLModel: True
-    RunLLHScan: True
+    RunLLHScan: False
+    RunMCMC: True
+
 
 ParameterSettings:
     ParameterNames : ["sin2th","delm2", "delta", "xsec", "sk", "nd"]
@@ -16,7 +18,7 @@ ParameterSettings:
 MLSettings:
     FitterPackage : "TensorFlow"
     FitterName : "Sequential"
-    TestSize : 0.2
+    TestSize : 0.9
     MLOutputFile: "tf_disable_dropout.keras"
     PlotOutputName : "tf_disable_dropout.pdf"
 
@@ -36,17 +38,6 @@ MLSettings:
             - dense:
                 units: 75
                 activation: 'relu'
-            - dropout:
-                rate: 0.2
-
-            - dense:
-                units: 75
-                activation: 'relu'
-            - dense:
-                units: 75
-                activation: 'relu'
-            - dropout:
-                rate: 0.2
             - dense:
                 units: 75
                 activation: 'relu'
@@ -56,16 +47,18 @@ MLSettings:
             - dense:
                 units: 75
                 activation: 'relu'
-            - dropout:
-                rate: 0.2
             - dense:
                 units: 75
                 activation: 'relu'
             - dense:
                 units: 75
                 activation: 'relu'
-            - dropout:
-                rate: 0.2
+            - dense:
+                units: 75
+                activation: 'relu'
+            - dense:
+                units: 75
+                activation: 'relu'
             - dense:
                 units: 50
                 activation: 'relu'
@@ -81,7 +74,11 @@ MLSettings:
 
         FitSettings:
             batch_size: 2048
-            epochs: 1024
+            epochs: 8
+
+MCMCSettings:
+    NSteps: 100
+    NWalkers: 400
 
 
 LikelihoodScanSettings:

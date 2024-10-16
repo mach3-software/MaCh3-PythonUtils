@@ -95,4 +95,4 @@ class TfInterface(FileMLInterface):
         if self._model is None:
             return np.zeros(len(test_data))
         
-        return self._model.predict(scaled_data, verbose=1, training=False).T[0]
+        return self._model(scaled_data, training=False).numpy().T[0]
