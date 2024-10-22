@@ -1,92 +1,114 @@
+import emcee
 import numpy as np
 from numpy.typing import NDArray
 from tqdm import tqdm
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-import emcee
-import corner
-import seaborn as sns
+import h5py
 from typing import List
 
 
 from MaCh3PythonUtils.machine_learning.file_ml_interface import FileMLInterface
-
-
-class CyclicMove(emcee.moves.Move):
-    def __init__(self, param_index, low=-np.pi, high=np.pi, sigma=0.1):
-        self.param_index = param_index
-        self.low = low
-        self.high = high
-        self.sigma = sigma
-
-    def get_proposal(self, coords, random):
-        new_coords = coords.copy()
-        step = random.normal(0, self.sigma, size=coords.shape)
-        new_coords[:, self.param_index] += step[:, self.param_index]
-        # Apply cyclical wrapping
-        new_coords[:, self.param_index] = (new_coords[:, self.param_index] - self.low) % (self.high - self.low) + self.low
-        return new_coords, np.zeros(coords.shape[0])
-
+from MaCh3PythonUtils.fitters.adaption_handler import CovarianceUpdater
 
 class MCMC:
-    def __init__(self, interface: FileMLInterface, boundary_expansion=0.1, circular_params: List[str]=[]):
+    def __init__(self, interface: FileMLInterface, circular_params: List[str]=[], update_step: int=10, start_matrix_throw: int=0):
         print("MCMC let's go!")
         
-        self._interface: FileMLInterface = interface        
+        self._interface = interface        
         self._n_dim = interface.chain.ndim - 1
+        self._n_chains = 1
         
-        # HACK, slightly increase boundary so we can explore slightly more of the space
-        self._upper_bounds = interface.chain.upper_bounds[:-1] + np.abs(interface.chain.upper_bounds[:-1]*boundary_expansion)
-        self._lower_bounds = interface.chain.lower_bounds[:-1] - np.abs(interface.chain.lower_bounds[:-1]*boundary_expansion)        
+        # HACK, we fit to scaled rather than anything else because I AM LAZY (and slight efficiency saving since we invert this at the end)
+        self._upper_bounds = interface.chain.upper_bounds[:-1]        
+        self._lower_bounds = interface.chain.lower_bounds[:-1]
         self._sampler = None
-        
-        circular_indices = [self._interface.chain.plot_branches.index(par) for par in circular_params]        
-    
-    def calc_loglikelihood(self, input_vals: NDArray):
-        
-        # Make life easier
-        if np.any(input_vals<self._lower_bounds) or np.any(input_vals>self._upper_bounds):
-            return -1*np.inf
-        
-        # Reverse it
-        
-        # Specifically for delm2_32
-        return -1*self._interface.evaluate_model(input_vals)
-    
-        
-    def get_plots(self):
-        if self._sampler is None:
-            return
-        
-        flat_samples = self._sampler.get_chain(discard=1000, flat=True, thin=10)
 
-        print("Making posterior plots!")
-        with PdfPages("posteriors.pdf") as pdf:
-            for param in tqdm(range(self._n_dim)):
-                plt.figure(figsize=(8, 6))
-                sns.kdeplot(flat_samples[:, param], bw_adjust=0.5, fill=True, alpha=0.5)
-                plt.title(f"Posterior for {self._interface.chain.plot_branches[param]}")
-                plt.xlabel(f"{self._interface.chain.plot_branches[param]}")
-                plt.ylabel("Density")
-                pdf.savefig()
-                plt.close()
-
-    def __call__(self, n_steps: int, n_walkers: int):
-        # Setup backend
-        filename = "emcee_chain.h5"
-        backend = emcee.backends.HDFBackend(filename)
-        backend.reset(n_walkers, self._n_dim)
-
-        # Make sampler
-        self._sampler = emcee.EnsembleSampler(n_walkers, self._n_dim, self.calc_loglikelihood, backend=backend)
-        # Initialise it
-        init_state = self._interface.training_data.iloc[[1]].to_numpy()[0]
+        # Get initial state etc.
+        self._chain_state: NDArray = self._interface.training_data.iloc[[1]].to_numpy()[0]
         
-        # Set walkers in random positions
         
-        p0 = [init_state+np.random.uniform(self._lower_bounds, self._upper_bounds) for _ in range(n_walkers)]        
-        # Run it
-        self._sampler.run_mcmc(p0, n_steps, progress=True)
-        # Grab plots
-        self.get_plots()
+        self._circular_indices = [self._interface.chain.plot_branches.index(par) for par in circular_params]
+        self._matrix_scale = 2.4**2/float(self._n_dim)
+        self._start_matrix_throw = start_matrix_throw
+        self._update_step = update_step
+        
+        self._matrix_handler = CovarianceUpdater(self._n_dim, update_step)
+
+        self._current_loglikelihood = self._calc_likelihood(self._chain_state)
+        self._current_step = 0
+
+    def _wrap_circular(self, state):
+        return (state + np.pi) % (2 * np.pi) - np.pi
+
+    def _calc_likelihood(self, state: NDArray):
+        # state[self._circular_indices] = self._wrap_circular(state[self._circular_indices])
+        
+        # if np.any(state>self._upper_bounds) or np.any(state<self._lower_bounds):
+        #     return -np.inf
+        
+        return -1*self._interface.model_predict_single_sample(state)
+
+    def propose_step(self):
+        proposed_state = self._matrix_handler.sample(self._chain_state)
+        
+        
+        proposed_loglikelihood = self._calc_likelihood(proposed_state)
+        
+        if proposed_loglikelihood > -1*float(np.inf):
+            u = np.random.uniform(0, 1)
+            
+            if proposed_loglikelihood>self._current_loglikelihood:
+                acc_prob = 1
+            else:
+                acc_prob = np.exp(proposed_loglikelihood-self._current_loglikelihood)
+            
+            if min(1, acc_prob)>u:
+                self._chain_state = proposed_state
+                self._current_loglikelihood = proposed_loglikelihood
+        
+        self._matrix_handler.update(self._chain_state[0])
+        
+        
+        self._dataset[self._current_step]=self._chain_state
+        self._current_step += 1
+  
+
+    def save_mcmc_chain_to_pdf(self, filename: str, output_pdf: str):
+        # Open the HDF5 file
+        with h5py.File(filename, 'r') as f:
+            # Load the chain dataset
+            chain = f['chain'][:]
+
+        _, n_params = chain.shape
+
+        # Create a PdfPages object to save plots
+        with PdfPages(output_pdf) as pdf:
+            for i in tqdm(range(n_params)):
+                fig, ax = plt.subplots(figsize=(10, 6))
+                
+                # Plot the chain for the i-th parameter
+                ax.plot(chain[:, i], lw=0.5)
+                ax.set_ylabel(self._interface.chain.plot_branches[i])
+                ax.set_title(f"Parameter {self._interface.chain.plot_branches[i]} MCMC Chain")
+                ax.set_xlabel('Step')
+                
+                # Save the current figure to the PDF
+                pdf.savefig(fig)
+                plt.close(fig)  # Close the figure to save memory
+
+        print(f"MCMC chain plots saved to {output_pdf}")
+          
+        
+    def __call__(self, n_steps, output_file_name: str):
+        print(f"Running MCMC for {n_steps} steps")
+        
+        # Open the HDF5 file and create the dataset with the correct shape upfront
+        with h5py.File(output_file_name, 'w') as f:
+            self._dataset = f.create_dataset('chain', (n_steps, self._n_dim), chunks=True)
+            
+            for _ in tqdm(range(n_steps)):
+                self.propose_step()
+        
+        self.save_mcmc_chain_to_pdf(output_file_name, "traces.pdf")

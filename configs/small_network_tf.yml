@@ -2,25 +2,24 @@ FileSettings:
     # FileName : "/home/henryi/sft/MaCh3Tutorial/Test.root"
     FileName: "/home/henryi/scratch/Delayed_Fit_Long_Chains_no_delay_adapt_0_4.root"
     ChainName : "posteriors"
-    Verbose : True
+    Verbose : False
     MakeMLModel: True
-    RunLLHScan: True
-    RunMCMC: False
+    RunLLHScan: False
+    RunMCMC: True
 
 ParameterSettings:
     ParameterNames : ["sin2th","delm2", "delta", "xsec", "sk", "nd"]
     LabelName : "LogL"
     IgnoredParameters : ["LogL_systematic_xsec_cov", "Log",
                          "LogL_systematic_nddet_cov"]
-                        #  , "xsec_4", "sin2th_23",
-                        #  "delm2_23", "delta_cp"]
     ParameterCuts : ["LogL<12345678", "delm2_23>0"]
+    CircularParameter: ["delta_cp"]
 
 
 MLSettings:
     FitterPackage : "TensorFlow"
     FitterName : "Sequential"
-    TestSize : 0.3
+    TestSize : 0.2
     MLOutputFile: "tf_model_normal_order.keras"
     PlotOutputName : "tf_normal_order.pdf"
 
@@ -77,12 +76,15 @@ MLSettings:
                 activation: 'linear'
 
         FitSettings:
-            batch_size: 1024
-            epochs: 2048
+            batch_size: 2048
+            epochs: 64
 
 MCMCSettings:
-    NSteps: 20000
-    NWalkers: 400
+    NSteps: 15000
+    NChains: 100
+    UpdateStep: 1000
+
+    MCMCOutput: "/home/henryi/scratch/mcmc_chain_GPU.h5"
 
 LikelihoodScanSettings:
     NDivisions: 10000

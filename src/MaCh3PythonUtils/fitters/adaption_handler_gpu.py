@@ -1,0 +1,63 @@
+import tensorflow as tf
+
+@tf.function
+def update_covariance(mean, covariance, new_data, count):
+    """Update the mean and covariance matrix efficiently using TensorFlow."""
+    delta = new_data - mean
+    mean += delta / count
+    delta2 = new_data - mean
+    covariance += tf.linalg.matmul(tf.expand_dims(delta, axis=-1), 
+                                   tf.expand_dims(delta2, axis=0)) * (count - 1) / count
+    return mean, covariance
+
+
+class CovarianceUpdaterGPU:
+    def __init__(self, n_dimensions, update_step=1000):
+        self.n = n_dimensions
+        # Initialize mean and covariance as TensorFlow tensors
+        self.mean = tf.zeros(n_dimensions, dtype=tf.float32)
+        self.covariance = tf.zeros((n_dimensions, n_dimensions), dtype=tf.float32)
+        self.frozen_covariance = tf.eye(n_dimensions, dtype=tf.float32)
+        
+        self.count = 0
+        self.update_step = update_step
+
+    def update(self, new_data):
+        """Update the mean and covariance with a new data point.
+
+        Parameters:
+        new_data (tf.Tensor): A 1D tensor representing the new data point (shape: (n_dimensions,))
+        """
+        self.count += 1
+        
+        # Update mean and covariance using TensorFlow's update_covariance function
+        self.mean, self.covariance = update_covariance(self.mean, self.covariance, new_data, self.count)
+
+        if self.count % self.update_step == 0 and self.count > 100:
+            self.frozen_covariance = self.get_covariance()
+
+    def get_mean(self):
+        """Return the current mean."""
+        return self.mean
+
+    def get_covariance(self):
+        """Return the current covariance matrix."""
+        return self.covariance / (self.count - 1) if self.count > 1 else tf.zeros((self.n, self.n), dtype=tf.float32)
+
+    def get_frozen_covariance(self):
+        return (2.4 ** 2) / float(self.n) * self.frozen_covariance + tf.eye(self.n) * 1e-6
+
+    def sample(self, n_samples: int):
+        """Sample from a multivariate Gaussian centered at the mean.
+
+        Parameters:
+        n_samples (int): The number of samples to draw.
+
+        Returns:
+        tf.Tensor: Samples drawn from the multivariate Gaussian distribution.
+        """
+        frozen_cov = self.get_frozen_covariance()
+        mvn = tf.random.normal(shape=(n_samples, self.n), mean=0.0, stddev=1.0)
+        chol = tf.linalg.cholesky(frozen_cov)
+        samples = tf.linalg.matmul(mvn, chol)
+        return samples

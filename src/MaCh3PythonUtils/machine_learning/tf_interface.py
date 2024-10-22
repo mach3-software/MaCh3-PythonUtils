@@ -4,6 +4,7 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 
+
 class TfInterface(FileMLInterface):
     __TF_LAYER_IMPLEMENTATIONS = {
         "dense": tf.keras.layers.Dense,
@@ -89,10 +90,16 @@ class TfInterface(FileMLInterface):
         :return: model predction
         :rtype: NDArray
         """        
+        # Hacky but means it's consistent with sci-kit interface
         scaled_data = self.scale_data(test_data)
 
-        # Hacky but means it's consistent with sci-kit interface
         if self._model is None:
             return np.zeros(len(test_data))
         
-        return self._model(scaled_data, training=False).numpy().T[0]
+        return self._model.predict(scaled_data, verbose=False).T[0]
+
+
+    def model_predict_no_scale(self, test_data):
+        # Same as above but specifically for TF, optimised to avoid if statement...
+        return self._model(test_data, training=False)
+    

@@ -62,7 +62,7 @@ class MLFactory:
         if algorithm not in self.__IMPLEMENTED_ALGORITHMS[package].keys():
             raise ValueError(f"{algorithm} not implemented for {package}, currently accepted algorithms for {package} are:\n \
                              {list(self.__IMPLEMENTED_ALGORITHMS[package].keys())}")
-            
+
         return self.__IMPLEMENTED_ALGORITHMS[package][algorithm](**kwargs)
 
     def __make_scikit_model(self, algorithm: str, **kwargs)->SciKitInterface:
@@ -76,6 +76,7 @@ class MLFactory:
         # Simple wrapper for scikit packages
         interface = SciKitInterface(self._chain, self._prediction_variable, self._plot_name)
         interface.add_model(self.__setup_package_factory(package="scikit", algorithm=algorithm, **kwargs))
+
         return interface
     
     def __make_tensorflow_model(self, algorithm: str,  **kwargs)->TfInterface:
@@ -85,7 +86,7 @@ class MLFactory:
         :type algorithm: str
         :return: TfInterface wrapper around model
         :rtype: _type_
-        """        
+        """ 
         interface = TfInterface(self._chain, self._prediction_variable, self._plot_name)
         
         interface.add_model(self.__setup_package_factory(package="tensorflow", algorithm=algorithm))
@@ -98,6 +99,7 @@ class MLFactory:
         interface.build_model(kwargs["BuildSettings"])
         
         interface.set_training_settings(kwargs["FitSettings"])
+
         return interface
     
     
@@ -108,7 +110,5 @@ class MLFactory:
                 return self.__make_scikit_model(algorithm, **kwargs)
             case "tensorflow":
                 return self.__make_tensorflow_model(algorithm, **kwargs)
-            case "normalizingflow":
-                return self.__make_normalizing_flow_model(algorithm, **kwargs)
             case _:
                 raise Exception(f"{interface_type} not implemented!")

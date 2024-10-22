@@ -12,7 +12,7 @@ from typing import List, Dict
 import tensorflow as tf
 import warnings
 from tqdm import tqdm
-from scipy.optimize import minimize
+from scipy.optimize import minimize, OptimizeResult
 
 from sklearn import metrics
 from sklearn.preprocessing import StandardScaler
@@ -90,6 +90,12 @@ class FileMLInterface(ABC):
         scale_data = self._scalar.transform(input_data)
         scale_data = self._pca_matrix.transform(scale_data)
         return scale_data
+
+    def invert_scaling(self, input_data):
+        # Inverts transform
+        unscaled_data = self._pca_matrix.inverse_transform(input_data)
+        unscaled_data = self._scalar.inverse_transform(unscaled_data)
+        return unscaled_data
 
     @property
     def model(self)->Any:
@@ -190,24 +196,27 @@ class FileMLInterface(ABC):
         sample_shaped = sample.reshape(1,-1)
         return self.model_predict(sample_shaped)[0]
        
+    def get_maxlikelihood(self)->OptimizeResult:
+        init_vals = self.training_data.iloc[[1]].to_numpy()[0]
+    
+        print("Calculating max LLH")
+        maximal_likelihood = minimize(self.model_predict_single_sample, init_vals, bounds=zip(self._chain.lower_bounds[:-1], self._chain.upper_bounds[:-1]), method="L-BFGS-B", options={"disp": True})
+        return maximal_likelihood
+
+       
     def run_likelihood_scan(self, n_divisions: int = 500):
         # Get nominals
         print("Running LLH Scan")
-        
-        init_vals = self.training_data.iloc[[1]].to_numpy()[0]
+        maximal_likelihood = self.get_maxlikelihood()
+        maximal_nominal=maximal_likelihood.x        
     
-        print("Calculating max LLH")        
-        maximal_likelihood = minimize(self.model_predict_single_sample, init_vals, bounds=zip(self._chain.lower_bounds[:-1], self._chain.upper_bounds[:-1]))
-
         errors = np.sqrt(np.diag(maximal_likelihood.hess_inv(np.identity(self.chain.ndim-1))))
-        
+
         print("Maximal Pars :")
         for i in range(self.chain.ndim-1):
             print(f"Param : {self.chain.plot_branches[i]} : {maximal_likelihood.x[i]}±{errors[i]}")
 
 
-        maximal_nominal=maximal_likelihood.x        
-        
         with PdfPages("llh_scan.pdf") as pdf:
             for i in tqdm(range(self.chain.ndim-1), total=self.chain.ndim-1):
                 # Make copy since we'll be modifying!
@@ -229,7 +238,7 @@ class FileMLInterface(ABC):
                 plt.ylabel("-2*loglikelihood")
                 pdf.savefig()
                 plt.close()
-                
+    
             
         
     

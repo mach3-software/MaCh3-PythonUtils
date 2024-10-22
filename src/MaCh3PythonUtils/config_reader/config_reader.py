@@ -11,7 +11,7 @@ from MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.autocorrelation_trace_p
 from MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.simple_diag_plots import EffectiveSampleSizePlotter,\
                                                                                      MarkovChainStandardError, ViolinPlotter
 
-from MaCh3PythonUtils.fitters.mcmc import MCMC
+from MaCh3PythonUtils.fitters.multi_mcmc_gpu import MCMCMultGPU
 
 from deepmerge import always_merger
 
@@ -256,5 +256,14 @@ class ConfigReader:
                 self._interface.run_likelihood_scan(self.__chain_settings["LikelihoodScanSettings"]["NDivisions"])
                 
             if self.__chain_settings["FileSettings"]["RunMCMC"] and self._interface is not None:
-                mcmc = MCMC(self._interface, 0.1)
-                mcmc(self.__chain_settings["MCMCSettings"]["NSteps"], self.__chain_settings["MCMCSettings"]["NWalkers"])
+
+                mcmc = MCMCMultGPU(self._interface,
+                        self.__chain_settings["MCMCSettings"]["NChains"],
+                        self.__chain_settings["ParameterSettings"]["CircularParameters"],
+                        self.__chain_settings["MCMCSettings"]["UpdateStep"])
+
+                mcmc(self.__chain_settings["MCMCSettings"]["NSteps"],
+                     self.__chain_settings["MCMCSettings"]["MCMCOutput"])
+
+                
+
