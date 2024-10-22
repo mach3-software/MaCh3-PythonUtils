@@ -49,7 +49,7 @@ class MCMCMultGPU:
     def _calc_likelihood(self, states: tf.Tensor):
         return -1 * self._interface.model_predict_no_scale(states)
 
-    @tf.function
+    @tf.function(reduce_retracing=True)
     def propose_step_gpu(self):
         # Propose new states for all chains
         proposed_states = self._matrix_handler.sample(self._n_chains) + self._chain_states
