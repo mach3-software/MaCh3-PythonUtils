@@ -88,13 +88,13 @@ class FileMLInterface(ABC):
     def scale_data(self, input_data):
         # Applies transformations to data set
         scale_data = self._scalar.transform(input_data)
-        scale_data = self._pca_matrix.transform(scale_data)
+        # scale_data = self._pca_matrix.transform(scale_data)
         return scale_data
 
     def invert_scaling(self, input_data):
         # Inverts transform
-        unscaled_data = self._pca_matrix.inverse_transform(input_data)
-        unscaled_data = self._scalar.inverse_transform(unscaled_data)
+        # unscaled_data = self._pca_matrix.inverse_transform(input_data)
+        unscaled_data = self._scalar.inverse_transform(input_data)
         return unscaled_data
 
     @property

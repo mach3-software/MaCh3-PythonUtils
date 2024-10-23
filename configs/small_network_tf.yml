@@ -80,9 +80,10 @@ MLSettings:
             epochs: 64
 
 MCMCSettings:
-    NSteps: 15000
-    NChains: 100
+    NSteps: 1000000
+    NChains: 1
     UpdateStep: 1000
+    BatchSize: 1
 
     MCMCOutput: "/home/henryi/scratch/mcmc_chain_GPU.h5"
 
