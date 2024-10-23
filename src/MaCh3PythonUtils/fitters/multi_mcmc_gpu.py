@@ -24,9 +24,9 @@ class MCMCMultGPU:
         initial_state = tf.convert_to_tensor(np.ones(self._n_dim), dtype=tf.float32)
         self._chain_states = tf.Variable(tf.tile(tf.expand_dims(initial_state, axis=0), [n_chains, 1]), dtype=tf.float32)
 
-        # Boundary conditions
-        self._upper_bounds = self._interface.scale_data(self._interface.chain.upper_bounds)
-        self._lower_bounds = self._interface.scale_data(self._interface.chain.upper_bounds)
+        # boundaries
+        self._upper_bounds = tf.convert_to_tensor(self._interface.scale_data(self._interface.chain.upper_bounds[:-1].reshape(1,-1)), dtype=tf.float32)
+        self._lower_bounds = tf.convert_to_tensor(self._interface.scale_data(self._interface.chain.lower_bounds[:-1].reshape(1,-1)), dtype=tf.float32)
 
 
         self._circular_indices = [self._interface.chain.plot_branches.index(par) for par in circular_params]
@@ -74,6 +74,10 @@ class MCMCMultGPU:
     def propose_step_gpu(self):
         # Propose new states for all chains
         proposed_states = self._matrix_handler.sample(self._n_chains) + self._chain_states
+
+        # Apply boundary conditions
+        # proposed_states = tf.where(proposed_states < self._lower_bounds, self._chain_states, proposed_states)
+        # proposed_states = tf.where(proposed_states > self._upper_bounds, self._chain_states, proposed_states)
 
         # Calculate log-likelihoods for proposed states
         proposed_loglikelihoods = self._calc_likelihood(proposed_states)
@@ -148,9 +152,9 @@ class MCMCMultGPU:
                 fig, ax = plt.subplots(figsize=(10, 6))
 
                 # Plot the chain for the i-th parameter
-                unscaled_data = self._interface.invert_scaling(chain[:, 0, i])
+                # unscaled_data = self._interface.invert_scaling(chain[:, 0, i])
                 
-                ax.plot(unscaled_data, lw=0.5, label=f'Chain {i}')
+                ax.plot(chain[:, 0, i], lw=0.5, label=f'Chain {i}')
                 ax.set_ylabel(self._interface.chain.plot_branches[i])
                 ax.set_title(f"Parameter {self._interface.chain.plot_branches[i]} MCMC Chain")
                 ax.set_xlabel('Step')
@@ -165,21 +169,15 @@ class MCMCMultGPU:
         print(f"Running MCMC for {n_steps} steps with {self._n_chains} chains")
 
         # Open the HDF5 file in append mode
-        with h5py.File(output_file_name, 'a') as f:
+        with h5py.File(output_file_name, 'w') as f:
             # Create or resize the dataset
-            if 'chain' not in f:
-                # If dataset doesn't exist, create it
-                self._dataset = f.create_dataset('chain', (n_steps, self._n_chains, self._n_dim), chunks=True)
-            else:
-                # If dataset exists, resize it
-                self._dataset = f['chain']
-                self._dataset.resize((n_steps, self._n_chains, self._n_dim))
+            self._dataset = f.create_dataset('chain', (n_steps, self._n_chains, self._n_dim), chunks=True)
 
             for _ in tqdm(range(n_steps)):
                 self.propose_step()
 
             # Ensure remaining steps are flushed to disk
-            # self._flush_async(final_flush=True)
+            self._flush_async(final_flush=True)
 
             # Save the MCMC chain to PDF
             self.save_mcmc_chain_to_pdf(output_file_name, "traces.pdf")
