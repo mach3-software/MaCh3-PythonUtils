@@ -8,10 +8,17 @@ import mpl_scatter_density
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 import pickle
+from typing import List, Dict
+import tensorflow as tf
+import warnings
+from tqdm import tqdm
+from scipy.optimize import minimize, OptimizeResult
 
 from sklearn import metrics
 from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 
 class FileMLInterface(ABC):
     white_viridis = LinearSegmentedColormap.from_list('white_viridis', [
@@ -24,7 +31,7 @@ class FileMLInterface(ABC):
         (1, '#fde624'),
     ], N=256)
     
-    def __init__(self, chain: ChainHandler, prediction_variable: str) -> None:
+    def __init__(self, chain: ChainHandler, prediction_variable: str, fit_name: str) -> None:
         """General Interface for all ML models
 
         :param chain: ChainHandler instance
@@ -35,6 +42,7 @@ class FileMLInterface(ABC):
         """        
         self._chain = chain
         
+        self._fit_name = fit_name
         self._prediction_variable = prediction_variable
         
         if prediction_variable not in self._chain.ttree_array.columns:
@@ -46,7 +54,10 @@ class FileMLInterface(ABC):
         self._training_labels=None
         self._test_data=None
         self._test_labels=None
+
+        # Scaling components
         self._scalar = StandardScaler()
+        self._pca_matrix = PCA()
             
     def __separate_dataframe(self)->Tuple[pd.DataFrame, pd.DataFrame]:
         """Split data frame into feature + label objects
@@ -69,8 +80,22 @@ class FileMLInterface(ABC):
         # Splits in traing + test_spit
         features, labels = self.__separate_dataframe()
         self._training_data, self._test_data, self._training_labels, self._test_labels =  train_test_split(features, labels, test_size=test_size)
-        self._training_data = self._scalar.fit_transform(self._training_data)
 
+        # Fit scaling pre-processors. These get applied properly when scale_data is called
+        scaled_training= self._scalar.fit_transform(self._training_data)        
+        self._pca_matrix.fit(scaled_training)
+
+    def scale_data(self, input_data):
+        # Applies transformations to data set
+        scale_data = self._scalar.transform(input_data)
+        # scale_data = self._pca_matrix.transform(scale_data)
+        return scale_data
+
+    def invert_scaling(self, input_data):
+        # Inverts transform
+        # unscaled_data = self._pca_matrix.inverse_transform(input_data)
+        unscaled_data = self._scalar.inverse_transform(input_data)
+        return unscaled_data
 
     @property
     def model(self)->Any:
@@ -81,6 +106,10 @@ class FileMLInterface(ABC):
         """        
         # Returns model being used
         return self._model    
+    
+    @property
+    def chain(self)->ChainHandler:
+        return self._chain
     
     @property
     def training_data(self)->pd.DataFrame:
@@ -113,7 +142,7 @@ class FileMLInterface(ABC):
 
         :param testing_data: Data to test model on 
         :type testing_data: pd.DataFrame
-        """        
+        """
         pass
         
     def save_model(self, output_file: str):
@@ -148,11 +177,70 @@ class FileMLInterface(ABC):
         if self._test_data is None or self._test_labels is None:
             raise ValueError("No test data set")
 
-        prediction = self.model_predict(self._test_data)
+
+        print("Training Results!")
+        train_prediction = self.model_predict(self._training_data)
+        train_as_numpy = self._training_labels.to_numpy().T[0]
+        self.evaluate_model(train_prediction, train_as_numpy, "train_qq_plot.pdf")
+
+        print("=====\n\n")
+        print("Testing Results!")
+
+        test_prediction = self.model_predict(self._test_data)
         test_as_numpy = self._test_labels.to_numpy().T[0]
         
-        self.evaluate_model(prediction, test_as_numpy)
+        self.evaluate_model(test_prediction, test_as_numpy, outfile=f"{self._fit_name}")
+        print("=====\n\n")
+       
+    def model_predict_single_sample(self, sample):
+        sample_shaped = sample.reshape(1,-1)
+        return self.model_predict(sample_shaped)[0]
+       
+    def get_maxlikelihood(self)->OptimizeResult:
+        init_vals = self.training_data.iloc[[1]].to_numpy()[0]
+    
+        print("Calculating max LLH")
+        maximal_likelihood = minimize(self.model_predict_single_sample, init_vals, bounds=zip(self._chain.lower_bounds[:-1], self._chain.upper_bounds[:-1]), method="L-BFGS-B", options={"disp": True})
+        return maximal_likelihood
+
+       
+    def run_likelihood_scan(self, n_divisions: int = 500):
+        # Get nominals
+        print("Running LLH Scan")
+        maximal_likelihood = self.get_maxlikelihood()
+        maximal_nominal=maximal_likelihood.x        
+    
+        errors = np.sqrt(np.diag(maximal_likelihood.hess_inv(np.identity(self.chain.ndim-1))))
+
+        print("Maximal Pars :")
+        for i in range(self.chain.ndim-1):
+            print(f"Param : {self.chain.plot_branches[i]} : {maximal_likelihood.x[i]}±{errors[i]}")
+
+
+        with PdfPages("llh_scan.pdf") as pdf:
+            for i in tqdm(range(self.chain.ndim-1), total=self.chain.ndim-1):
+                # Make copy since we'll be modifying!
+                
+                lower_bound = self.chain.lower_bounds[i]
+                upper_bound = self.chain.upper_bounds[i]
+                
+                param_range = np.linspace(lower_bound, upper_bound, n_divisions)
+                modified_values = [maximal_nominal.copy() for _ in range(n_divisions)]
+                
+                
+                for j, div in enumerate(param_range):
+                    modified_values[j][i]=div
+                                        
+                prediction = self.model_predict(modified_values)
+                # Save as histogram
+                plt.plot(param_range, prediction)
+                plt.xlabel(self.chain.plot_branches[i])
+                plt.ylabel("-2*loglikelihood")
+                pdf.savefig()
+                plt.close()
+    
             
+        
     
     def evaluate_model(self, predicted_values: Iterable, true_values: Iterable, outfile: str=""):
         """Evalulates model
@@ -163,10 +251,7 @@ class FileMLInterface(ABC):
         :type true_values: Iterable
         :param outfile: File to output plots to, defaults to ""
         :type outfile: str, optional
-        """        
-        print(predicted_values)
-        print(true_values)
-        
+        """                
         print(f"Mean Absolute Error : {metrics.mean_absolute_error(predicted_values,true_values)}")
         
         
@@ -175,9 +260,15 @@ class FileMLInterface(ABC):
         print(f"Line of best fit : y={lobf.c[0]}x + {lobf.c[1]}")
         
         fig = plt.figure()
+        
+        
         ax = fig.add_subplot(1,1,1, projection='scatter_density')
-
+        
+        # Bit hacky put plotting code is... bad so we're going to ignore the error it raises! 
+        warnings.filterwarnings("ignore", message="All-NaN slice encountered")
         density = ax.scatter_density(predicted_values, true_values, cmap=self.white_viridis)
+        # warnings.resetwarnings()
+        
         fig.colorbar(density, label="number of points per pixel")
         
         lims = [
@@ -185,9 +276,9 @@ class FileMLInterface(ABC):
             np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
         ]
 
-        ax.plot(lims, lobf(lims), "w-", label=f"Best fit: true={lobf.c[0]}pred + {lobf.c[1]}", linestyle="dashed", linewidth=0.3)
+        ax.plot(lims, lobf(lims), "m", label=f"Best fit: true={lobf.c[0]}pred + {lobf.c[1]}", linestyle="dashed", linewidth=0.3)
 
-        ax.plot(lims, lims, 'r-', alpha=0.75, zorder=0, label="true=predicted", linestyle="dashed", linewidth=0.3)
+        ax.plot(lims, lims, 'r', alpha=0.75, zorder=0, label="true=predicted", linestyle="dashed", linewidth=0.3)
         ax.set_aspect('equal')
         ax.set_xlim(lims)
         ax.set_ylim(lims)
@@ -197,7 +288,7 @@ class FileMLInterface(ABC):
         ax.set_ylabel("True Log Likelihood")
         
         fig.legend()
-        if outfile=="": outfile = "evaluated_model_qq.pdf"
+        if outfile=="": outfile = f"evaluated_model_qq_tf.pdf"
         
         print(f"Saving QQ to {outfile}")
             
@@ -210,3 +301,4 @@ class FileMLInterface(ABC):
         plt.hist(difs, bins=100, density=True, range=(np.std(difs)*-5, np.std(difs)*5))
         plt.xlabel("True - Pred")
         plt.savefig(f"diffs_5sigma_range_{outfile}")
+        plt.close()

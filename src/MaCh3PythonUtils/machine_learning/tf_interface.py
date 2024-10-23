@@ -2,11 +2,13 @@
 from MaCh3PythonUtils.machine_learning.file_ml_interface import FileMLInterface
 import tensorflow as tf
 import pandas as pd
+import numpy as np
+
 
 class TfInterface(FileMLInterface):
     __TF_LAYER_IMPLEMENTATIONS = {
         "dense": tf.keras.layers.Dense,
-        "dropout": tf.keras.layers.Dropout
+        "dropout": tf.keras.layers.Dropout,
     }
     
     _layers = []
@@ -26,7 +28,7 @@ class TfInterface(FileMLInterface):
             raise ValueError(f"{layer_id} not implemented yet!")
 
         self._layers.append(self.__TF_LAYER_IMPLEMENTATIONS[layer_id.lower()](**layer_args))
-    
+            
     def build_model(self, model_args: dict):
         """Build and compile TF model
 
@@ -54,13 +56,15 @@ class TfInterface(FileMLInterface):
         
     def train_model(self):
         """train model
-        """        
-        self._model.fit(self._training_data, self._training_labels, **self._training_settings)
+        """ 
+        scaled_data = self.scale_data(self._training_data)
+        
+        self._model.fit(scaled_data, self._training_labels, **self._training_settings)
     
     def save_model(self, output_file: str):
         """Save model to file
 
-        :param output_file: Output file to save model to
+    :param output_file: Output file to save model to
         :type output_file: str
         """        
         if not ".keras" in output_file:
@@ -74,6 +78,8 @@ class TfInterface(FileMLInterface):
         :param input_file: Name offile to load model from
         :type input_file: str
         """        
+        
+        print(f"Loading model from {input_file}")
         self._model = tf.saved_model.load(input_file)
     
     def model_predict(self, test_data: pd.DataFrame):
@@ -84,7 +90,16 @@ class TfInterface(FileMLInterface):
         :return: model predction
         :rtype: NDArray
         """        
-        scale_data = self._scalar.transform(test_data)
-
         # Hacky but means it's consistent with sci-kit interface
-        return self._model.predict_on_batch(scale_data).T[0]
+        scaled_data = self.scale_data(test_data)
+
+        if self._model is None:
+            return np.zeros(len(test_data))
+        
+        return self._model.predict(scaled_data, verbose=False).T[0]
+
+
+    def model_predict_no_scale(self, test_data):
+        # Same as above but specifically for TF, optimised to avoid if statement...
+        return self._model(test_data, training=False)
+    

@@ -11,6 +11,8 @@ from MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.autocorrelation_trace_p
 from MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.simple_diag_plots import EffectiveSampleSizePlotter,\
                                                                                      MarkovChainStandardError, ViolinPlotter
 
+from MaCh3PythonUtils.fitters.multi_mcmc_gpu import MCMCMultGPU
+
 from deepmerge import always_merger
 
 class ConfigReader:    
@@ -34,7 +36,11 @@ class ConfigReader:
             # Run Diagnostics code?
             "MakeDiagnostics": False,
             # Make an ML model to replicate the chain likelihood model
-            "MakeMLModel": False
+            "MakeMLModel": False,
+            # Run an LLH Scan?
+            "RunLLHScan": False,
+            # Run MCMC?
+            "RunMCMC": False
         },
         
         "ParameterSettings":{
@@ -87,6 +93,8 @@ class ConfigReader:
         },
         # Specific Settings for ML Applications
         "MLSettings": {
+            # Name of plots
+            "PlotOutputName": "ml_output.pdf",
             # Fitter package either SciKit or TensorFlow
             "FitterPackage": "",
             # Fitter Model
@@ -98,9 +106,19 @@ class ConfigReader:
             # Proportion of input data set used for testing (range of 0-1 )
             "TestSize": 0.0,
             # Name to save ML model in
-            "MLOutputFile": "mlmodel"
+            "MLOutputFile": "mlmodel.pkl"
+        },
+
+        # Settings for LLH Scan
+        "LikelihoodScanSettings": {
+            "NDivisions": 100
+        },
+            
+
+        # Settings for MCMC
+        "MCMCSettings": {
+            "NSteps": 100000
         }
-        
     }
     
     
@@ -201,32 +219,25 @@ class ConfigReader:
     def make_ml_interface(self)->None:
         """Generates ML interface objects
         """        
+        if self._file_handler is None:
+            raise Exception("Cannot make interface without opening a file!")
         
-        
-        factory = MLFactory(self._file_handler, self.__chain_settings["ParameterSettings"]["LabelName"])
-        if self.__chain_settings["MLSettings"]["FitterPackage"].lower() == "scikit":        
-            self._interface = factory.make_scikit_model(self.__chain_settings["MLSettings"]["FitterName"],
-                                    **self.__chain_settings["MLSettings"]["FitterKwargs"])
+        factory = MLFactory(self._file_handler, self.__chain_settings["ParameterSettings"]["LabelName"], self.__chain_settings["MLSettings"]["PlotOutputName"])
 
-        elif self.__chain_settings["MLSettings"]["FitterPackage"].lower() == "tensorflow":        
-            self._interface = factory.make_tensorflow_model(self.__chain_settings["MLSettings"]["FitterName"],
-                                    **self.__chain_settings["MLSettings"]["FitterKwargs"])
-
-        else:
-            raise ValueError("Input not recognised!")
-        
+        self._interface = factory.make_interface(self.__chain_settings["MLSettings"]["FitterPackage"],
+                                                 self.__chain_settings["MLSettings"]["FitterName"],
+                                                 **self.__chain_settings["MLSettings"]["FitterKwargs"])
+  
         if self.__chain_settings["MLSettings"].get("AddFromExternalModel"):
             external_model = self.__chain_settings["MLSettings"]["ExternalModel"]
             self._interface.load_model(external_model)
         
         else:
             self._interface.set_training_test_set(self.__chain_settings["MLSettings"]["TestSize"])
-        
             self._interface.train_model()
             self._interface.test_model()
             self._interface.save_model(self.__chain_settings["MLSettings"]["MLOutputFile"])
 
-    
     
     def __call__(self) -> None:
         """Runs over all files from config
@@ -240,3 +251,19 @@ class ConfigReader:
         
         if self.__chain_settings["FileSettings"]["MakeMLModel"]:
             self.make_ml_interface()
+
+            if self.__chain_settings["FileSettings"]["RunLLHScan"] and self._interface is not None:
+                self._interface.run_likelihood_scan(self.__chain_settings["LikelihoodScanSettings"]["NDivisions"])
+                
+            if self.__chain_settings["FileSettings"]["RunMCMC"] and self._interface is not None:
+
+                mcmc = MCMCMultGPU(self._interface,
+                        self.__chain_settings["MCMCSettings"]["NChains"],
+                        self.__chain_settings["ParameterSettings"]["CircularParameters"],
+                        self.__chain_settings["MCMCSettings"]["UpdateStep"])
+
+                mcmc(self.__chain_settings["MCMCSettings"]["NSteps"],
+                     self.__chain_settings["MCMCSettings"]["MCMCOutput"])
+
+                
+
