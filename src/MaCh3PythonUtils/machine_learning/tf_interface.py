@@ -11,9 +11,14 @@ class TfInterface(FileMLInterface):
         "dropout": tf.keras.layers.Dropout,
     }
     
+    __TF_REGULARIZERS = {
+        "l2" : tf.keras.regularizers.L2
+    }
+    
     _layers = []
     _training_settings = {}
-        
+    
+    
         
     def add_layer(self, layer_id: str, layer_args: dict):
         """Add new layer to TF model
@@ -26,6 +31,12 @@ class TfInterface(FileMLInterface):
         """        
         if layer_id not in self.__TF_LAYER_IMPLEMENTATIONS.keys():
             raise ValueError(f"{layer_id} not implemented yet!")
+
+        if "kernel_regularizer" in layer_args.keys():
+            # Hacky, swaps string value of regularliser for proper one
+            reg = layer_args["kernel_regularizer"]
+            reg_name = list(reg.keys())[0]
+            layer_args["kernel_regularizer"] = self.__TF_REGULARIZERS[reg_name.lower()](reg[reg_name])
 
         self._layers.append(self.__TF_LAYER_IMPLEMENTATIONS[layer_id.lower()](**layer_args))
             
