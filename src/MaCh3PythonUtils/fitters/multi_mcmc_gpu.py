@@ -1,5 +1,9 @@
 import numpy as np
 import tensorflow as tf
+import numpy as np
+import tensorflow as tf
+from tensorflow import linalg as tfla
+from numpy.typing import NDArray
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
@@ -8,8 +12,6 @@ from typing import List
 import psutil  # To get system memory information
 from MaCh3PythonUtils.machine_learning.tf_interface import TfInterface
 from MaCh3PythonUtils.fitters.adaption_handler_gpu import CovarianceUpdaterGPU
-import statsmodels.api as sm
-import seaborn as sns
 
 class MCMCMultGPU:
     def __init__(self, interface: TfInterface, n_chains: int = 1024, circular_params: List[str] = [], update_step: int = 10):
@@ -31,6 +33,15 @@ class MCMCMultGPU:
         self._circular_indices = self._get_circular_indices(circular_params)
         print(self._circular_indices)
 
+        initial_state = tf.convert_to_tensor(np.ones(self._n_dim), dtype=tf.float32)
+        self._chain_states = tf.Variable(tf.tile(tf.expand_dims(initial_state, axis=0), [n_chains, 1]), dtype=tf.float32)
+
+        # Boundary conditions
+        self._upper_bounds = self._interface.scale_data(self._interface.chain.upper_bounds)
+        self._lower_bounds = self._interface.scale_data(self._interface.chain.upper_bounds)
+
+
+        self._circular_indices = [self._interface.chain.plot_branches.index(par) for par in circular_params]
         # CovarianceUpdater will be updated based on the first chain
         self._matrix_handler = CovarianceUpdaterGPU(self._n_dim, update_step)
 
@@ -47,11 +58,10 @@ class MCMCMultGPU:
             dtypes=[tf.float32],
             shapes=[(self._n_chains, self._n_dim)]
         )
-        
+
     def _get_circular_indices(self, circular_params: List[str]):
         """Map circular params to indices in self._interface.chain.plot_branches."""
         return [self._interface.chain.plot_branches.index(param) for param in circular_params]
-
 
 
     def _estimate_batch_size(self):
@@ -69,6 +79,9 @@ class MCMCMultGPU:
 
         return estimated_batch_size
 
+    def _wrap_circular(self, state):
+        """Apply circular boundary conditions."""
+        return (state + np.pi) % (2 * np.pi) - np.pi
 
     @tf.function
     def _calc_likelihood(self, states: tf.Tensor):
@@ -157,8 +170,8 @@ class MCMCMultGPU:
             steps_to_write = self._queue.dequeue_many(self._batch_size_steps)
             end_idx = self._current_step
 
-
             self._dataset[end_idx-len(steps_to_write):end_idx, :] = steps_to_write
+
 
     def save_mcmc_chain_to_pdf(self, filename: str, output_pdf: str):
         # Open the HDF5 file and read the chain
@@ -237,7 +250,6 @@ class MCMCMultGPU:
                 pdf.savefig(fig)
                 plt.close(fig)  # Close the figure to save memory
 
-
         print(f"MCMC chain plots saved to {output_pdf}")
 
     def __call__(self, n_steps, output_file_name: str):
@@ -256,6 +268,4 @@ class MCMCMultGPU:
 
             # Ensure remaining steps are flushed to disk
             self._flush_async(final_flush=True)
-
-            #c Save the MCMC chain to PDF
             self.save_mcmc_chain_to_pdf(output_file_name, "traces.pdf")

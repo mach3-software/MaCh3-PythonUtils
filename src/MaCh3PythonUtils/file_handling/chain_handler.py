@@ -164,9 +164,9 @@ class ChainHandler:
 
             if self._verbose:
                 print(f"Using {executor._max_workers} threads and requiring {np.round(self._posterior_ttree.uncompressed_bytes*1e-9,3)} Gb memory")
-                # print("Using the following branches: ")
-                # for i in self._plotting_branches:
-                #     print(f"  -> {i}")
+                print("Using the following branches: ")
+                for i in self._plotting_branches:
+                    print(f"  -> {i}")
             
             # To make sure we don't run into any unpleasantness
             # total_available_memory = int(psutil.virtual_memory().available)
