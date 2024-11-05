@@ -119,6 +119,16 @@ class FileMLInterface(ABC):
         :rtype: pd.DataFrame
         """        
         return self._training_data
+
+    @property
+    def test_data(self)->pd.DataFrame:
+        """Gets training data
+
+        :return: Training data set
+        :rtype: pd.DataFrame
+        """        
+        return self._test_data
+
     
     def add_model(self, ml_model: Any)->None:
         """Add model to data set

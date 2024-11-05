@@ -15,8 +15,7 @@ from MaCh3PythonUtils.fitters.multi_mcmc_gpu import MCMCMultGPU
 
 from deepmerge import always_merger
 
-class ConfigReader:    
-    
+class ConfigReader:
     # Strictly unecessary but nice conceptually
     _file_handler = None
     _interface    = None
@@ -256,6 +255,7 @@ class ConfigReader:
                 self._interface.run_likelihood_scan(self.__chain_settings["LikelihoodScanSettings"]["NDivisions"])
                 
             if self.__chain_settings["FileSettings"]["RunMCMC"] and self._interface is not None:
+                print("WARNING: MCMC HAS ONLY BEEN TESTED WITH TENSORFLOW INTERFACES!")
 
                 mcmc = MCMCMultGPU(self._interface,
                         self.__chain_settings["MCMCSettings"]["NChains"],

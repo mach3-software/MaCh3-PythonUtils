@@ -31,6 +31,10 @@ class CovarianceUpdaterGPU:
         """
         self.count += 1
         
+        # Arbitary stopping point!
+        if self.count>100000:
+            return
+        
         # Update mean and covariance using the class method
         self.mean, self.covariance = self.update_covariance(new_data)
 

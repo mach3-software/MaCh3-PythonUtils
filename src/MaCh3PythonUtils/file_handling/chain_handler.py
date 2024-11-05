@@ -160,10 +160,10 @@ class ChainHandler:
         with ThreadPoolExecutor() as executor:
             # Make sure we have loads of memory available!
             # Ensures we don't run into funny behaviour when uncompressing
-            total_memory_needed = 6*self._posterior_ttree.uncompressed_bytes*(executor._max_workers) #in bytes
+            total_memory_needed = self._posterior_ttree.uncompressed_bytes #in bytes
 
             if self._verbose:
-                print(f"Using {executor._max_workers} threads and requiring {6*np.round(self._posterior_ttree.uncompressed_bytes*1e-9,3)} Gb memory")
+                print(f"Using {executor._max_workers} threads and requiring {np.round(self._posterior_ttree.uncompressed_bytes*1e-9,3)} Gb memory")
                 print("Using the following branches: ")
                 for i in self._plotting_branches:
                     print(f"  -> {i}")

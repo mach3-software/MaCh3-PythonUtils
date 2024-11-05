@@ -1,4 +1,5 @@
-import emcee
+import numpy as np
+import tensorflow as tf
 import numpy as np
 import tensorflow as tf
 from tensorflow import linalg as tfla
@@ -21,6 +22,17 @@ class MCMCMultGPU:
         self._n_chains = n_chains
 
         # Initial states for all chains
+        initial_state = tf.convert_to_tensor(np.zeros(self._n_dim), dtype=tf.float32)
+        self._chain_states = tf.Variable(tf.tile(tf.expand_dims(initial_state, axis=0), [n_chains, 1]), dtype=tf.float32)
+
+        # boundaries
+        self._upper_bounds = tf.convert_to_tensor(self._interface.scale_data(self._interface.chain.upper_bounds[:-1].reshape(1,-1)), dtype=tf.float32)
+        self._lower_bounds = tf.convert_to_tensor(self._interface.scale_data(self._interface.chain.lower_bounds[:-1].reshape(1,-1)), dtype=tf.float32)
+
+
+        self._circular_indices = self._get_circular_indices(circular_params)
+        print(self._circular_indices)
+
         initial_state = tf.convert_to_tensor(np.ones(self._n_dim), dtype=tf.float32)
         self._chain_states = tf.Variable(tf.tile(tf.expand_dims(initial_state, axis=0), [n_chains, 1]), dtype=tf.float32)
 
@@ -46,6 +58,11 @@ class MCMCMultGPU:
             dtypes=[tf.float32],
             shapes=[(self._n_chains, self._n_dim)]
         )
+
+    def _get_circular_indices(self, circular_params: List[str]):
+        """Map circular params to indices in self._interface.chain.plot_branches."""
+        return [self._interface.chain.plot_branches.index(param) for param in circular_params]
+
 
     def _estimate_batch_size(self):
         """Estimate batch size based on memory available to this process."""
@@ -74,6 +91,26 @@ class MCMCMultGPU:
     def propose_step_gpu(self):
         # Propose new states for all chains
         proposed_states = self._matrix_handler.sample(self._n_chains) + self._chain_states
+      
+        def apply_circular_bounds(idx):
+            # Extract specific bounds for the circular parameter
+            lower_bound = self._lower_bounds[0, idx]
+            upper_bound = self._upper_bounds[0, idx]
+            adjusted_values = lower_bound + tf.math.mod(proposed_states[:, idx] - upper_bound, upper_bound - lower_bound)
+            return tf.tensor_scatter_nd_update(
+                proposed_states,
+                indices=[[chain_idx, idx] for chain_idx in range(self._n_chains)],
+                updates=adjusted_values
+            )
+
+        # Apply circular bounds to indices marked as circular
+        for idx in self._circular_indices:
+            proposed_states = apply_circular_bounds(idx)
+
+
+        # Apply boundary conditions
+        proposed_states = tf.where(proposed_states < self._lower_bounds, self._chain_states, proposed_states)
+        proposed_states = tf.where(proposed_states > self._upper_bounds, self._chain_states, proposed_states)
 
         # Calculate log-likelihoods for proposed states
         proposed_loglikelihoods = self._calc_likelihood(proposed_states)
@@ -133,27 +170,81 @@ class MCMCMultGPU:
             steps_to_write = self._queue.dequeue_many(self._batch_size_steps)
             end_idx = self._current_step
 
-            self._dataset[:end_idx, :] = steps_to_write
+            self._dataset[end_idx-len(steps_to_write):end_idx, :] = steps_to_write
+
 
     def save_mcmc_chain_to_pdf(self, filename: str, output_pdf: str):
         # Open the HDF5 file and read the chain
         with h5py.File(filename, 'r') as f:
             chain = f['chain'][:]
 
+        # Need it to reflect the actual parameters in our fit so let's combine everything!
+        rescaled_chain = [self._interface.invert_scaling(chain[1000:,i]) for i in range(self._n_chains)]
+        combined_rescaled_chain = np.concatenate(rescaled_chain, axis=0)
+                
         _, n_params = chain.shape[1:]
         
         # Create a PdfPages object to save plots
+        print("Plotting traces")
         with PdfPages(output_pdf) as pdf:
+            
+            # Rescale the chain
+            
             for i in tqdm(range(n_params)):
                 fig, ax = plt.subplots(figsize=(10, 6))
 
                 # Plot the chain for the i-th parameter
-                unscaled_data = self._interface.invert_scaling(chain[:, 0, i])
-                
-                ax.plot(unscaled_data, lw=0.5, label=f'Chain {i}')
+                # unscaled_data = self._interface.invert_scaling(chain[:, 0, i])
+                # for n, r in enumerate(rescaled_chain):
+                ax.plot(rescaled_chain[0][:, i], lw=0.5, label=f'Chain 0')
                 ax.set_ylabel(self._interface.chain.plot_branches[i])
                 ax.set_title(f"Parameter {self._interface.chain.plot_branches[i]} MCMC Chain")
                 ax.set_xlabel('Step')
+
+                # Save the current figure to the PDF
+                pdf.savefig(fig)
+                plt.close(fig)  # Close the figure to save memory
+
+
+        # Create a PdfPages object to save plots
+        print("Plotting posteriors")
+        with PdfPages(f"posterior_{output_pdf}") as pdf:
+            
+            # Rescale the chain
+            
+            for i in tqdm(range(n_params)):
+                fig, ax = plt.subplots(figsize=(10, 6))
+
+                # Plot the chain for the i-th parameter
+                # unscaled_data = self._interface.invert_scaling(chain[:, 0, i])
+                l = self._interface.chain.lower_bounds[i]
+                u = self._interface.chain.upper_bounds[i]
+                bins = np.linspace(l, u, 100)
+                
+                ax.hist(rescaled_chain[0][:, i], color='b', label="ML Pred", alpha=0.3, bins=bins, density=True)
+                ax.hist(self._interface.test_data.iloc[10000:,i].to_numpy(), color='r', label="Real Result", alpha=0.3, bins=bins, density=True)
+                
+                ax.set_xlabel(self._interface.chain.plot_branches[i])
+                ax.set_title(f"Parameter {self._interface.chain.plot_branches[i]} MCMC Chain")
+
+                ax.legend()
+                # Save the current figure to the PDF
+                pdf.savefig(fig)
+                plt.close(fig)  # Close the figure to save memory
+
+            print("Plotting AC")
+        with PdfPages(f"ac_{output_pdf}") as pdf:
+            for i in tqdm(range(n_params)):
+                fig, ax = plt.subplots(figsize=(10, 6))
+
+                # Plot the chain for the i-th parameter
+                # unscaled_data = self._interface.invert_scaling(chain[:, 0, i])
+                # for n, r in enumerate(rescaled_chain):
+                ac = sm.tsa.acf(rescaled_chain[0][:, i], nlags=len(rescaled_chain[0][:, 1]))
+                ax.plot(ac, lw=0.5, label=f'Chain 0')
+                ax.set_ylabel(self._interface.chain.plot_branches[i])
+                ax.set_title(f"Parameter {self._interface.chain.plot_branches[i]} MCMC Chain")
+                ax.set_xlabel('Autocorrelation')
 
                 # Save the current figure to the PDF
                 pdf.savefig(fig)
@@ -165,21 +256,16 @@ class MCMCMultGPU:
         print(f"Running MCMC for {n_steps} steps with {self._n_chains} chains")
 
         # Open the HDF5 file in append mode
-        with h5py.File(output_file_name, 'a') as f:
+        with h5py.File(output_file_name, 'w') as f:
             # Create or resize the dataset
-            if 'chain' not in f:
-                # If dataset doesn't exist, create it
-                self._dataset = f.create_dataset('chain', (n_steps, self._n_chains, self._n_dim), chunks=True)
-            else:
-                # If dataset exists, resize it
-                self._dataset = f['chain']
-                self._dataset.resize((n_steps, self._n_chains, self._n_dim))
+            if 'chain' in f:
+                del f['chain']  # Delete if it already exists to avoid appending duplicate data
+
+            self._dataset = f.create_dataset('chain', (n_steps, self._n_chains, self._n_dim), chunks=True)
 
             for _ in tqdm(range(n_steps)):
                 self.propose_step()
 
             # Ensure remaining steps are flushed to disk
-            # self._flush_async(final_flush=True)
-
-            # Save the MCMC chain to PDF
+            self._flush_async(final_flush=True)
             self.save_mcmc_chain_to_pdf(output_file_name, "traces.pdf")
