@@ -81,7 +81,7 @@ class TfInterface(FileMLInterface):
         if not ".keras" in output_file:
             output_file+=".keras"
         
-        self._model.save(output_file)
+        self._model.save(output_file,)
         
     def load_model(self, input_file: str):
         """Load model from file
@@ -91,7 +91,7 @@ class TfInterface(FileMLInterface):
         """        
         
         print(f"Loading model from {input_file}")
-        self._model = tf.saved_model.load(input_file)
+        self._model = tf.keras.models.load_model(input_file)
     
     def model_predict(self, test_data: pd.DataFrame):
         """Get model prediction

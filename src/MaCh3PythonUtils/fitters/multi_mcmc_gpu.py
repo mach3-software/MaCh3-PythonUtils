@@ -14,7 +14,7 @@ from MaCh3PythonUtils.machine_learning.tf_interface import TfInterface
 from MaCh3PythonUtils.fitters.adaption_handler_gpu import CovarianceUpdaterGPU
 
 class MCMCMultGPU:
-    def __init__(self, interface: TfInterface, n_chains: int = 1024, circular_params: List[str] = [], update_step: int = 10):
+    def __init__(self, interface: TfInterface, n_chains: int = 1024, circular_params: List[str] = [], update_step: int = 10, max_update: int = 200000):
         print("MCMC let's go!")
 
         self._interface = interface        
@@ -33,17 +33,8 @@ class MCMCMultGPU:
         self._circular_indices = self._get_circular_indices(circular_params)
         print(self._circular_indices)
 
-        initial_state = tf.convert_to_tensor(np.ones(self._n_dim), dtype=tf.float32)
-        self._chain_states = tf.Variable(tf.tile(tf.expand_dims(initial_state, axis=0), [n_chains, 1]), dtype=tf.float32)
-
-        # Boundary conditions
-        self._upper_bounds = self._interface.scale_data(self._interface.chain.upper_bounds)
-        self._lower_bounds = self._interface.scale_data(self._interface.chain.upper_bounds)
-
-
-        self._circular_indices = [self._interface.chain.plot_branches.index(par) for par in circular_params]
         # CovarianceUpdater will be updated based on the first chain
-        self._matrix_handler = CovarianceUpdaterGPU(self._n_dim, update_step)
+        self._matrix_handler = CovarianceUpdaterGPU(self._n_dim, update_step, max_update)
 
         # Calculate likelihoods for all chains (with GPU processing)
         self._current_loglikelihoods = tf.Variable(self._calc_likelihood(self._chain_states))
