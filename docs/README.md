@@ -2,7 +2,7 @@
 [![Release](https://img.shields.io/github/release/mach3-software/MaCh3-PythonUtils.svg)](https://github.com/mach3-software/MaCh3-PythonUtils/releases/latest)
 [![Code - Documented](https://img.shields.io/badge/Code-Documented-2ea44f)]([https://github.com/mach3-software/MaCh3/wiki](https://mach3-software.github.io/MaCh3-PythonUtils/))
 
-Very simple tool for analysing MCMC. Currently only accepts chains where all variables are saved within a ROOT TTree. 
+Very simple tool for analysing MCMC. Currently only accepts chains where all variables are saved within a ROOT TTree.
 
 ## Setup
 Setup is relatively simple. The recommended way of running this is using a virtual environment
@@ -22,14 +22,14 @@ pip install .
 
 ## Running
 Running the package is also simple. pip adds `mach3_python_utils` as an executable so you simply need to run
-```
+```bash
 mach3_python_utils -c /path/to/config.yml
 ```
 This command can be accessed anywhere
 
 Some example configs can be found in the `configs` folder.
 
-##  Configs
+## Configs
 Configs are in YAML format
 
 For all packages the initial setup is very similar:
@@ -159,7 +159,7 @@ Implementing a new fitter is relatively simple. Mostly this is done in `machine_
 For non-scikit/tf based algorithms currently no implementation exists. For such cases a new interface class (which inherits from `FMLInterface`) needs to be implemented. Hopefully in future this is easy to do!
 
 
-## TO DO LIST:
+## TO DO LIST
 - [ ] Better diagnostic plotting (particularly for the NNs)
 - [ ] Smart hyper parameter tuning (Just a random grid search will do!)
 - [ ] Better sampling methods that "MCMC output go brrrrrr"
