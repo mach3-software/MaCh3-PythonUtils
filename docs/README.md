@@ -1,6 +1,10 @@
-Very simple tool for analysing MCMC. Currently only accepts chains where all variables are saved within a ROOT TTree. 
+# MaCh3-PythonUtils
+[![Release](https://img.shields.io/github/release/mach3-software/MaCh3-PythonUtils.svg)](https://github.com/mach3-software/MaCh3-PythonUtils/releases/latest)
+[![Code - Documented](https://img.shields.io/badge/Code-Documented-2ea44f)]([https://github.com/mach3-software/MaCh3/wiki](https://mach3-software.github.io/MaCh3-PythonUtils/))
 
-# Setup
+Very simple tool for analysing MCMC. Currently only accepts chains where all variables are saved within a ROOT TTree.
+
+## Setup
 Setup is relatively simple. The recommended way of running this is using a virtual environment
 ```bash
 virtualenv .env
@@ -16,16 +20,16 @@ pip install .
 ```
 
 
-# Running
+## Running
 Running the package is also simple. pip adds `mach3_python_utils` as an executable so you simply need to run
-```
+```bash
 mach3_python_utils -c /path/to/config.yml
 ```
 This command can be accessed anywhere
 
 Some example configs can be found in the `configs` folder.
 
-#  Configs
+## Configs
 Configs are in YAML format
 
 For all packages the initial setup is very similar:
@@ -56,7 +60,7 @@ ParameterSettings:
 
 ```
 
-# Plotting Settings
+## Plotting Settings
 This package contains various plotting tools required for analysing markov chains which are stored in the Plotting library!
 
 ```yaml
@@ -94,7 +98,7 @@ PlottingSettings:
 
 ```
 
-# ML Settings
+## ML Settings
 
 For scikit learn based packages the settings are then set in the following way (where FitterKwargs directly sets the keyword arguments for the scikit fitting tool being used):
 ```yaml
@@ -149,13 +153,13 @@ FitterSettings:
 
 Here FitterKwargs is now split into sub-settings with `BuildSettings` being passed to the model `compile` method, `FitSettings` setting up training information, and `Layers` which defines the types + kwargs of each layer in the model. New layers can be implemented in the `__TF_LAYER_IMPLEMENTATIONS` object which lives in `machine_learning/tf_interface`
 
-# Implementing a New Fitter
+## Implementing a New Fitter
 Implementing a new fitter is relatively simple. Mostly this is done in `machine_learining/ml_factory/MLFactory`. For Scikit-Learn based models, the new method just needs to imported and added to the `scikit` entry in `__IMPLEMENTED_ALGORITHMS`.
 
 For non-scikit/tf based algorithms currently no implementation exists. For such cases a new interface class (which inherits from `FMLInterface`) needs to be implemented. Hopefully in future this is easy to do!
 
 
-# TO DO LIST:
+## TO DO LIST
 - [ ] Better diagnostic plotting (particularly for the NNs)
 - [ ] Smart hyper parameter tuning (Just a random grid search will do!)
 - [ ] Better sampling methods that "MCMC output go brrrrrr"
