@@ -3,12 +3,13 @@ from MaCh3PythonUtils.machine_learning.file_ml_interface import FileMLInterface
 import tensorflow as tf
 import pandas as pd
 import numpy as np
-
+import tensorflow.keras as tfk
 
 class TfInterface(FileMLInterface):
     __TF_LAYER_IMPLEMENTATIONS = {
-        "dense": tf.keras.layers.Dense,
-        "dropout": tf.keras.layers.Dropout,
+        "dense": tfk.layers.Dense,
+        "dropout": tfk.layers.Dropout,
+        "batchnorm": tfk.layers.BatchNormalization
     }
     
     __TF_REGULARIZERS = {
@@ -47,16 +48,20 @@ class TfInterface(FileMLInterface):
         :type model_args: dict
         :raises ValueError: Model not set up yet
         """        
-        if self._model is None or not self._layers:
+       if self._model is None or not self._layers:
             raise ValueError("No model can be built! Please setup model and layers")
         
         for layer in self._layers:
             self._model.add(layer)
             
         self._model.build()
-        
-        self._model.compile(**model_args)
+        optimizer = tfk.optimizers.AdamW(learning_rate=model_args.get("learning_rate", 1e-3), 
+                          weight_decay=1e-4, clipnorm=1.0)
+
+        self._model.compile(**model_args, optimizer=optimizer)
             
+            
+    
     def set_training_settings(self, kwargs):
         """Set training settings, needs to be done early for...reasons
 
@@ -70,7 +75,9 @@ class TfInterface(FileMLInterface):
         """ 
         scaled_data = self.scale_data(self._training_data)
         
-        self._model.fit(scaled_data, self._training_labels, **self._training_settings)
+        lr_schedule = tfk.callbacks.ReduceLROnPlateau(monitor="loss", patience=5, factor=0.5, min_lr=1e-6, verbose=1)
+
+        self._model.fit(scaled_data, self._training_labels, **self._training_settings, callbacks=[lr_schedule])
     
     def save_model(self, output_file: str):
         """Save model to file
