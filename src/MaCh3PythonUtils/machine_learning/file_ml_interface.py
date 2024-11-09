@@ -56,7 +56,7 @@ class FileMLInterface(ABC):
         self._test_labels=None
 
         # Scaling components
-        self._scalar = StandardScaler()
+        self._scaler = StandardScaler()
         self._pca_matrix = PCA()
             
     def __separate_dataframe(self)->Tuple[pd.DataFrame, pd.DataFrame]:
@@ -82,19 +82,19 @@ class FileMLInterface(ABC):
         self._training_data, self._test_data, self._training_labels, self._test_labels =  train_test_split(features, labels, test_size=test_size)
 
         # Fit scaling pre-processors. These get applied properly when scale_data is called
-        scaled_training= self._scalar.fit_transform(self._training_data)        
+        scaled_training= self._scaler.fit_transform(self._training_data)        
         self._pca_matrix.fit(scaled_training)
 
     def scale_data(self, input_data):
         # Applies transformations to data set
-        scale_data = self._scalar.transform(input_data)
+        scale_data = self._scaler.transform(input_data)
         # scale_data = self._pca_matrix.transform(scale_data)
         return scale_data
 
     def invert_scaling(self, input_data):
         # Inverts transform
         # unscaled_data = self._pca_matrix.inverse_transform(input_data)
-        unscaled_data = self._scalar.inverse_transform(input_data)
+        unscaled_data = self._scaler.inverse_transform(input_data)
         return unscaled_data
 
     @property
@@ -118,6 +118,9 @@ class FileMLInterface(ABC):
         :return: Training data set
         :rtype: pd.DataFrame
         """        
+        if self._training_data is None:
+            return self._chain.ttree_array
+
         return self._training_data
 
     @property
@@ -126,7 +129,10 @@ class FileMLInterface(ABC):
 
         :return: Training data set
         :rtype: pd.DataFrame
-        """        
+        """ 
+        if self._test_data is None:
+            return self._chain.ttree_array
+        
         return self._test_data
 
     
@@ -164,16 +170,24 @@ class FileMLInterface(ABC):
         print(f"Saving to {output_file}")
         with open(output_file, 'wb') as f:
             pickle.dump(self._model, f)
+
+    def save_scaler(self, output_file: str):
+        pickle.dump(self._scaler, open(output_file, 'wb'))
         
-    def load_model(self, input_file: str):
+    def load_scaler(self, input_scaler: str):
+        self._scaler = pickle.load(open(input_scaler, 'rb'))
+
+        
+    def load_model(self, input_model: str):
         """Unpickle model
 
         :param input_file: Pickled Model
         :type input_file: str
         """        
         print(f"Attempting to load file from {input_file}")
-        with open(input_file, 'r') as f:
+        with open(input_model, 'r') as f:
             self._model = pickle.load(f)
+            
         
     def test_model(self):
         """Test model

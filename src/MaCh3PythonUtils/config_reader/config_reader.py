@@ -26,6 +26,8 @@ class ConfigReader:
         "FileSettings" : {
             # Name of input file
             "FileName": "",
+            # Skip loading a file? Useful for ML
+            "SkipFileLoading": False,
             # Name of chain in file
             "ChainName": "",
             # More printouts
@@ -116,7 +118,10 @@ class ConfigReader:
 
         # Settings for MCMC
         "MCMCSettings": {
-            "NSteps": 100000
+            "NSteps": 100000,
+            "NChains": 1,
+            "UpdateStep": 100,
+            "MaxUpdateSteps": 500000
         }
     }
     
@@ -229,19 +234,24 @@ class ConfigReader:
   
         if self.__chain_settings["MLSettings"].get("AddFromExternalModel"):
             external_model = self.__chain_settings["MLSettings"]["ExternalModel"]
+            external_scaler = self.__chain_settings["MLSettings"]["ExternalScaler"]
             self._interface.load_model(external_model)
+            self._interface.load_scaler(external_scaler)
         
         else:
             self._interface.set_training_test_set(self.__chain_settings["MLSettings"]["TestSize"])
             self._interface.train_model()
             self._interface.test_model()
             self._interface.save_model(self.__chain_settings["MLSettings"]["MLOutputFile"])
-
+            self._interface.save_scaler(self.__chain_settings['MLSettings']['MLScalerOutputName'])
     
     def __call__(self) -> None:
         """Runs over all files from config
-        """        
-        self.make_file_handler()
+        """ 
+        
+        if self.__chain_settings["FileSettings"]["SkipFileLoading"]:
+            self.make_file_handler()
+    
         if self.__chain_settings["FileSettings"]["MakePosteriors"]:
             self.make_posterior_plots()
         
@@ -260,10 +270,11 @@ class ConfigReader:
                 mcmc = MCMCMultGPU(self._interface,
                         self.__chain_settings["MCMCSettings"]["NChains"],
                         self.__chain_settings["ParameterSettings"]["CircularParameters"],
-                        self.__chain_settings["MCMCSettings"]["UpdateStep"])
+                        self.__chain_settings["MCMCSettings"]["UpdateStep"],
+                        self.__chain_settings["MCMCSettings"]["MaxUpdateSteps"])
 
                 mcmc(self.__chain_settings["MCMCSettings"]["NSteps"],
-                     self.__chain_settings["MCMCSettings"]["MCMCOutput"])
+                     self.__chain_settings["MCMCSettings"]["MCMCOutput"],)
 
                 
 

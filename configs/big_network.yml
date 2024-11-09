@@ -1,14 +1,15 @@
 FileSettings:
     # FileName : "/home/henryi/sft/MaCh3Tutorial/Test.root"
+    # FileName: "/home/henryi/sft/MaCh3Tutorial/Test.root"
     # FileName: "/home/henryi/scratch/Delayed_Fit_Long_Chains_no_delay_adapt_0_4.root"
-    SkipFileLoading: True
-    FileName: "/home/henryi/scratch/thinned_partial_chain.root"
+    
+    FileName: "/home/henryi/scratch/all_par_chain_without_adaption.root"
     ChainName : "posteriors"
+
     Verbose : False
     MakeMLModel: True
     RunLLHScan: False
-    RunMCMC: True
-
+    RunMCMC: False
 
 ParameterSettings:
     ParameterNames : ["sin2th","delm2", "delta", "xsec", "sk", "nd"]
@@ -23,15 +24,8 @@ MLSettings:
     FitterPackage : "TensorFlow"
     FitterName : "Sequential"
     TestSize : 0.2
-
-    MLOutputFile: "tf_model_normal_order_small.keras"
-    MLScalerOutputName: "scaler_tf_model_normal_order_small.pkl"
-    
-    PlotOutputName : "tf_normal_order.pdf"
-    
-    AddFromExternalModel: True
-    ExternalModel: "tf_model_normal_order.keras"
-    ExternalScaler: "scaler_tf_model_normal_order_small.pkl"
+    MLOutputFile: "tf_model_normal_order.keras"
+    PlotOutputName : "tf_tutorial_chain_no.pdf"
 
     FitterKwargs:
         BuildSettings:
@@ -39,99 +33,71 @@ MLSettings:
             loss: 'mse'
             metrics: ['mae', 'mse']
 
-            
-
         Layers:
             - dense:
-                units: 256
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 256
-                activation: 'relu'
-
-            - dense:
-                units: 256
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 64
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 32
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 16
                 activation: 'relu'
             - dense:
-                units: 256
+                units: 8
                 activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-
-
-            # - dense:
-            #     units: 32
-            #     activation: 'relu'
-            # - dense:
-            #     units: 16
-            #     activation: 'relu'
-            # - dense:
-            #     units: 8
-            #     activation: 'relu'
 
             - dense:
                 units: 1
                 activation: 'linear'
 
         FitSettings:
-            batch_size: 10000
-            epochs: 10
-            validation_split: 0.1
+            batch_size: 2048
+            epochs: 512
 
 MCMCSettings:
     NSteps: 1000000
-    NChains: 20
-    UpdateStep: 100
-    MaxUpdateSteps: 500000
+    NChains: 1
+    UpdateStep: 1000
+    BatchSize: 10
 
-    MCMCOutput: "/home/henryi/scratch/mcmc_chain_GPU.h5"
+    MCMCOutput: "/home/henryi/scratch/tutorial_chain_test.h5"
 
 LikelihoodScanSettings:
     NDivisions: 10000

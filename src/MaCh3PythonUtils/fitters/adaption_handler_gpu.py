@@ -1,8 +1,9 @@
 import tensorflow as tf
 
 class CovarianceUpdaterGPU:
-    def __init__(self, n_dimensions, update_step=1000):
+    def __init__(self, n_dimensions, update_step=1000, max_update: int = 20000):
         self.n = n_dimensions
+        self._max_update = max_update
         # Initialize mean and covariance as TensorFlow tensors
         self.mean = tf.Variable(tf.zeros(n_dimensions, dtype=tf.float32))
         self.covariance = tf.Variable(tf.zeros((n_dimensions, n_dimensions), dtype=tf.float32))
@@ -32,7 +33,7 @@ class CovarianceUpdaterGPU:
         self.count += 1
         
         # Arbitary stopping point!
-        if self.count>100000:
+        if self.count>self._max_update:
             return
         
         # Update mean and covariance using the class method
