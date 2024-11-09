@@ -32,12 +32,6 @@ class ConfigReader:
             "ChainName": "",
             # More printouts
             "Verbose": False,
-            # Make posteriors from chain?
-            "MakePosteriors": False,
-            # Run Diagnostics code?
-            "MakeDiagnostics": False,
-            # Make an ML model to replicate the chain likelihood model
-            "MakeMLModel": False,
             # Run an LLH Scan?
             "RunLLHScan": False,
             # Run MCMC?
@@ -56,42 +50,6 @@ class ConfigReader:
             "IgnoredParameters":[]
         },
         
-        # Settings for plotting tools
-        "PlottingSettings":{
-        # Specific Settings for posterior plots
-            "PosteriorSettings": {
-                # Make 2D Posterior Plots?
-                "Make2DPosteriors": False,
-                # Make a triangle plot
-                "MakeTrianglePlot": False,
-                # Variables in the triangle plot
-                "TrianglePlot": [],
-                # 1D credible intervals
-                "MakeCredibleIntervals": False,
-                # Output file
-                "PosteriorOutputFile": "posteriors.pdf"
-            },
-            
-            # Specific Settings for diagnostic plots
-            "DiagnosticsSettings": {
-                # Make violin plot?
-                "MakeViolin": False,
-                # Make trace + AC plot?
-                "MakeTraceAC": False,
-                # Make effective sample size plot?
-                "MakeESS": False,
-                # Make MCSE plot?
-                "MakeMCSE": False,
-                # Make suboptimality plot
-                "MakeSuboptimality": False,
-                # Step for calculation
-                "SuboptimalitySteps": 0,
-                # Output file
-                "DiagnosticsOutputFile": "diagnostics.pdf",
-                # Print summary statistic
-                "PrintSummary": False
-        }
-        },
         # Specific Settings for ML Applications
         "MLSettings": {
             # Name of plots
@@ -157,69 +115,6 @@ class ConfigReader:
         self._file_handler.convert_ttree_to_array()
 
     
-    
-    def make_posterior_plots(self):
-        """Generates posterior plots
-        """        
-        if self._plot_interface is None:
-            self._plot_interface = PlottingInterface(self._file_handler)
-        
-        posterior_labels = []
-        
-        if self.__chain_settings['PlottingSettings']['PosteriorSettings']['Make2DPosteriors']:
-            self._plot_interface.initialise_new_plotter(PosteriorPlotter2D(self._file_handler), 'posterior_2d')
-            posterior_labels.append('posterior_2d')
-
-        if self.__chain_settings['PlottingSettings']['PosteriorSettings']['MakeTrianglePlot']:
-            self._plot_interface.initialise_new_plotter(TrianglePlotter(self._file_handler), 'posterior_triangle')
-            posterior_labels.append('posterior_triangle')
-        
-        # Which variables do we actually want 2D plots for?
-        self._plot_interface.set_variables_to_plot(self.__chain_settings['PlottingSettings']['PosteriorSettings']['TrianglePlot'], posterior_labels)
-
-        if self.__chain_settings['PlottingSettings']['PosteriorSettings']['Make1DPosteriors']:
-            self._plot_interface.initialise_new_plotter(PosteriorPlotter1D(self._file_handler), 'posterior_1d')
-            posterior_labels.append('posterior_1d')
-    
-    
-        self._plot_interface.set_credible_intervals(self.__chain_settings['PlottingSettings']['PosteriorSettings']['CredibleIntervals'])
-        self._plot_interface.set_is_circular(self.__chain_settings['ParameterSettings']['CircularParameters'])
-
-        self._plot_interface.make_plots(self.__chain_settings['PlottingSettings']['PosteriorSettings']['PosteriorOutputFile'], posterior_labels)
-
-    def make_diagnostics_plots(self):
-        """Generates diagnostics plots
-        """        
-        if self._plot_interface is None:
-            self._plot_interface = PlottingInterface(self._file_handler)
-
-        diagnostic_labels = []
-
-        if self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['MakeViolin']:
-            self._plot_interface.initialise_new_plotter(ViolinPlotter(self._file_handler), 'violin_plotter')
-            diagnostic_labels.append('violin_plotter')
-        if self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['MakeTraceAC']:
-            self._plot_interface.initialise_new_plotter(AutocorrelationTracePlotter(self._file_handler), 'trace_autocorr')
-            diagnostic_labels.append('trace_autocorr')
-        if self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['MakeESS']:
-            self._plot_interface.initialise_new_plotter(EffectiveSampleSizePlotter(self._file_handler), 'ess_plot')
-            diagnostic_labels.append('ess_plot')
-        if self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['MakeMCSE']:
-            self._plot_interface.initialise_new_plotter(MarkovChainStandardError(self._file_handler), 'msce_plot')
-            diagnostic_labels.append('msce_plot')
-
-        self._plot_interface.make_plots(self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['DiagnosticsOutputFile'], diagnostic_labels)
-
-        # Final one, covariance plotter
-        if self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['MakeSuboptimality']:
-            suboptimality_obj = CovarianceMatrixUtils(self._file_handler)
-            suboptimality_obj.calculate_suboptimality(self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['SuboptimalitySteps'], self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['SubOptimalityMin'])
-            suboptimality_obj.plot_suboptimality(f"suboptimality_{self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['DiagnosticsOutputFile']}")
-
-        # Finally let's make a quick simmary
-        if self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['PrintSummary']:
-            self._plot_interface.print_summary(f"summary_{self.__chain_settings['PlottingSettings']['DiagnosticsSettings']['DiagnosticsOutputFile']}.txt")
-
     def make_ml_interface(self)->None:
         """Generates ML interface objects
         """        
@@ -245,36 +140,29 @@ class ConfigReader:
             self._interface.save_model(self.__chain_settings["MLSettings"]["MLOutputFile"])
             self._interface.save_scaler(self.__chain_settings['MLSettings']['MLScalerOutputName'])
     
+    def run_mcmc(self):
+        print("WARNING: MCMC HAS ONLY BEEN TESTED WITH TENSORFLOW INTERFACES!")
+        mcmc = MCMCMultGPU(self._interface,
+                self.__chain_settings["MCMCSettings"]["NChains"],
+                self.__chain_settings["ParameterSettings"]["CircularParameters"],
+                self.__chain_settings["MCMCSettings"]["UpdateStep"],
+                self.__chain_settings["MCMCSettings"]["MaxUpdateSteps"])
+
+        mcmc(self.__chain_settings["MCMCSettings"]["NSteps"],
+                self.__chain_settings["MCMCSettings"]["MCMCOutput"],)
+
+    
     def __call__(self) -> None:
         """Runs over all files from config
-        """ 
-        
-        if self.__chain_settings["FileSettings"]["SkipFileLoading"]:
-            self.make_file_handler()
-    
-        if self.__chain_settings["FileSettings"]["MakePosteriors"]:
-            self.make_posterior_plots()
-        
-        if self.__chain_settings["FileSettings"]["MakeDiagnostics"]:
-            self.make_diagnostics_plots()
-        
-        if self.__chain_settings["FileSettings"]["MakeMLModel"]:
-            self.make_ml_interface()
+        """         
+        self.make_file_handler()
+            
+        self.make_ml_interface()
 
-            if self.__chain_settings["FileSettings"]["RunLLHScan"] and self._interface is not None:
-                self._interface.run_likelihood_scan(self.__chain_settings["LikelihoodScanSettings"]["NDivisions"])
-                
-            if self.__chain_settings["FileSettings"]["RunMCMC"] and self._interface is not None:
-                print("WARNING: MCMC HAS ONLY BEEN TESTED WITH TENSORFLOW INTERFACES!")
-
-                mcmc = MCMCMultGPU(self._interface,
-                        self.__chain_settings["MCMCSettings"]["NChains"],
-                        self.__chain_settings["ParameterSettings"]["CircularParameters"],
-                        self.__chain_settings["MCMCSettings"]["UpdateStep"],
-                        self.__chain_settings["MCMCSettings"]["MaxUpdateSteps"])
-
-                mcmc(self.__chain_settings["MCMCSettings"]["NSteps"],
-                     self.__chain_settings["MCMCSettings"]["MCMCOutput"],)
-
+        if self.__chain_settings["FileSettings"]["RunLLHScan"] and self._interface is not None:
+            self._interface.run_likelihood_scan(self.__chain_settings["LikelihoodScanSettings"]["NDivisions"])
+            
+        if self.__chain_settings["FileSettings"]["RunMCMC"] and self._interface is not None:
+            self.run_mcmc()
                 
 
