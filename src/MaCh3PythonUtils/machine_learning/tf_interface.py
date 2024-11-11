@@ -48,7 +48,7 @@ class TfInterface(FileMLInterface):
         :type model_args: dict
         :raises ValueError: Model not set up yet
         """        
-       if self._model is None or not self._layers:
+        if self._model is None or not self._layers:
             raise ValueError("No model can be built! Please setup model and layers")
         
         for layer in self._layers:
@@ -59,7 +59,6 @@ class TfInterface(FileMLInterface):
                           weight_decay=1e-4, clipnorm=1.0)
 
         self._model.compile(**model_args, optimizer=optimizer)
-            
             
     
     def set_training_settings(self, kwargs):

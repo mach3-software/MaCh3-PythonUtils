@@ -164,10 +164,10 @@ class MCMCMultGPU:
             self._dataset[end_idx-len(steps_to_write):end_idx, :] = steps_to_write
 
 
-    def save_mcmc_chain_to_pdf(self, filename: str, output_pdf: str):
+    def save_mcmc_chain_to_pdf(self, filename: str, output_pdf: str, thinning: int=10, burnin: int=10000):
         # Open the HDF5 file and read the chain
         with h5py.File(filename, 'r') as f:
-            chain = f['chain'][:]
+            chain = f['chain'][burnin::thinning]
 
         # Need it to reflect the actual parameters in our fit so let's combine everything!
         rescaled_chain = [self._interface.invert_scaling(chain[1000:,i]) for i in range(self._n_chains)]
