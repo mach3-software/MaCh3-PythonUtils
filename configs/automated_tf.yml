@@ -34,13 +34,23 @@ MLSettings:
     ExternalScaler: "scaler_tf_model_normal_order_small.pkl"
 
     FitterKwargs:
-      n_layers: [5, 25, 2]
-      activation: ['tanh', 'relu']
-      neurons_per_layer: [64, 2048, 100]
-      learning_rate: [1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001]
-      regularization: [0.01, 0.1, 0.2, 0.3]
-      
+      epochs: 10000
+      batch_size: 2048
 
+
+      # Tuning features
+      n_trials: 1000
+
+      hyperband_iterations: 10
+      tuning_dir: "t2k_full_tuning"
+      project_name: "t2k_full_tuning"
+
+      n_layers: [5, 25, 1]
+      activation: ['tanh', 'relu']
+      neurons_per_layer: [64, 4096, 30]
+      learning_rate: [1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001]
+      regularization: [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]
+   
 MCMCSettings:
     NSteps: 1000000
     NChains: 20

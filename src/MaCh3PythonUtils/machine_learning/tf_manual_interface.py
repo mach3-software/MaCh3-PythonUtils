@@ -29,9 +29,10 @@ class TfManualInterface(TfInterface):
         if layer_id not in self.__TF_LAYER_IMPLEMENTATIONS.keys():
             raise ValueError(f"{layer_id} not implemented yet!")
 
-        if layer_args.get("kernel_regularizer"):
+        # HACK
+        if layer_args.get("kernel_regularizer") is not None:
             # Hacky, swaps string value of regularliser for proper one
-            layer_args["kernel_regularizer"] = tfk.regularizers.L2(0.2)
+            layer_args["kernel_regularizer"] = tfk.regularizers.L2(layer_args["kernel_regularizer"])
 
         self._layers.append(self.__TF_LAYER_IMPLEMENTATIONS[layer_id.lower()](**layer_args))
             
@@ -98,8 +99,11 @@ class TfManualInterface(TfInterface):
         """train model
         """ 
         scaled_data = self.scale_data(self._training_data)
+        scaled_labels = self.scale_labels(self._training_labels)
         
         lr_schedule = tfk.callbacks.ReduceLROnPlateau(monitor="loss", patience=5, factor=0.5, min_lr=1e-6, verbose=1)
+        stop_early = tfk.callbacks.EarlyStopping(monitor='val_loss', patience=10)
 
-        self._model.fit(scaled_data, self._training_labels, **self._training_settings, callbacks=[lr_schedule])
+
+        self._model.fit(scaled_data, scaled_labels, **self._training_settings, callbacks=[lr_schedule, stop_early])
         print(f"Using loss function: {self._model.loss}")  

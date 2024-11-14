@@ -37,79 +37,64 @@ MLSettings:
         BuildSettings:
             loss: 'mse'
             metrics: ['mae', 'mse']
-            learning_rate: 0.1
+            learning_rate: 0.01
 
         Layers:
+            # 0
             - dense:
-                units: 512
-                kernel_regularizer: True
+                units: 764
+                kernel_regularizer: 0.01
+                activation: 'tanh'
+            - batchnorm:
+                momentum: 0.99
+            # 1
+            - dense:
+                units: 164
+                kernel_regularizer: 0.01
                 activation: 'relu'
             - batchnorm:
                 momentum: 0.99
 
+            # 2
             - dense:
-                units: 256
-                kernel_regularizer: True
+                units: 764
+                kernel_regularizer: 0.01
+                activation: 'relu'
+            - batchnorm:
+                momentum: 0.99
+
+            # 3
+            - dense:
+                units: 1364
+                kernel_regularizer: 0.2
+                activation: 'relu'
+            - batchnorm:
+                momentum: 0.99
+
+            # 4
+            - dense:
+                units: 1764
+                kernel_regularizer: 0.01
+                activation: 'tanh'
+            - batchnorm:
+                momentum: 0.99
+            # 4
+            - dense:
+                units: 1764
+                kernel_regularizer: 0.01
                 activation: 'tanh'
             - batchnorm:
                 momentum: 0.99
 
-            - dense:
-                units: 512
-                kernel_regularizer: True
-                activation: 'relu'
-            - batchnorm:
-                momentum: 0.99
-
-            - dense:
-                units: 512
-                kernel_regularizer: True
-                activation: 'relu'
-            - batchnorm:
-                momentum: 0.99
-
-            - dense:
-                units: 256
-                kernel_regularizer: True
-                activation: 'tanh'
-            - batchnorm:
-                momentum: 0.99
-
-            - dense:
-                units: 512
-                kernel_regularizer: True
-                activation: 'relu'
-            - batchnorm:
-                momentum: 0.99
-
-            - dense:
-                units: 256
-                kernel_regularizer: True
-                activation: 'tanh'
-            - batchnorm:
-                momentum: 0.99
-
-            - dense:
-                units: 512
-                kernel_regularizer: True
-                activation: 'relu'
-            - batchnorm:
-                momentum: 0.99
-
-            - dense:
-                units: 512
-                kernel_regularizer: True
-                activation: 'tanh'
-            - batchnorm:
-                momentum: 0.99
-    
+            # 6
             - dense:
                 units: 1
                 activation: 'linear'
 
         FitSettings:
-            batch_size: 2048
-            epochs: 100000
+        
+            batch_size: 16000
+            epochs: 1000
             validation_split: 0.1
 
 MCMCSettings:

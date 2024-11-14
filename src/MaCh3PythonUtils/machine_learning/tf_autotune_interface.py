@@ -57,26 +57,39 @@ class TfAutotuneInterface(TfInterface):
 
             return model
         
+        
         self._epochs = kwargs.get('epochs', 1000)
         self._val_split = kwargs.get('validation_split', 0.2)
         self._batch_size = kwargs.get('batch_size', 2048)
         
-        self._model_tuner= kt.Hyperband(model_builder, objective='val_loss', max_epochs=self._epochs)
+        # Hyperband parameters
+        hyperband_iterations = kwargs.get("hyperband_iterations", 100)
+        model_directory = kwargs.get("tuning_dir", "tuning-model")
+        project_name = kwargs.get("project_name", "tuning-project")
+        
+        self._model_tuner= kt.Hyperband(model_builder, 
+                                        objective='val_loss',
+                                        max_epochs=self._epochs,
+                                        hyperband_iterations=hyperband_iterations,
+                                        directory=model_directory,
+                                        project_name=project_name)
 
     def train_model(self):
         
         scaled_data = self.scale_data(self._training_data)
+        scaled_labels = self.scale_labels(self._training_labels)
+        
         stop_early = tfk.callbacks.EarlyStopping(monitor='val_loss', patience=5)
 
-        self._model_tuner.search(scaled_data, self._training_labels,
+        self._model_tuner.search(scaled_data, scaled_labels,
                                  epochs= self._epochs,
                                  validation_split=self._val_split,
                                  batch_size=self._batch_size,
                                  callbacks=[stop_early])
         
-        best_hps=self._model_tuner.get_best_hyperparameters(num_trials=1000)[0]
+        best_hps=self._model_tuner.get_best_hyperparameters(num_trials=66)[0]
         print("Finished auto-tuning")
         
         self._model = self._model_tuner.hypermodel.build(best_hps)
         
-        self._model.fit(scaled_data, self._training_labels, epochs=self._epochs, validation_split=0.2)
+        self._model.fit(scaled_data, scaled_labels, epochs=self._epochs, validation_split=0.2)

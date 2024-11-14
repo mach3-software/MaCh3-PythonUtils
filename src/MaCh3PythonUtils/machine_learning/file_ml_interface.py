@@ -15,7 +15,7 @@ from tqdm import tqdm
 from scipy.optimize import minimize, OptimizeResult
 
 from sklearn import metrics
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
@@ -57,7 +57,11 @@ class FileMLInterface(ABC):
 
         # Scaling components
         self._scaler = StandardScaler()
-        self._pca_matrix = PCA(n_components=0.95)
+        # self._pca_matrix = PCA(n_components=0.95)
+        
+        self._label_scaler = MinMaxScaler(feature_range=(0, 1))
+        
+        
             
     def __separate_dataframe(self)->Tuple[pd.DataFrame, pd.DataFrame]:
         """Split data frame into feature + label objects
@@ -82,7 +86,9 @@ class FileMLInterface(ABC):
         self._training_data, self._test_data, self._training_labels, self._test_labels =  train_test_split(features, labels, test_size=test_size)
 
         # Fit scaling pre-processors. These get applied properly when scale_data is called
-        scaled_training= self._scaler.fit_transform(self._training_data)        
+        _= self._scaler.fit_transform(self._training_data)
+        self._label_scaler.fit_transform(self._training_labels)
+        
         # self._pca_matrix.fit(scaled_training)
 
     def scale_data(self, input_data):
@@ -90,6 +96,9 @@ class FileMLInterface(ABC):
         scale_data = self._scaler.transform(input_data)
         # scale_data = self._pca_matrix.transform(scale_data)
         return scale_data
+    
+    def scale_labels(self, labels):
+        return self._label_scaler.transform(labels)
 
     def invert_scaling(self, input_data):
         # Inverts transform
@@ -204,14 +213,14 @@ class FileMLInterface(ABC):
 
         print("Training Results!")
         train_prediction = self.model_predict(self._training_data)
-        train_as_numpy = self._training_labels.to_numpy().T[0]
+        train_as_numpy = self.scale_labels(self._training_labels).to_numpy().T[0]
         self.evaluate_model(train_prediction, train_as_numpy, "train_qq_plot.pdf")
 
         print("=====\n\n")
         print("Testing Results!")
 
         test_prediction = self.model_predict(self._test_data)
-        test_as_numpy = self._test_labels.to_numpy().T[0]
+        test_as_numpy = self.scale_labels(self._test_labels).to_numpy().T[0]
         
         self.evaluate_model(test_prediction, test_as_numpy, outfile=f"{self._fit_name}")
         print("=====\n\n")
@@ -262,7 +271,6 @@ class FileMLInterface(ABC):
                 plt.ylabel("-2*loglikelihood")
                 pdf.savefig()
                 plt.close()
-    
             
         
     
