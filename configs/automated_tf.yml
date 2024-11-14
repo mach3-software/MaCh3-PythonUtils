@@ -1,0 +1,53 @@
+FileSettings:
+    # FileName : "/home/henryi/sft/MaCh3Tutorial/Test.root"
+    # FileName: "/home/henryi/scratch/Delayed_Fit_Long_Chains_no_delay_adapt_0_4.root"
+    SkipFileLoading: True
+    FileName: "/home/henryi/scratch/thinned_partial_chain.root"
+    ChainName : "posteriors"
+    Verbose : False
+    MakeMLModel: True
+    RunLLHScan: False
+    RunMCMC: True
+
+
+ParameterSettings:
+    ParameterNames : ["sin2th","delm2", "delta", "xsec", "sk", "nd"]
+    LabelName : "LogL"
+    IgnoredParameters : ["LogL_systematic_xsec_cov", "Log",
+                         "LogL_systematic_nddet_cov"]
+    ParameterCuts : ["LogL<12345678", "delm2_23>0"]
+    CircularParameter: ["delta_cp"]
+
+
+MLSettings:
+    FitterPackage : "TensorFlow"
+    FitterName : "autotune"
+    TestSize : 0.2
+
+    MLOutputFile: "tf_model_normal_order_small.keras"
+    MLScalerOutputName: "scaler_tf_model_normal_order_small.pkl"
+    
+    PlotOutputName : "tf_normal_order.pdf"
+    
+    AddFromExternalModel: False
+    ExternalModel: "tf_model_normal_order.keras" 
+    ExternalScaler: "scaler_tf_model_normal_order_small.pkl"
+
+    FitterKwargs:
+      n_layers: [5, 25, 2]
+      activation: ['tanh', 'relu']
+      neurons_per_layer: [64, 2048, 100]
+      learning_rate: [1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001]
+      regularization: [0.01, 0.1, 0.2, 0.3]
+      
+
+MCMCSettings:
+    NSteps: 1000000
+    NChains: 20
+    UpdateStep: 100
+    MaxUpdateSteps: 500000
+
+    MCMCOutput: "/home/henryi/scratch/mcmc_chain_GPU.h5"
+
+LikelihoodScanSettings:
+    NDivisions: 10000

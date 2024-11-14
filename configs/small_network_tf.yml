@@ -21,7 +21,7 @@ ParameterSettings:
 
 MLSettings:
     FitterPackage : "TensorFlow"
-    FitterName : "Sequential"
+    FitterName : "sequential"
     TestSize : 0.2
 
     MLOutputFile: "tf_model_normal_order_small.keras"
@@ -29,100 +29,87 @@ MLSettings:
     
     PlotOutputName : "tf_normal_order.pdf"
     
-    AddFromExternalModel: True
-    ExternalModel: "tf_model_normal_order.keras"
+    AddFromExternalModel: False
+    ExternalModel: "tf_model_normal_order.keras" 
     ExternalScaler: "scaler_tf_model_normal_order_small.pkl"
 
     FitterKwargs:
         BuildSettings:
-            optimizer: 'adam'
             loss: 'mse'
             metrics: ['mae', 'mse']
-
-            
+            learning_rate: 0.1
 
         Layers:
             - dense:
-                units: 256
+                units: 512
+                kernel_regularizer: True
                 activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
+            - batchnorm:
+                momentum: 0.99
 
             - dense:
                 units: 256
-                activation: 'relu'
+                kernel_regularizer: True
+                activation: 'tanh'
+            - batchnorm:
+                momentum: 0.99
+
             - dense:
-                units: 256
+                units: 512
+                kernel_regularizer: True
                 activation: 'relu'
+            - batchnorm:
+                momentum: 0.99
+
             - dense:
-                units: 256
+                units: 512
+                kernel_regularizer: True
                 activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
+            - batchnorm:
+                momentum: 0.99
 
             - dense:
                 units: 256
+                kernel_regularizer: True
+                activation: 'tanh'
+            - batchnorm:
+                momentum: 0.99
+
+            - dense:
+                units: 512
+                kernel_regularizer: True
                 activation: 'relu'
+            - batchnorm:
+                momentum: 0.99
+
             - dense:
                 units: 256
+                kernel_regularizer: True
+                activation: 'tanh'
+            - batchnorm:
+                momentum: 0.99
+
+            - dense:
+                units: 512
+                kernel_regularizer: True
                 activation: 'relu'
+            - batchnorm:
+                momentum: 0.99
 
-
-            # - dense:
-            #     units: 32
-            #     activation: 'relu'
-            # - dense:
-            #     units: 16
-            #     activation: 'relu'
-            # - dense:
-            #     units: 8
-            #     activation: 'relu'
-
+            - dense:
+                units: 512
+                kernel_regularizer: True
+                activation: 'tanh'
+            - batchnorm:
+                momentum: 0.99
+    
             - dense:
                 units: 1
                 activation: 'linear'
 
         FitSettings:
-            batch_size: 10000
-            epochs: 10
+            batch_size: 2048
+            epochs: 100000
             validation_split: 0.1
 
 MCMCSettings:

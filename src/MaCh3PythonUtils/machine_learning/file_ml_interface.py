@@ -57,7 +57,7 @@ class FileMLInterface(ABC):
 
         # Scaling components
         self._scaler = StandardScaler()
-        self._pca_matrix = PCA()
+        self._pca_matrix = PCA(n_components=0.95)
             
     def __separate_dataframe(self)->Tuple[pd.DataFrame, pd.DataFrame]:
         """Split data frame into feature + label objects
@@ -83,7 +83,7 @@ class FileMLInterface(ABC):
 
         # Fit scaling pre-processors. These get applied properly when scale_data is called
         scaled_training= self._scaler.fit_transform(self._training_data)        
-        self._pca_matrix.fit(scaled_training)
+        # self._pca_matrix.fit(scaled_training)
 
     def scale_data(self, input_data):
         # Applies transformations to data set
@@ -119,7 +119,7 @@ class FileMLInterface(ABC):
         :rtype: pd.DataFrame
         """        
         if self._training_data is None:
-            return self._chain.ttree_array
+            return self._chain.ttree_array.iloc[:,:-1]
 
         return self._training_data
 
@@ -131,7 +131,7 @@ class FileMLInterface(ABC):
         :rtype: pd.DataFrame
         """ 
         if self._test_data is None:
-            return self._chain.ttree_array
+            return self._chain.ttree_array.iloc[:,:-1]
         
         return self._test_data
 

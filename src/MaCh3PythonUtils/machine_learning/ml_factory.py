@@ -3,12 +3,12 @@ ML Factory implementation, effectively a selector for making models
 """
 
 from MaCh3PythonUtils.machine_learning.scikit_interface import SciKitInterface
-from MaCh3PythonUtils.machine_learning.tf_interface import TfInterface
-from MaCh3PythonUtils.machine_learning.normalizing_flow_interface import NormalisingFlowInterface
+from MaCh3PythonUtils.machine_learning.tf_manual_interface import TfManualInterface
+from MaCh3PythonUtils.machine_learning.tf_autotune_interface import TfAutotuneInterface
+
 import sklearn.ensemble as ske
 import tensorflow.keras as tfk
 from MaCh3PythonUtils.file_handling.chain_handler import ChainHandler
-import MaCh3PythonUtils.machine_learning.algorithms.normalizing_flow_structures as nfs
 
 
 class MLFactory:
@@ -21,7 +21,9 @@ class MLFactory:
             "histboost"     : ske.HistGradientBoostingRegressor
         },
         "tensorflow": {
-            "sequential" : tfk.Sequential
+            "sequential" : tfk.Sequential,
+            "residual": tfk.Model,
+            "autotune": None
         },
     }
 
@@ -79,7 +81,7 @@ class MLFactory:
 
         return interface
     
-    def __make_tensorflow_model(self, algorithm: str,  **kwargs)->TfInterface:
+    def __make_tensorflow_manual_model(self, algorithm: str,  **kwargs)->TfManualInterface:
         """Generates TensorFlow model interface
 
         :param algorithm: TensorFlow algorithm [NOT layers]
@@ -87,7 +89,7 @@ class MLFactory:
         :return: TfInterface wrapper around model
         :rtype: _type_
         """ 
-        interface = TfInterface(self._chain, self._prediction_variable, self._plot_name)
+        interface = TfManualInterface(self._chain, self._prediction_variable, self._plot_name)
         
         interface.add_model(self.__setup_package_factory(package="tensorflow", algorithm=algorithm))
         
@@ -95,12 +97,28 @@ class MLFactory:
             layer_id = list(layer.keys())[0]
             
             interface.add_layer(layer_id, layer[layer_id])
-            
-        interface.build_model(kwargs["BuildSettings"])
+        
+        if algorithm == "residual":
+            interface.build_model_residual(kwargs["BuildSettings"])
+        else:
+            interface.build_model_sequential(kwargs["BuildSettings"])
         
         interface.set_training_settings(kwargs["FitSettings"])
 
         return interface
+
+    def __make_tensorflow_automated_model(self, **kwargs)->TfAutotuneInterface:
+        interface = TfAutotuneInterface(self._chain, self._prediction_variable, self._plot_name)
+        
+        interface.build_auto_tuned_network(**kwargs)
+        return interface
+    
+    
+    def __make_tensorflow_model(self, algorithm: str, **kwargs):
+        if algorithm=="autotune":
+            return self.__make_tensorflow_automated_model(**kwargs)
+        else:
+            return self.__make_tensorflow_manual_model(algorithm, **kwargs)
     
     
     def make_interface(self, interface_type: str, algorithm: str, **kwargs):
