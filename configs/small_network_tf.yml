@@ -7,7 +7,7 @@ FileSettings:
     Verbose : False
     MakeMLModel: True
     RunLLHScan: False
-    RunMCMC: True
+    RunMCMC: False
 
 
 ParameterSettings:
@@ -15,13 +15,13 @@ ParameterSettings:
     LabelName : "LogL"
     IgnoredParameters : ["LogL_systematic_xsec_cov", "Log",
                          "LogL_systematic_nddet_cov"]
-    ParameterCuts : ["LogL<12345678", "delm2_23>0"]
+    ParameterCuts : ["LogL<5000", "LogL>4900", "delm2_23>0"]
     CircularParameter: ["delta_cp"]
 
 
 MLSettings:
     FitterPackage : "TensorFlow"
-    FitterName : "Sequential"
+    FitterName : "sequential"
     TestSize : 0.2
 
     MLOutputFile: "tf_model_normal_order_small.keras"
@@ -29,100 +29,77 @@ MLSettings:
     
     PlotOutputName : "tf_normal_order.pdf"
     
-    AddFromExternalModel: True
-    ExternalModel: "tf_model_normal_order.keras"
+    AddFromExternalModel: False
+    ExternalModel: "tf_model_normal_order.keras" 
     ExternalScaler: "scaler_tf_model_normal_order_small.pkl"
 
     FitterKwargs:
         BuildSettings:
-            optimizer: 'adam'
             loss: 'mse'
             metrics: ['mae', 'mse']
-
-            
+            learning_rate: 0.0001
 
         Layers:
+            # Input worked out automatically
+            # 0
+            # 1
             - dense:
-                units: 256
-                activation: 'relu'
+                units: 1024
+                activation: 'PReLU'
+
+            # 2
             - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
+                units: 1024
+                activation: 'PReLU'
+                kernel_regularizer: 0.01
 
             - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
-            - dense:
-                units: 256
-                activation: 'relu'
+                units: 1024
+                activation: 'PReLU'
+            - batchnorm:
+                momentum: 0.99
+            # 3
 
             - dense:
-                units: 256
-                activation: 'relu'
+                units: 1024
+                kernel_regularizer: 0.01
+
+                activation: 'PReLU'
+            - batchnorm:
+                momentum: 0.99
             - dense:
-                units: 256
-                activation: 'relu'
+                units: 1024
+                activation: 'PReLU'
+            - batchnorm:
+                momentum: 0.99
+            - dense:
+                units: 1024
+                activation: 'PReLU'
+            - batchnorm:
+                momentum: 0.99
+            - dense:
+                units: 1024
+                activation: 'PReLU'
+            - batchnorm:
+                momentum: 0.99
+            - dense:
+                units: 1024
+                activation: 'PReLU'
+            - batchnorm:
+                momentum: 0.99
 
+            - dense:
+                units: 1024
+                activation: 'PReLU'
 
-            # - dense:
-            #     units: 32
-            #     activation: 'relu'
-            # - dense:
-            #     units: 16
-            #     activation: 'relu'
-            # - dense:
-            #     units: 8
-            #     activation: 'relu'
-
+            # output
             - dense:
                 units: 1
-                activation: 'linear'
+                activation: 'relu'
 
         FitSettings:
-            batch_size: 10000
-            epochs: 10
+            batch_size: 4096
+            epochs: 250
             validation_split: 0.1
 
 MCMCSettings:

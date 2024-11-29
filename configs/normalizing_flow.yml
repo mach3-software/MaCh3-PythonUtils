@@ -21,7 +21,7 @@ ParameterSettings:
 
 MLSettings:
     FitterPackage : "TensorFlow"
-    FitterName : "sequential"
+    FitterName : "normalizing_flow"
     TestSize : 0.2
 
     MLOutputFile: "tf_model_normal_order_small.keras"
@@ -35,66 +35,17 @@ MLSettings:
 
     FitterKwargs:
         BuildSettings:
-            loss: 'mse'
-            metrics: ['mae', 'mse']
-            learning_rate: 0.0001
-
-        Layers:
-            - batchnorm:
-                momentum: 0.99
-            - dense:
-                units: 1024
-                activation: 'swish'
-
-            # 2
-            - dense:
-                units: 1024
-                activation: 'swish'
-                kernel_regularizer: 0.01
-
-            - dense:
-                units: 1024
-                activation: 'swish'
-
-            - dense:
-                units: 1024
-                kernel_regularizer: 0.01
-                kernel_regularizer: True
-                activation: 'swish'
-            - dense:
-                units: 1024
-                kernel_regularizer: True
-                activation: 'swish'
-            - batchnorm:
-                momentum: 0.99
-            - dense:
-                units: 1024
-                activation: 'swish'
-                kernel_regularizer: True
-            
-            - dense:
-                units: 1024
-                activation: 'swish'
-            - dense:
-                units: 1024
-                activation: 'swish'
-            - batchnorm:
-                momentum: 0.99
-
-            - dense:
-                units: 1024
-                activation: 'elu'
-
-            # output
-            - dense:
-                units: 1
-                activation: 'linear'
+            learning_rate: 0.01
+            hidden_units: [2000, 2000, 2000, 2000, 2000, 2000]
+            loc: 0
+            scale: 1
 
         FitSettings:
             batch_size: 4096
             epochs: 250
             validation_split: 0.1
-
+            shuffle: True
+            steps_per_epoch: 1
 MCMCSettings:
     NSteps: 1000000
     NChains: 20

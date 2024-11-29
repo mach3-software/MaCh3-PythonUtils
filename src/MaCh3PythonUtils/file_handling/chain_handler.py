@@ -8,7 +8,6 @@ import warnings
 from concurrent.futures import ThreadPoolExecutor
 import gc
 import numpy as np
-import arviz as az
 from numpy.typing import NDArray
 
 class ChainHandler:
@@ -209,19 +208,7 @@ class ChainHandler:
         :type new_array: Any
         '''
         # Implemented in case someone tries to do something daft!
-        raise NotImplementedError("Cannot set converted TTree array to new type")
-    
-    def make_arviz_tree(self):
-        """Generate Arivz tree
-
-        :raises RuntimeError: Not built TTree
-        """        
-        if self._ttree_array is None:
-            raise RuntimeError("Error have not converted ROOT TTree to pandas data frame yet!")
-
-        print("Generating Arviz data struct [this may take some time!]")
-        self._arviz_tree = az.dict_to_dataset(self._ttree_array.to_dict(orient='list'))
-        
+        raise NotImplementedError("Cannot set converted TTree array to new type")        
  
     @property
     def ndim(self)->int:
@@ -244,13 +231,3 @@ class ChainHandler:
             return np.empty(self.ndim)
         
         return self._ttree_array.max(axis=0).to_numpy()
-    
- 
-    @property
-    def arviz_tree(self)->az.InferenceData:
-        """Gets arviz version of dataframe
-
-        :return: Arviz version of tree
-        :rtype: arviz.InferenceData
-        """        
-        return self._arviz_tree
