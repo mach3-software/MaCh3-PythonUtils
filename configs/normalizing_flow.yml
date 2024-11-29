@@ -7,7 +7,7 @@ FileSettings:
     Verbose : False
     MakeMLModel: True
     RunLLHScan: False
-    RunMCMC: True
+    RunMCMC: False
 
 
 ParameterSettings:
@@ -21,7 +21,7 @@ ParameterSettings:
 
 MLSettings:
     FitterPackage : "TensorFlow"
-    FitterName : "autotune"
+    FitterName : "normalizing_flow"
     TestSize : 0.2
 
     MLOutputFile: "tf_model_normal_order_small.keras"
@@ -35,21 +35,17 @@ MLSettings:
 
     FitterKwargs:
         BuildSettings:
-            epochs: 10000
+            learning_rate: 0.01
+            hidden_units: [2000, 2000, 2000, 2000, 2000, 2000]
+            loc: 0
+            scale: 1
+
+        FitSettings:
             batch_size: 4096
-            # Tuning features
-            n_trials: 30
-
-            hyperband_iterations: 10
-            tuning_dir: "~/scratch/t2k_full_tuning"
-            project_name: "t2k_linear_tune"
-
-            n_layers: [5, 25, 2]
-            activation: ['tanh', 'relu', 'swish', 'selu', 'elu', 'leak_relu', 'softplus']
-            neurons_per_layer: [24, 1024, 100]
-            learning_rate: [0.001, 0.0001, 0.00001]
-            regularization: [0.0001, 0.1, 1.0]
-   
+            epochs: 250
+            validation_split: 0.1
+            shuffle: True
+            steps_per_epoch: 1
 MCMCSettings:
     NSteps: 1000000
     NChains: 20

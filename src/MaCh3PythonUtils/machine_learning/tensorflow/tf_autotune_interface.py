@@ -5,11 +5,17 @@ import numpy as np
 import tensorflow.keras as tfk
 import keras_tuner as kt
 
+
 class TfAutotuneInterface(TfInterface):
+    # just make sure things don't break!
+    # gpus = tf.config.experimental.list_physical_devices('GPU')
+    # for gpu in gpus:
+    #     tf.config.experimental.set_memory_growth(gpu, True)
+
     _epochs = 1000
     _val_split = 0.2
     
-    def build_auto_tuned_network(self, **kwargs):
+    def build_model(self, **kwargs):
         # Set up layers
         n_layers = kwargs.get("n_layers", [5, 20, 1])
         
@@ -72,7 +78,9 @@ class TfAutotuneInterface(TfInterface):
                                         max_epochs=self._epochs,
                                         hyperband_iterations=hyperband_iterations,
                                         directory=model_directory,
-                                        project_name=project_name)
+                                        # distribution_strategy=tf.distribute.MirroredStrategy(),
+                                        project_name=project_name,
+                                        overwrite=False,)
 
     def train_model(self):
         
@@ -80,6 +88,7 @@ class TfAutotuneInterface(TfInterface):
         scaled_labels = self.scale_labels(self._training_labels)
         
         stop_early = tfk.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+        lr_schedule = tfk.callbacks.ReduceLROnPlateau(monitor="loss", patience=5, factor=0.5, min_lr=1e-6, verbose=1)
 
         self._model_tuner.search(scaled_data, scaled_labels,
                                  epochs= self._epochs,
@@ -87,9 +96,9 @@ class TfAutotuneInterface(TfInterface):
                                  batch_size=self._batch_size,
                                  callbacks=[stop_early])
         
-        best_hps=self._model_tuner.get_best_hyperparameters(num_trials=66)[0]
+        best_hps=self._model_tuner.get_best_hyperparameters()[0]
         print("Finished auto-tuning")
         
         self._model = self._model_tuner.hypermodel.build(best_hps)
         
-        self._model.fit(scaled_data, scaled_labels, epochs=self._epochs, validation_split=0.2)
+        self._model.fit(scaled_data, scaled_labels, epochs=self._epochs, batch_size=self._batch_size , validation_split=0.2, callbacks=[stop_early, lr_schedule])

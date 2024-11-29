@@ -1,10 +1,13 @@
 FileSettings:
-    FileName : "/home/henryi/sft/MaCh3Tutorial/Test.root"
+    # FileName : "/home/henryi/sft/MaCh3Tutorial/Test.root"
+    # FileName: "/home/henryi/scratch/Delayed_Fit_Long_Chains_no_delay_adapt_0_4.root"
+    SkipFileLoading: True
+    FileName: "/home/henryi/scratch/thinned_partial_chain.root"
     ChainName : "posteriors"
-    Verbose : True
+    Verbose : False
     MakeMLModel: True
     RunLLHScan: False
-    RunMCMC: True
+    RunMCMC: False
 
 
 ParameterSettings:
@@ -12,88 +15,93 @@ ParameterSettings:
     LabelName : "LogL"
     IgnoredParameters : ["LogL_systematic_xsec_cov", "Log",
                          "LogL_systematic_nddet_cov"]
-    ParameterCuts : ["LogL<12345678"]
+    ParameterCuts : ["LogL<5000", "LogL>4900", "delm2_23>0"]
+    CircularParameter: ["delta_cp"]
 
 
 MLSettings:
     FitterPackage : "TensorFlow"
-    FitterName : "Sequential"
-    TestSize : 0.9
-    MLOutputFile: "tf_disable_dropout.keras"
-    PlotOutputName : "tf_disable_dropout.pdf"
+    FitterName : "sequential"
+    TestSize : 0.2
+
+    MLOutputFile: "tf_model_normal_order_small.keras"
+    MLScalerOutputName: "scaler_tf_model_normal_order_small.pkl"
+    
+    PlotOutputName : "tf_normal_order.pdf"
+    
+    AddFromExternalModel: False
+    ExternalModel: "tf_model_normal_order.keras" 
+    ExternalScaler: "scaler_tf_model_normal_order_small.pkl"
 
     FitterKwargs:
         BuildSettings:
-            optimizer: 'adam'
             loss: 'mse'
             metrics: ['mae', 'mse']
+            learning_rate: 0.0001
 
         Layers:
+            - batchnorm:
+                momentum: 0.99
             - dense:
-                units: 75
-                activation: 'relu'
+                units: 1024
+                activation: 'swish'
+
+            # 2
             - dense:
-                units: 75
-                activation: 'relu'
+                units: 1024
+                activation: 'swish'
+                kernel_regularizer: 0.01
+
             - dense:
-                units: 75
-                activation: 'relu'
+                units: 1024
+                activation: 'swish'
+
             - dense:
-                units: 75
-                activation: 'relu'
+                units: 1024
+                kernel_regularizer: 0.01
+                kernel_regularizer: True
+                activation: 'swish'
             - dense:
-                units: 75
-                activation: 'relu'
+                units: 1024
+                kernel_regularizer: True
+                activation: 'swish'
+            - batchnorm:
+                momentum: 0.99
             - dense:
-                units: 75
-                activation: 'relu'
+                units: 1024
+                activation: 'swish'
+                kernel_regularizer: True
+            
             - dense:
-                units: 75
-                activation: 'relu'
+                units: 1024
+                activation: 'swish'
             - dense:
-                units: 75
-                activation: 'relu'
+                units: 1024
+                activation: 'swish'
+            - batchnorm:
+                momentum: 0.99
+
             - dense:
-                units: 75
-                activation: 'relu'
-            - dense:
-                units: 75
-                activation: 'relu'
-            - dense:
-                units: 50
-                activation: 'relu'
-            - dense:
-                units: 25
-                activation: 'relu'
-            - dense:
-                units: 8
-                activation: 'relu'
+                units: 1024
+                activation: 'elu'
+
+            # output
             - dense:
                 units: 1
                 activation: 'linear'
 
         FitSettings:
-            batch_size: 2048
-            epochs: 8
+            batch_size: 4096
+            epochs: 250
+            validation_split: 0.1
 
 MCMCSettings:
-    NSteps: 100
-    NWalkers: 400
+    NSteps: 1000000
+    NChains: 20
+    UpdateStep: 100
+    MaxUpdateSteps: 500000
 
+    MCMCOutput: "/home/henryi/scratch/mcmc_chain_GPU.h5"
 
 LikelihoodScanSettings:
-    xsec_0: [1, 0.7, 1.3] # Norm 0
-    xsec_1: [1, 0.5, 1.5] # Norm 
-    xsec_2: [1, 0, 2] # Norm 2
-    xsec_3: [1.21, 0.0, 1.4] #spline 0
-    xsec_4: [1, 0, 3] # Spline 1 
-    xsec_5: [0, -10, 15] # Func 0x
-    xsec_6: [0, -10, 15] # Func 1
-    xsec_7: [0, -10, 15] # Func 2
-    xsec_8: [0, -10, 15] # Func 3
-    sin2th_12: [0.307, 0.25, 0.35]
-    sin2th_23: [0.546, 0.4, 0.7]
-    sin2th_13: [0.0220, 0.0, 0.12]
-    delm2_12: [0.0000753, 0.00007, 0.00008]
-    delm2_23: [0, -0.0026, 0.0026]
-    delta_cp: [0, -3.14159, 3.14159]
+    NDivisions: 10000

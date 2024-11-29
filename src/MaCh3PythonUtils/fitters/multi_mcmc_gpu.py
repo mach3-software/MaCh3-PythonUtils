@@ -28,7 +28,10 @@ class MCMCMultGPU:
         # boundaries
         self._upper_bounds = tf.convert_to_tensor(self._interface.scale_data(self._interface.chain.upper_bounds[:-1].reshape(1,-1)), dtype=tf.float32)
         self._lower_bounds = tf.convert_to_tensor(self._interface.scale_data(self._interface.chain.lower_bounds[:-1].reshape(1,-1)), dtype=tf.float32)
-
+        
+        max_val = self._interface.chain.upper_bounds[-1]
+        
+        self._max_val_tf = tf.constant(max_val)
 
         self._circular_indices = self._get_circular_indices(circular_params)
         print(self._circular_indices)
@@ -107,7 +110,10 @@ class MCMCMultGPU:
         proposed_loglikelihoods = self._calc_likelihood(proposed_states)
 
         # Metropolis-Hastings acceptance step
-        log_diff = proposed_loglikelihoods - self._current_loglikelihoods
+        log_diff = proposed_loglikelihoods - self._current_loglikelihoods # Because network scales itself
+        
+        # Need to undo the scaling done in the NN
+        log_diff = self._max_val_tf * log_diff
         acc_probs = tf.minimum(1.0, tf.exp(tf.clip_by_value(log_diff, -100, 0)))
 
         # Generate uniform random values for comparison

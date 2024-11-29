@@ -2,13 +2,19 @@
 ML Factory implementation, effectively a selector for making models
 """
 
-from MaCh3PythonUtils.machine_learning.scikit_interface import SciKitInterface
-from MaCh3PythonUtils.machine_learning.tf_manual_interface import TfManualInterface
-from MaCh3PythonUtils.machine_learning.tf_autotune_interface import TfAutotuneInterface
+from MaCh3PythonUtils.machine_learning.scikit.scikit_interface import SciKitInterface
+from MaCh3PythonUtils.machine_learning.tensorflow.tf_autotune_interface import TfAutotuneInterface
+from MaCh3PythonUtils.machine_learning.tensorflow.tf_sequential_model import TfSequentialModel
+from MaCh3PythonUtils.machine_learning.tensorflow.tf_residual_model import TfResidualModel
+from MaCh3PythonUtils.machine_learning.tensorflow.tf_normalizing_flow_model import TfNormalizingFlowModel
+
+from MaCh3PythonUtils.machine_learning.tensorflow.tf_manual_interface import TfManualLayeredInterface
+from MaCh3PythonUtils.machine_learning.tensorflow.tf_interface import TfInterface
+
+from MaCh3PythonUtils.file_handling.chain_handler import ChainHandler
 
 import sklearn.ensemble as ske
 import tensorflow.keras as tfk
-from MaCh3PythonUtils.file_handling.chain_handler import ChainHandler
 
 
 class MLFactory:
@@ -21,9 +27,10 @@ class MLFactory:
             "histboost"     : ske.HistGradientBoostingRegressor
         },
         "tensorflow": {
-            "sequential" : tfk.Sequential,
-            "residual": tfk.Model,
-            "autotune": None
+            "sequential" : TfSequentialModel,
+            "residual": TfResidualModel,
+            "normalizing_flow": TfNormalizingFlowModel,
+            "autotune": TfAutotuneInterface
         },
     }
 
@@ -79,48 +86,35 @@ class MLFactory:
         interface = SciKitInterface(self._chain, self._prediction_variable, self._plot_name)
         interface.add_model(self.__setup_package_factory(package="scikit", algorithm=algorithm, **kwargs))
 
-        return interface
+        return interface    
+        
     
-    def __make_tensorflow_manual_model(self, algorithm: str,  **kwargs)->TfManualInterface:
-        """Generates TensorFlow model interface
-
-        :param algorithm: TensorFlow algorithm [NOT layers]
-        :type algorithm: str
-        :return: TfInterface wrapper around model
-        :rtype: _type_
-        """ 
-        interface = TfManualInterface(self._chain, self._prediction_variable, self._plot_name)
-        
-        interface.add_model(self.__setup_package_factory(package="tensorflow", algorithm=algorithm))
-        
-        for layer in kwargs["Layers"]:
-            layer_id = list(layer.keys())[0]
-            
+    def __make_tensorflow_layered_model(self, interface: TfManualLayeredInterface, layers: dict)->TfManualLayeredInterface:
+        for layer in layers:
+            layer_id = list(layer.keys())[0]                
             interface.add_layer(layer_id, layer[layer_id])
-        
-        if algorithm == "residual":
-            interface.build_model_residual(kwargs["BuildSettings"])
-        else:
-            interface.build_model_sequential(kwargs["BuildSettings"])
-        
-        interface.set_training_settings(kwargs["FitSettings"])
 
         return interface
 
-    def __make_tensorflow_automated_model(self, **kwargs)->TfAutotuneInterface:
-        interface = TfAutotuneInterface(self._chain, self._prediction_variable, self._plot_name)
+    def __make_tensorflow_model(self, algorithm: str, **kwargs)->TfInterface:
+        model_func = self.__IMPLEMENTED_ALGORITHMS["tensorflow"].get(algorithm.lower(), None)
         
-        interface.build_auto_tuned_network(**kwargs)
-        return interface
-    
-    
-    def __make_tensorflow_model(self, algorithm: str, **kwargs):
-        if algorithm=="autotune":
-            return self.__make_tensorflow_automated_model(**kwargs)
-        else:
-            return self.__make_tensorflow_manual_model(algorithm, **kwargs)
-    
-    
+        if model_func is None:
+            raise Exception(f"Cannot find {algorithm}")
+        
+        model: TfInterface = model_func(self._chain, self._prediction_variable, self._plot_name)
+
+        # Ugh
+        if algorithm=="sequential" or algorithm=="residual":
+            print("HERE")
+            model = self.__make_tensorflow_layered_model(model, kwargs["Layers"])
+            model.set_training_settings(kwargs.get("FitSettings"))
+
+
+        model.build_model(**kwargs["BuildSettings"])
+        
+        return model
+
     def make_interface(self, interface_type: str, algorithm: str, **kwargs):
         interface_type = interface_type.lower()
         match(interface_type):

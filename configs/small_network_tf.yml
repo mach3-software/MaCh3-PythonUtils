@@ -7,7 +7,7 @@ FileSettings:
     Verbose : False
     MakeMLModel: True
     RunLLHScan: False
-    RunMCMC: True
+    RunMCMC: False
 
 
 ParameterSettings:
@@ -15,7 +15,7 @@ ParameterSettings:
     LabelName : "LogL"
     IgnoredParameters : ["LogL_systematic_xsec_cov", "Log",
                          "LogL_systematic_nddet_cov"]
-    ParameterCuts : ["LogL<12345678", "delm2_23>0"]
+    ParameterCuts : ["LogL<5000", "LogL>4900", "delm2_23>0"]
     CircularParameter: ["delta_cp"]
 
 
@@ -37,64 +37,69 @@ MLSettings:
         BuildSettings:
             loss: 'mse'
             metrics: ['mae', 'mse']
-            learning_rate: 0.01
+            learning_rate: 0.0001
 
         Layers:
+            # Input worked out automatically
             # 0
-            - dense:
-                units: 764
-                kernel_regularizer: 0.01
-                activation: 'tanh'
-            - batchnorm:
-                momentum: 0.99
             # 1
             - dense:
-                units: 164
-                kernel_regularizer: 0.01
-                activation: 'relu'
-            - batchnorm:
-                momentum: 0.99
+                units: 1024
+                activation: 'PReLU'
 
             # 2
             - dense:
-                units: 764
+                units: 1024
+                activation: 'PReLU'
                 kernel_regularizer: 0.01
-                activation: 'relu'
+
+            - dense:
+                units: 1024
+                activation: 'PReLU'
             - batchnorm:
                 momentum: 0.99
-
             # 3
+
             - dense:
-                units: 1364
-                kernel_regularizer: 0.2
-                activation: 'relu'
+                units: 1024
+                kernel_regularizer: 0.01
+
+                activation: 'PReLU'
+            - batchnorm:
+                momentum: 0.99
+            - dense:
+                units: 1024
+                activation: 'PReLU'
+            - batchnorm:
+                momentum: 0.99
+            - dense:
+                units: 1024
+                activation: 'PReLU'
+            - batchnorm:
+                momentum: 0.99
+            - dense:
+                units: 1024
+                activation: 'PReLU'
+            - batchnorm:
+                momentum: 0.99
+            - dense:
+                units: 1024
+                activation: 'PReLU'
             - batchnorm:
                 momentum: 0.99
 
-            # 4
             - dense:
-                units: 1764
-                kernel_regularizer: 0.01
-                activation: 'tanh'
-            - batchnorm:
-                momentum: 0.99
-            # 4
-            - dense:
-                units: 1764
-                kernel_regularizer: 0.01
-                activation: 'tanh'
-            - batchnorm:
-                momentum: 0.99
+                units: 1024
+                activation: 'PReLU'
 
-            # 6
+            # output
             - dense:
                 units: 1
-                activation: 'linear'
+                activation: 'relu'
 
         FitSettings:
-        
-            batch_size: 16000
-            epochs: 1000
+            batch_size: 4096
+            epochs: 250
             validation_split: 0.1
 
 MCMCSettings:
