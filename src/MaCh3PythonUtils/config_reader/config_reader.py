@@ -2,17 +2,7 @@ import yaml
 
 from MaCh3PythonUtils.file_handling.chain_handler import ChainHandler
 from MaCh3PythonUtils.machine_learning.ml_factory import MLFactory
-from MaCh3PythonUtils.diagnostics.interface.plotting_interface import PlottingInterface
-from MaCh3PythonUtils.diagnostics.mcmc_plots.posteriors.posteriors_1d import PosteriorPlotter1D
-from MaCh3PythonUtils.diagnostics.mcmc_plots.posteriors.posteriors_2d import PosteriorPlotter2D, TrianglePlotter
-from MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.covariance_matrix_utils import CovarianceMatrixUtils
-from MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.autocorrelation_trace_plotter import AutocorrelationTracePlotter
-
-from MaCh3PythonUtils.diagnostics.mcmc_plots.diagnostics.simple_diag_plots import EffectiveSampleSizePlotter,\
-                                                                                     MarkovChainStandardError, ViolinPlotter
-
 from MaCh3PythonUtils.fitters.multi_mcmc_gpu import MCMCMultGPU
-
 from deepmerge import always_merger
 
 class ConfigReader:
