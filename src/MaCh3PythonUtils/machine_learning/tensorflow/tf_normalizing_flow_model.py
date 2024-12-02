@@ -1,4 +1,4 @@
-from MaCh3PythonUtils.machine_learning.tf_manual_interface import TfManualInterface
+from MaCh3PythonUtils.machine_learning.tensorflow.tf_manual_interface import TfManualInterface
 
 import tensorflow_probability as tfp
 import tensorflow.keras as tfk
