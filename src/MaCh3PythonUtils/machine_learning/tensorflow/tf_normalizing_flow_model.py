@@ -54,10 +54,10 @@ class NormalizingFlow:
 
 
 class TfNormalizingFlowModel(TfManualInterface):
-    def build_model(self, model_args):
+    def build_model(self, **kwargs):
         input_dim = self.chain.ndim-1
-        self._model = NormalizingFlow(model_args.get("hidden_units", [100]), model_args.get("n_bijectors", 1), input_dim)()
-        self._optimizer = tfk.optimizers.Adam(model_args.get("learning_rate", 1e-3))
+        self._model = NormalizingFlow(kwargs.get("hidden_units", [100]), kwargs.get("n_bijectors", 1), input_dim)()
+        self._optimizer = tfk.optimizers.Adam(kwargs.get("learning_rate", 1e-3))
 
     def nll_loss(self, features):
         return -tf.reduce_mean(self._model.log_prob(features))

@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import tensorflow.keras as tfk
 import tensorflow_probability as tfp
-
+from typing import Iterable
 
 
 class TfInterface(FileMLInterface):
@@ -36,7 +36,7 @@ class TfInterface(FileMLInterface):
 
         self._layers.append(self.__TF_LAYER_IMPLEMENTATIONS[layer_id.lower()](**layer_args))
             
-    def build_model(self, _: dict):
+    def build_model(self, **kwargs):
         return None
     
 
@@ -93,11 +93,14 @@ class TfInterface(FileMLInterface):
         if self._model is None:
             return np.zeros(len(test_data))
         
-        pred = self._model.predict(scaled_data, verbose=False)
-        print(f"PREDICTION: {pred}")
-        # return self._model.predict(scaled_data, verbose=False).T[0]
-        return pred
+        return self._model.predict(scaled_data, verbose=False).T[0]
 
     def model_predict_no_scale(self, test_data):
         # Same as above but specifically for TF, optimised to avoid if statement...
         return self._model(test_data, training=False)
+
+    def evaluate_model(self, predicted_values: Iterable, true_values: Iterable, outfile: str = ""):
+        
+        # CODE TO DO TF SPECIFIC PLOTS GOES HERE
+         
+        return super().evaluate_model(predicted_values, true_values, outfile)

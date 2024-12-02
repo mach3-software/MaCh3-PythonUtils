@@ -3,7 +3,7 @@ import tensorflow.keras as tfk
 
 
 class TfResidualModel(TfManualLayeredInterface):
-    def build_model(self, model_args: dict):
+    def build_model(self, **kwargs):
         input_shape = self.training_data.shape[1:]  # Assuming shape is (batch_size, features)
         network_input = tfk.layers.Input(shape=input_shape)
 
@@ -23,9 +23,9 @@ class TfResidualModel(TfManualLayeredInterface):
 
         # Define and compile the model
         self._model = tfk.Model(inputs=network_input, outputs=x)
-        optimizer = tfk.optimizers.AdamW(learning_rate=model_args.get("learning_rate", 1e-5),
+        optimizer = tfk.optimizers.AdamW(learning_rate=kwargs.get("learning_rate", 1e-5),
                         weight_decay=1e-4, clipnorm=1.0)
 
-        _ = model_args.pop("learning_rate", None)
+        _ = kwargs.pop("learning_rate", None)
 
-        self._model.compile(optimizer=optimizer, **model_args)
+        self._model.compile(optimizer=optimizer, **kwargs)
