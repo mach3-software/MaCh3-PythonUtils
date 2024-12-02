@@ -1,4 +1,4 @@
-from MaCh3PythonUtils.machine_learning.tensorflow..tf_interface import TfInterface
+from MaCh3PythonUtils.machine_learning.tensorflow.tf_interface import TfInterface
 import tensorflow as tf
 import pandas as pd
 import numpy as np
