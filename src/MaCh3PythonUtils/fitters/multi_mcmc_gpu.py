@@ -10,7 +10,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import h5py
 from typing import List
 import psutil  # To get system memory information
-from MaCh3PythonUtils.machine_learning.tf_interface import TfInterface
+from MaCh3PythonUtils.machine_learning.tensorflow.tf_interface import TfInterface
 from MaCh3PythonUtils.fitters.adaption_handler_gpu import CovarianceUpdaterGPU
 
 class MCMCMultGPU:
