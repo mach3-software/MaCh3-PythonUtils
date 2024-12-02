@@ -19,6 +19,7 @@ tf_probability
 tf_keras
 keras_tuner
 mplhep
+seaborn
 
 # Documentation generation
 sphinx
