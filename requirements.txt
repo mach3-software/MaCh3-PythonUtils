@@ -20,6 +20,7 @@ tf_keras
 keras_tuner
 mplhep
 seaborn
+psutil
 
 # Documentation generation
 sphinx
