@@ -36,7 +36,7 @@ class TfInterface(FileMLInterface):
 
         self._layers.append(self.__TF_LAYER_IMPLEMENTATIONS[layer_id.lower()](**layer_args))
             
-    def build_model(self, _: dict):
+    def build_model(self, **kwargs):
         return None
     
 
