@@ -15,7 +15,7 @@ torch>=1.0.0
 normflows
 tqdm>=4.0.0
 uproot>=5.3.0
-tf_probability
+tensorflow_probability
 tf_keras
 keras_tuner
 mplhep
