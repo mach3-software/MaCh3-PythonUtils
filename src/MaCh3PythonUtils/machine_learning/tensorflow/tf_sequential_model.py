@@ -4,7 +4,7 @@ import tensorflow.keras as tfk
 
 class TfSequentialModel(TfManualLayeredInterface):
     
-    def build_model(self, **kwargs):
+    def build_model(self, **kwargs: dict):
         """Build and compile TF model
 
         :param kwargs: Model arguments as dictionary

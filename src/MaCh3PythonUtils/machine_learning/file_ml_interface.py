@@ -213,8 +213,6 @@ class FileMLInterface(ABC):
 
         print("Training Results!")
         train_prediction = self.model_predict(self._training_data)
-        print(self._training_data)
-        print(train_prediction)
         train_as_numpy = self.scale_labels(self._training_labels).T[0]
         self.evaluate_model(train_prediction, train_as_numpy, "train_qq_plot.pdf")
 
