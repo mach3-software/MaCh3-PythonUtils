@@ -1,5 +1,5 @@
 # Let's make a tensor flow interface!
-from MaCh3PythonUtils.machine_learning.file_ml_interface import FileMLInterface
+from MaCh3PythonUtils.machine_learning.tensorflow.file_ml_interface import FileMLInterface
 import tensorflow as tf
 import pandas as pd
 import numpy as np
