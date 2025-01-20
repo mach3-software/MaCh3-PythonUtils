@@ -1,7 +1,9 @@
 import argparse
 
-def main()->None:
+
+def main() -> None:
     from MaCh3PythonUtils.config_reader.config_reader import ConfigReader
+
     parser = argparse.ArgumentParser(usage="python make_plots -c <config_name>.yaml")
     parser.add_argument("-c", "--config", help="yaml config file", required=True)
 

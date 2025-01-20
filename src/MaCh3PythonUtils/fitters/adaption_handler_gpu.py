@@ -1,14 +1,17 @@
 import tensorflow as tf
 
+
 class CovarianceUpdaterGPU:
     def __init__(self, n_dimensions, update_step=1000, max_update: int = 20000):
         self.n = n_dimensions
         self._max_update = max_update
         # Initialize mean and covariance as TensorFlow tensors
         self.mean = tf.Variable(tf.zeros(n_dimensions, dtype=tf.float32))
-        self.covariance = tf.Variable(tf.zeros((n_dimensions, n_dimensions), dtype=tf.float32))
+        self.covariance = tf.Variable(
+            tf.zeros((n_dimensions, n_dimensions), dtype=tf.float32)
+        )
         self.frozen_covariance = tf.eye(n_dimensions, dtype=tf.float32)
-        
+
         self.count = 0
         self.update_step = update_step
 
@@ -19,8 +22,13 @@ class CovarianceUpdaterGPU:
         delta = new_data - self.mean
         self.mean.assign_add(delta / count)
         delta2 = new_data - self.mean
-        self.covariance.assign_add(tf.linalg.matmul(tf.expand_dims(delta, axis=-1), 
-                                                     tf.expand_dims(delta2, axis=0)) * (count - 1) / count)
+        self.covariance.assign_add(
+            tf.linalg.matmul(
+                tf.expand_dims(delta, axis=-1), tf.expand_dims(delta2, axis=0)
+            )
+            * (count - 1)
+            / count
+        )
         return self.mean, self.covariance
 
     @tf.function
@@ -31,11 +39,11 @@ class CovarianceUpdaterGPU:
         new_data (tf.Tensor): A 1D tensor representing the new data point (shape: (n_dimensions,))
         """
         self.count += 1
-        
+
         # Arbitary stopping point!
-        if self.count>self._max_update:
+        if self.count > self._max_update:
             return
-        
+
         # Update mean and covariance using the class method
         self.mean, self.covariance = self.update_covariance(new_data)
 
@@ -50,10 +58,14 @@ class CovarianceUpdaterGPU:
     @tf.function
     def get_covariance(self):
         """Return the current covariance matrix."""
-        return self.covariance / (self.count - 1) if self.count > 1 else tf.eye((self.n), dtype=tf.float32)
+        return (
+            self.covariance / (self.count - 1)
+            if self.count > 1
+            else tf.eye((self.n), dtype=tf.float32)
+        )
 
     def get_frozen_covariance(self):
-        return (2.4 ** 2) / float(self.n) * self.frozen_covariance + tf.eye(self.n) * 1e-6
+        return (2.4**2) / float(self.n) * self.frozen_covariance + tf.eye(self.n) * 1e-6
 
     @tf.function
     def sample(self, n_samples: int):

@@ -1,10 +1,14 @@
-from MaCh3PythonUtils.machine_learning.tensorflow.tf_manual_interface import TfManualLayeredInterface
+from MaCh3PythonUtils.machine_learning.tensorflow.tf_manual_interface import (
+    TfManualLayeredInterface,
+)
 import tensorflow.keras as tfk
 
 
 class TfResidualModel(TfManualLayeredInterface):
     def build_model(self, **kwargs):
-        input_shape = self.training_data.shape[1:]  # Assuming shape is (batch_size, features)
+        input_shape = self.training_data.shape[
+            1:
+        ]  # Assuming shape is (batch_size, features)
         network_input = tfk.layers.Input(shape=input_shape)
 
         # Initial layer
@@ -23,8 +27,11 @@ class TfResidualModel(TfManualLayeredInterface):
 
         # Define and compile the model
         self._model = tfk.Model(inputs=network_input, outputs=x)
-        optimizer = tfk.optimizers.AdamW(learning_rate=kwargs.get("learning_rate", 1e-5),
-                        weight_decay=1e-4, clipnorm=1.0)
+        optimizer = tfk.optimizers.AdamW(
+            learning_rate=kwargs.get("learning_rate", 1e-5),
+            weight_decay=1e-4,
+            clipnorm=1.0,
+        )
 
         _ = kwargs.pop("learning_rate", None)
 
