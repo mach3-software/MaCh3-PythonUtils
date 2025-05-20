@@ -98,7 +98,8 @@ class FileMLInterface(ABC):
         return scale_data
     
     def scale_labels(self, labels):
-        return self._label_scaler.transform(labels)
+        # return self._label_scaler.transform(labels)
+        return labels.values.reshape(-1, 1)
 
     def invert_scaling(self, input_data):
         # Inverts transform
@@ -288,6 +289,8 @@ class FileMLInterface(ABC):
         print(predicted_values)
         print(f"Mean Absolute Error : {metrics.mean_absolute_error(predicted_values,true_values)}")
         
+        outfile_name = outfile.split(".")[0]
+        outfile = f"{outfile_name}.pdf"
         
         lobf = np.poly1d(np.polyfit(predicted_values, true_values, 1))
         
@@ -322,11 +325,21 @@ class FileMLInterface(ABC):
         ax.set_ylabel("True Log Likelihood")
         
         fig.legend()
+        
         if outfile=="": outfile = f"evaluated_model_qq_tf.pdf"
         
         print(f"Saving QQ to {outfile}")
             
         fig.savefig(outfile)
+        
+        try:
+            is_notebook = self.is_notebook()
+            if is_notebook:
+                plt.show()
+        except Exception:
+            ...
+            
+        
         plt.close()
         
         # Gonna draw a hist
@@ -335,4 +348,20 @@ class FileMLInterface(ABC):
         plt.hist(difs, bins=100, density=True, range=(np.std(difs)*-5, np.std(difs)*5))
         plt.xlabel("True - Pred")
         plt.savefig(f"diffs_5sigma_range_{outfile}")
+        
+        
+        
         plt.close()
+        
+    @classmethod
+    def is_notebook(cls) -> bool:
+        try:
+            shell = get_ipython().__class__.__name__
+            if shell == 'ZMQInteractiveShell':
+                return True   # Jupyter notebook or qtconsole
+            elif shell == 'TerminalInteractiveShell':
+                return False  # Terminal running IPython
+            else:
+                return False  # Other type (?)
+        except NameError:
+            return False      # Probably standard Python interpreter

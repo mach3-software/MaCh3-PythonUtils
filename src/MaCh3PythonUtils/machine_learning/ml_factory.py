@@ -92,7 +92,7 @@ class MLFactory:
     def __make_tensorflow_layered_model(self, interface: TfManualLayeredInterface, layers: dict)->TfManualLayeredInterface:
         for layer in layers:
             layer_id = list(layer.keys())[0]                
-            interface.add_layer(layer_id, layer[layer_id])
+            interface.add_layer(layer_id, layer[layer_id].copy())
 
         return interface
 
@@ -106,7 +106,6 @@ class MLFactory:
 
         # Ugh
         if algorithm=="sequential" or algorithm=="residual":
-            print("HERE")
             model = self.__make_tensorflow_layered_model(model, kwargs["Layers"])
             model.set_training_settings(kwargs.get("FitSettings"))
 
