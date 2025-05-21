@@ -22,9 +22,8 @@ class TfManualInterface(TfInterface):
         scaled_data = self.scale_data(self._training_data)
         scaled_labels = self.scale_labels(self._training_labels)
         
-        lr_schedule = tfk.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=10, factor=0.5, min_lr=1e-8, verbose=1)
+        lr_schedule = tfk.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=10, factor=0.1, min_lr=1e-9, verbose=1)
         stop_early = tfk.callbacks.EarlyStopping(monitor='val_loss', patience=20)
-
         self._model.fit(scaled_data, scaled_labels, **self._training_settings, callbacks=[lr_schedule, stop_early])
 
 
@@ -53,12 +52,6 @@ class TfManualLayeredInterface(TfManualInterface):
             # Hacky, swaps string value of regularliser for proper one
             layer_args["kernel_regularizer"] = tfk.regularizers.L2(layer_args["kernel_regularizer"])
 
+
         self._layers.append(self.__TF_LAYER_IMPLEMENTATIONS[layer_id.lower()](**layer_args))
             
-
-
-
-
-
-        
-

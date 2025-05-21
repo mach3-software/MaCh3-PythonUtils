@@ -20,6 +20,8 @@ from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
+from rich import print
+
 class FileMLInterface(ABC):
     white_viridis = LinearSegmentedColormap.from_list('white_viridis', [
         (0, '#ffffff'),
@@ -59,7 +61,7 @@ class FileMLInterface(ABC):
         self._scaler = StandardScaler()
         # self._pca_matrix = PCA(n_components=0.95)
         
-        self._label_scaler = MinMaxScaler(feature_range=(0, 1))
+        self._label_scaler = StandardScaler()
         
         
             
@@ -86,20 +88,19 @@ class FileMLInterface(ABC):
         self._training_data, self._test_data, self._training_labels, self._test_labels =  train_test_split(features, labels, test_size=test_size)
 
         # Fit scaling pre-processors. These get applied properly when scale_data is called
-        _= self._scaler.fit_transform(self._training_data)
-        self._label_scaler.fit_transform(self._training_labels)
+        self._scaler.fit(self._training_data)
+        self._label_scaler.fit(self._training_labels)
         
         # self._pca_matrix.fit(scaled_training)
 
     def scale_data(self, input_data):
         # Applies transformations to data set
         scale_data = self._scaler.transform(input_data)
-        # scale_data = self._pca_matrix.transform(scale_data)
         return scale_data
     
     def scale_labels(self, labels):
-        # return self._label_scaler.transform(labels)
-        return labels.values.reshape(-1, 1)
+        return self._label_scaler.transform(labels)
+        # return labels.values.reshape(-1, 1)
 
     def invert_scaling(self, input_data):
         # Inverts transform
@@ -194,7 +195,7 @@ class FileMLInterface(ABC):
         :param input_file: Pickled Model
         :type input_file: str
         """        
-        print(f"Attempting to load file from {input_file}")
+        print(f"[spring_green1]Attempting to load file from[/spring_green1][bold red3] {input_file}")
         with open(input_model, 'r') as f:
             self._model = pickle.load(f)
             
@@ -217,14 +218,18 @@ class FileMLInterface(ABC):
         train_as_numpy = self.scale_labels(self._training_labels).T[0]
         self.evaluate_model(train_prediction, train_as_numpy, "train_qq_plot.pdf")
 
-        print("=====\n\n")
+        print("=====")
         print("Testing Results!")
 
         test_prediction = self.model_predict(self._test_data)
         test_as_numpy = self.scale_labels(self._test_labels).T[0]
         
         self.evaluate_model(test_prediction, test_as_numpy, outfile=f"{self._fit_name}")
-        print("=====\n\n")
+        print("=====")
+        
+
+    def print_model_summary(self):
+        print("Model Summary")
        
     def model_predict_single_sample(self, sample):
         sample_shaped = sample.reshape(1,-1)
@@ -233,7 +238,7 @@ class FileMLInterface(ABC):
     def get_maxlikelihood(self)->OptimizeResult:
         init_vals = self.training_data.iloc[[1]].to_numpy()[0]
     
-        print("Calculating max LLH")
+        print("[bold purple]Calculating max LLH")
         maximal_likelihood = minimize(self.model_predict_single_sample, init_vals, bounds=zip(self._chain.lower_bounds[:-1], self._chain.upper_bounds[:-1]), method="L-BFGS-B", options={"disp": True})
         return maximal_likelihood
 
@@ -246,9 +251,9 @@ class FileMLInterface(ABC):
     
         errors = np.sqrt(np.diag(maximal_likelihood.hess_inv(np.identity(self.chain.ndim-1))))
 
-        print("Maximal Pars :")
+        print("[bold red3]Maximal Pars :")
         for i in range(self.chain.ndim-1):
-            print(f"Param : {self.chain.plot_branches[i]} : {maximal_likelihood.x[i]}±{errors[i]}")
+            print(f"[bold red3]Param :[/bold red3] [yellow3]{self.chain.plot_branches[i]} : {maximal_likelihood.x[i]}±{errors[i]}")
 
 
         with PdfPages("llh_scan.pdf") as pdf:
@@ -286,15 +291,14 @@ class FileMLInterface(ABC):
         :type outfile: str, optional
         """                
         
-        print(predicted_values)
-        print(f"Mean Absolute Error : {metrics.mean_absolute_error(predicted_values,true_values)}")
+        print(f"[bold red3]Mean Absolute Error :[/bold red3] [yellow3]{metrics.mean_absolute_error(predicted_values,true_values)}")
         
         outfile_name = outfile.split(".")[0]
         outfile = f"{outfile_name}.pdf"
-        
+        warnings.filterwarnings("ignore", message="Polyfit may be poorly conditioned")
         lobf = np.poly1d(np.polyfit(predicted_values, true_values, 1))
         
-        print(f"Line of best fit : y={lobf.c[0]}x + {lobf.c[1]}")
+        print(f"[bold purple]Line of best fit :[/bold purple] [dodger_blue1]y={lobf.c[0]}x + {lobf.c[1]}")
         
         fig = plt.figure()
         
@@ -328,7 +332,7 @@ class FileMLInterface(ABC):
         
         if outfile=="": outfile = f"evaluated_model_qq_tf.pdf"
         
-        print(f"Saving QQ to {outfile}")
+        print(f"[bold spring_green1]Saving QQ to[/bold spring_green1][dodger_blue1] {outfile}")
             
         fig.savefig(outfile)
         
@@ -348,8 +352,6 @@ class FileMLInterface(ABC):
         plt.hist(difs, bins=100, density=True, range=(np.std(difs)*-5, np.std(difs)*5))
         plt.xlabel("True - Pred")
         plt.savefig(f"diffs_5sigma_range_{outfile}")
-        
-        
         
         plt.close()
         

@@ -104,3 +104,4 @@ class TfInterface(FileMLInterface):
         # CODE TO DO TF SPECIFIC PLOTS GOES HERE
          
         return super().evaluate_model(predicted_values, true_values, outfile)
+    
