@@ -1,0 +1,352 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MaCh3PythonUtils.file_handling.chain_handler &mdash; MaCh3-PythonUtils v1.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=a34f1657"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            MaCh3-PythonUtils
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">MaCh3PythonUtils</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">MaCh3-PythonUtils</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">MaCh3PythonUtils.file_handling.chain_handler</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MaCh3PythonUtils.file_handling.chain_handler</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Python tool to load in some generic TTree objects and export to numpy array/pandas dataframe</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uproot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ur</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
+
+<div class="viewcode-block" id="ChainHandler">
+<a class="viewcode-back" href="../../../MaCh3PythonUtils.file_handling.html#MaCh3PythonUtils.file_handling.chain_handler.ChainHandler">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ChainHandler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to load in ROOT files containing a single TTree</span>
+
+<span class="sd">    :param file_name: Name of ROOT file containing useful TTree</span>
+<span class="sd">    :type file_name: str</span>
+<span class="sd">    :param ttree_name: Name of TTree contained in ROOT file</span>
+<span class="sd">    :type ttree_name: str, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ttree_name</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;posteriors&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;_summary_</span>
+
+<span class="sd">        :param file_name: Input file name</span>
+<span class="sd">        :type file_name: str</span>
+<span class="sd">        :param ttree_name: Input TTree name, defaults to &quot;posteriors&quot;</span>
+<span class="sd">        :type ttree_name: str, optional</span>
+<span class="sd">        :param verbose: Verbose or not, defaults to False</span>
+<span class="sd">        :type verbose: bool, optional</span>
+<span class="sd">        :raises IOError: No file found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempting to open </span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_posterior_ttree</span> <span class="o">=</span>  <span class="n">ur</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">ttree_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The file &#39;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&#39; does not exist or does not contain &#39;</span><span class="si">{</span><span class="n">ttree_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Succesfully opened </span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">ttree_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">DeprecationWarning</span><span class="p">)</span> <span class="c1">#Some imports are a little older</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">UserWarning</span><span class="p">)</span> <span class="c1">#Some imports are a little older</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">PerformanceWarning</span><span class="p">)</span> <span class="c1"># Not a fan of being yelled at by pandas</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plotting_branches</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Filled with branches we want to plot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cuts</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># If we want to apply cuts (can be done later but fastest at load time)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ttree_array</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#For storing the eventual TTree</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_open</span> <span class="o">=</span> <span class="kc">True</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ignored_branches</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_arviz_tree</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="ChainHandler.close_file">
+<a class="viewcode-back" href="../../../MaCh3PythonUtils.file_handling.html#MaCh3PythonUtils.file_handling.chain_handler.ChainHandler.close_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Closes ROOT file, should be called to avoid memory issues!</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_open</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_posterior_ttree</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_open</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_branches</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Getter for list of useful branches</span>
+<span class="sd">        :return: List of branches used in file</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plotting_branches</span>
+
+    <span class="nd">@plot_branches</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_branches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">useful_branches</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Setter for list of useful branches</span>
+<span class="sd">        :param useful_branches: List of branches we want to plot with</span>
+<span class="sd">        :type useful_branches: list</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_open</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Warning</span><span class="p">(</span><span class="s2">&quot;Adding branches after shutting the file has no effect&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plotting_branches</span> <span class="o">=</span> <span class="n">useful_branches</span>
+
+<div class="viewcode-block" id="ChainHandler.add_additional_plots">
+<a class="viewcode-back" href="../../../MaCh3PythonUtils.file_handling.html#MaCh3PythonUtils.file_handling.chain_handler.ChainHandler.add_additional_plots">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_additional_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">additional_branches</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        To add more branches to the plotting branch list</span>
+<span class="sd">        :param additional_branches: List of branches to add to the plotting list</span>
+<span class="sd">        :type additional_branches: list</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_open</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Warning</span><span class="p">(</span><span class="s2">&quot;Adding branches after shutting the file has no effect&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">additional_branches</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">additional_branches</span> <span class="o">=</span> <span class="p">[</span><span class="n">additional_branches</span><span class="p">]</span>
+
+        <span class="n">branch_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_posterior_ttree</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ignored_branches</span><span class="p">:</span> <span class="k">continue</span>
+            
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">var</span> <span class="ow">in</span> <span class="n">key</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">additional_branches</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">exact</span><span class="p">:</span> <span class="c1"># Not the most efficient but adds variables to our list of variables</span>
+                <span class="n">branch_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">exact</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">additional_branches</span><span class="p">:</span>
+                <span class="n">branch_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plotting_branches</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">branch_list</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="ChainHandler.ignore_plots">
+<a class="viewcode-back" href="../../../MaCh3PythonUtils.file_handling.html#MaCh3PythonUtils.file_handling.chain_handler.ChainHandler.ignore_plots">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ignore_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignored_branches</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">|</span> <span class="nb">str</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List of plots to ignore</span>
+
+<span class="sd">        :param ignored_branches: _description_</span>
+<span class="sd">        :type ignored_branches: List[str] | str</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ignored_branches</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">ignored_branches</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ignored_branches</span><span class="p">)</span>
+            
+        <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="n">ignored_branches</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">branch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ignored_branches</span><span class="p">:</span> <span class="k">continue</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ignored_branches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">branch</span><span class="p">)</span>
+    
+            <span class="k">if</span> <span class="n">branch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plotting_branches</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_plotting_branches</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">branch</span><span class="p">)</span></div>
+
+        
+    
+<div class="viewcode-block" id="ChainHandler.add_new_cuts">
+<a class="viewcode-back" href="../../../MaCh3PythonUtils.file_handling.html#MaCh3PythonUtils.file_handling.chain_handler.ChainHandler.add_new_cuts">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_new_cuts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_cuts</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Specifies list of cuts to apply to the TTree (something like [&#39;step&gt;80000&#39;, &#39;dm23&gt;0&#39;])</span>
+<span class="sd">        :param new_cuts: List of/single cut to apply</span>
+<span class="sd">        :type new_cuts: list, str</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># Hacky but lets us be a little bit polymorphic</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_open</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Warning</span><span class="p">(</span><span class="s2">&quot;Applying cuts after shutting the file has no effect&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">new_cuts</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+            <span class="n">new_cuts</span> <span class="o">=</span> <span class="p">[</span><span class="n">new_cuts</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cuts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">new_cuts</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ChainHandler.convert_ttree_to_array">
+<a class="viewcode-back" href="../../../MaCh3PythonUtils.file_handling.html#MaCh3PythonUtils.file_handling.chain_handler.ChainHandler.convert_ttree_to_array">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert_ttree_to_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">close_file</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Converts the TTree table to array</span>
+<span class="sd">        :param close_file: Do you want to close the ROOT file after calling this method?</span>
+<span class="sd">        :type close_file: bool, optional</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_open</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Cannot convert TTree to array after input ROOT file is shut&quot;</span><span class="p">)</span>
+
+        <span class="n">cuts</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cuts</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">cuts</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;*&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">cut</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="k">for</span> <span class="n">cut</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuts</span><span class="p">)</span>
+        
+        
+        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="c1"># Make sure we have loads of memory available!</span>
+            <span class="c1"># Ensures we don&#39;t run into funny behaviour when uncompressing</span>
+            <span class="n">total_memory_needed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_posterior_ttree</span><span class="o">.</span><span class="n">uncompressed_bytes</span> <span class="c1">#in bytes</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using </span><span class="si">{</span><span class="n">executor</span><span class="o">.</span><span class="n">_max_workers</span><span class="si">}</span><span class="s2"> threads and requiring </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_posterior_ttree</span><span class="o">.</span><span class="n">uncompressed_bytes</span><span class="o">*</span><span class="mf">1e-9</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s2"> Gb memory&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using the following branches: &quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plotting_branches</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  -&gt; </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># To make sure we don&#39;t run into any unpleasantness</span>
+            <span class="c1"># total_available_memory = int(psutil.virtual_memory().available)</span>
+            <span class="c1"># if total_memory_needed &lt; total_available_memory: # For some reason I can&#39;t just do needed&lt;available or it breaks... [not sure why, regardless this check works!]</span>
+            <span class="c1">#     print(total_memory_needed - total_available_memory, type(total_memory_needed - total_available_memory))</span>
+            <span class="c1">#     raise MemoryError(f&quot;Posterior tree requires {np.round(self._posterior_ttree.uncompressed_bytes*1e-9,3)} Gb memory, system only has {np.round(total_available_memory*1e-9,3)} Gb available&quot;)</span>
+
+            <span class="c1"># We&#39;re going to surpress some pandas warnings here since ROOT isn&#39;t totally efficient when converting to Pandas (but it&#39;ll do!)</span>
+            <span class="c1"># warnings.filterwarnings(&quot;ignore&quot;, category=pd.errors.PerformanceWarning)</span>
+            <span class="c1"># Now we generate an array object</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_plotting_branches</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ttree_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_posterior_ttree</span><span class="o">.</span><span class="n">arrays</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_posterior_ttree</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">cut</span><span class="o">=</span><span class="n">cuts</span><span class="p">,</span> <span class="n">library</span><span class="o">=</span><span class="s1">&#39;pd&#39;</span><span class="p">,</span> <span class="n">decompression_executor</span><span class="o">=</span><span class="n">executor</span><span class="p">,</span> <span class="n">interpretation_executor</span><span class="o">=</span><span class="n">executor</span><span class="p">)</span> <span class="c1"># Load in ROOT TTree</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ttree_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_posterior_ttree</span><span class="o">.</span><span class="n">arrays</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_plotting_branches</span><span class="p">,</span> <span class="n">cut</span><span class="o">=</span><span class="n">cuts</span><span class="p">,</span> <span class="n">library</span><span class="o">=</span><span class="s1">&#39;pd&#39;</span><span class="p">,</span> <span class="n">array_cache</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">total_memory_needed</span><span class="si">}</span><span class="s2"> b&quot;</span><span class="p">,</span> <span class="n">decompression_executor</span><span class="o">=</span><span class="n">executor</span><span class="p">,</span> <span class="n">interpretation_executor</span><span class="o">=</span><span class="n">executor</span><span class="p">)</span> <span class="c1"># Load in ROOT TTree</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Converted TTree to pandas dataframe with </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ttree_array</span><span class="p">)</span><span class="si">}</span><span class="s2"> elements&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">close_file</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close_file</span><span class="p">()</span>
+
+        <span class="c1"># Just to really make sure we have no memory overuse we&#39;ll call the Garbage collector</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>    </div>
+
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ttree_array</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Getter for the converted TTree array</span>
+<span class="sd">        :return: Table containing TTree in non-ROOT format</span>
+<span class="sd">        :rtype: Union[np.array, pd.DataFrame, ak.Array]</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ttree_array</span>
+    
+    <span class="nd">@ttree_array</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ttree_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_array</span><span class="p">:</span> <span class="n">Any</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Setter for TTree array object ::: NOTE THIS WILL JUST RAISE AN ERROR</span>
+<span class="sd">        :param new_array: Object to set our ttree_array_to</span>
+<span class="sd">        :type new_array: Any</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># Implemented in case someone tries to do something daft!</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Cannot set converted TTree array to new type&quot;</span><span class="p">)</span>        
+ 
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ndim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="nb">int</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ttree_array</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>    
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ttree_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+ 
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">lower_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">NDArray</span><span class="p">:</span>
+        <span class="c1"># Lower bounds for all params</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ttree_array</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>    
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ttree_array</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">upper_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">NDArray</span><span class="p">:</span>
+        <span class="c1"># Upper bounds for all params</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ttree_array</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>    
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ttree_array</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, MaCh3.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
