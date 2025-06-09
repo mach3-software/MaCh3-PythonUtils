@@ -16,14 +16,17 @@ class TfSequentialModel(TfManualLayeredInterface):
         if self._model is None or not self._layers:
             raise ValueError("No model can be built! Please setup model and layers")
 
+        # Add input layer
+        self._model.add(tfk.layers.InputLayer(input_shape=(self._chain.ndim-1,)))
+
         for layer in self._layers:
             self._model.add(layer)
 
         self._model.build()
-        optimizer = tfk.optimizers.AdamW(learning_rate=kwargs.get("learning_rate", 1e-5),
-                        weight_decay=1e-4, clipnorm=1.0)
+        optimizer = tfk.optimizers.Adam(learning_rate=kwargs.get("learning_rate", 1e-5), clipnorm=10.0)
 
         kwargs.pop("learning_rate", None)
 
 
         self._model.compile(**kwargs, optimizer=optimizer)
+        
