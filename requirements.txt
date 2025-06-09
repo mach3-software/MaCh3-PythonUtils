@@ -1,7 +1,7 @@
 arviz>=0.17.0
 deepmerge
 h5py
-Jinja2==3.1.4
+Jinja2==3.1.6
 numpy>=1.26.0
 matplotlib>=3.9.0
 mpl-scatter-density>=0.5
