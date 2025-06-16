@@ -23,7 +23,7 @@ class SciKitInterface(FileMLInterface):
         if self._training_data is None or self._training_labels is None:
             raise ValueError("No test data set")
         
-        self._model.fit(scaled_data, self._training_labels)
+        self._model.fit(scaled_data, self.scale_labels(self._training_labels))
         
     def model_predict(self, test_data: DataFrame)->list:
         """Gets model prediction

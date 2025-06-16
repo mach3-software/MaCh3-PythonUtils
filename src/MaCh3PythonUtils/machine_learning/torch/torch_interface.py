@@ -66,8 +66,10 @@ class TorchInterface(FileMLInterface):
 
 
     def train_model(self):
-        scaled_data = self.to_tensor(self.scale_data(self._training_data))
-        scaled_labels = self.to_tensor(self.scale_labels(self._training_labels))
+        scaled_data = self.scale_data(self._training_data)
+        scaled_data_t = self.to_tensor(scaled_data)
+        scaled_labels = self.scale_labels(self._training_labels)
+        scaled_labels_t = self.to_tensor(scaled_labels)
 
         loss = torch.nn.MSELoss()
         self._learning_rate = self._fit_settings.get("learning_rate", 1e-5)
@@ -87,7 +89,7 @@ class TorchInterface(FileMLInterface):
 
 
         for i in (pbar:=tqdm_notebook(range(num_epochs), desc="Training model", unit="epoch")):
-            self.model_training_iter(scaled_data, scaled_labels, loss, self._learning_rate, debug, i)
+            self.model_training_iter(scaled_data_t, scaled_labels_t, loss, self._learning_rate, debug, i)
             pbar.set_description(f"Epoch {i+1}/{num_epochs} - Loss: {self._loss_vals[i]:.5f}")
 
             # Early stopping
@@ -172,12 +174,13 @@ class TorchInterface(FileMLInterface):
         """
 
         # Convert to tensor and move to device
-        if isinstance(test_data, pd.DataFrame):
-            test_data = torch.tensor(test_data.values.astype(np.float32), device=self.device)
-        
+        # if isinstance(test_data, pd.DataFrame):
+        #     test_data = torch.tensor(test_data.values.astype(np.float32), device=self.device)
+        test_data = self.to_tensor(self.scale_data(test_data))
+
         self._model.eval()
         with torch.no_grad():
-            predictions = self._model(torch.tensor(test_data, device=self.device))
+            predictions = self._model(test_data)
             
         return predictions.cpu().numpy().T[0]
 

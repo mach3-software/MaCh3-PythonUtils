@@ -10,7 +10,7 @@ pandas>=2.0.0
 PyYAML>=6.0.2
 scikit-learn>=1.4.0
 scipy>=1.10.0
-tensorflow
+tensorflow>2.15
 torch>=1.0.0
 normflows
 tqdm>=4.0.0
@@ -21,6 +21,9 @@ keras_tuner
 mplhep
 seaborn
 psutil
+gdown
+jupyter
+ipython
 
 # Documentation generation
 sphinx
