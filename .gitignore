@@ -6,3 +6,5 @@
 *.keras
 *.egg-info
 build/
+.png
+models/
