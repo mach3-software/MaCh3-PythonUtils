@@ -214,14 +214,14 @@ class FileMLInterface(ABC):
 
 
         print("Training Results!")
-        train_prediction = self.model_predict(self._training_data)
+        train_prediction = self.model_predict(self.scale_data(self._training_data))
         train_as_numpy = self.scale_labels(self._training_labels).T[0]
         self.evaluate_model(train_prediction, train_as_numpy, "train_qq_plot.pdf")
 
         print("=====")
         print("Testing Results!")
 
-        test_prediction = self.model_predict(self._test_data)
+        test_prediction = self.model_predict(self.scale_data(self._test_data))
         test_as_numpy = self.scale_labels(self._test_labels).T[0]
         
         self.evaluate_model(test_prediction, test_as_numpy, outfile=f"{self._fit_name}")
