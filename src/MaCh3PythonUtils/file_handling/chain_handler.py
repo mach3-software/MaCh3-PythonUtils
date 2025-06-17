@@ -10,6 +10,7 @@ import gc
 import numpy as np
 from numpy.typing import NDArray
 
+
 class ChainHandler:
     """
     Class to load in ROOT files containing a single TTree
@@ -30,9 +31,10 @@ class ChainHandler:
         :type verbose: bool, optional
         :raises IOError: No file found
         """
+
         print(f"Attempting to open {file_name}")
         try:
-            self._posterior_ttree =  ur.open(f"{file_name}:{ttree_name}")
+            self._posterior_ttree = ur.open(f"{file_name}:{ttree_name}")
 
         except FileNotFoundError:
             raise IOError(f"The file '{file_name}' does not exist or does not contain '{ttree_name}")
@@ -41,7 +43,7 @@ class ChainHandler:
         warnings.filterwarnings("ignore", category=DeprecationWarning) #Some imports are a little older
         warnings.filterwarnings("ignore", category=UserWarning) #Some imports are a little older
         warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning) # Not a fan of being yelled at by pandas
-
+    
         self._plotting_branches = [] # Filled with branches we want to plot
         self._cuts = [] # If we want to apply cuts (can be done later but fastest at load time)
 
@@ -201,14 +203,13 @@ class ChainHandler:
         return self._ttree_array
     
     @ttree_array.setter
-    def ttree_array(self, new_array: Any=None)->None:
+    def ttree_array(self, new_array: pd.DataFrame)->None:
         '''
         Setter for TTree array object ::: NOTE THIS WILL JUST RAISE AN ERROR
         :param new_array: Object to set our ttree_array_to
         :type new_array: Any
         '''
-        # Implemented in case someone tries to do something daft!
-        raise NotImplementedError("Cannot set converted TTree array to new type")        
+        self._ttree_array = new_array
  
     @property
     def ndim(self)->int:

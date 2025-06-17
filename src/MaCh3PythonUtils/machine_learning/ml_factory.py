@@ -25,7 +25,8 @@ class MLFactory:
             "randomforest"  : ske.RandomForestRegressor,
             "gradientboost" : ske.GradientBoostingRegressor,
             "adaboost"      : ske.AdaBoostRegressor,
-            "histboost"     : ske.HistGradientBoostingRegressor
+            "histboost"     : ske.HistGradientBoostingRegressor,
+            "histboostclass": ske.HistGradientBoostingClassifier
         },
         # "tensorflow": {
         #     "sequential" : TfSequentialModel,
