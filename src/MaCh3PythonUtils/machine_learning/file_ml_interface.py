@@ -13,8 +13,12 @@ import tensorflow as tf
 import warnings
 from tqdm import tqdm
 from scipy.optimize import minimize, OptimizeResult
+import sklearn.ensemble as ske
+
 
 from sklearn import metrics
+from sklearn.metrics import confusion_matrix, classification_report
+import seaborn as sns
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
@@ -99,7 +103,8 @@ class FileMLInterface(ABC):
         return scale_data
     
     def scale_labels(self, labels):
-        return self._label_scaler.transform(labels)
+        # return self._label_scaler.transform(labels)
+        return labels
         # return labels.values.reshape(-1, 1)
 
     def invert_scaling(self, input_data):
@@ -215,18 +220,47 @@ class FileMLInterface(ABC):
 
         print("Training Results!")
         train_prediction = self.model_predict(self.scale_data(self._training_data))
-        train_as_numpy = self.scale_labels(self._training_labels).T[0]
+        train_as_numpy = self.scale_labels(self._training_labels)#.T[0]
         self.evaluate_model(train_prediction, train_as_numpy, "train_qq_plot.pdf")
 
         print("=====")
         print("Testing Results!")
 
         test_prediction = self.model_predict(self.scale_data(self._test_data))
-        test_as_numpy = self.scale_labels(self._test_labels).T[0]
+        test_as_numpy = self.scale_labels(self._test_labels)#.T[0]
         
         self.evaluate_model(test_prediction, test_as_numpy, outfile=f"{self._fit_name}")
         print("=====")
         
+# create test model for classifiers:
+    def test_model_class(self):
+        """Test model
+
+        :raises ValueError: No model set
+        :raises ValueError: No test data set 
+        """        
+        if self._model is None:
+            raise ValueError("No Model has been set!")
+
+        if self._test_data is None or self._test_labels is None:
+            raise ValueError("No test data set")
+
+
+        print("Training Results!")
+        train_prediction = self.model_predict(self.scale_data(self._training_data))
+        train_as_numpy = self.scale_labels(self._training_labels)#.T[0]
+        self.evaluate_model_class(train_prediction, train_as_numpy)
+
+        print("=====")
+        print("Testing Results!")
+
+        test_prediction = self.model_predict(self.scale_data(self._test_data))
+        test_as_numpy = self.scale_labels(self._test_labels)#.T[0]
+        
+        self.evaluate_model_class(test_prediction, test_as_numpy)
+        print("=====")
+
+
 
     def print_model_summary(self):
         print("Model Summary")
@@ -277,7 +311,29 @@ class FileMLInterface(ABC):
                 plt.ylabel("-2*loglikelihood")
                 pdf.savefig()
                 plt.close()
-            
+
+    def evaluate_model_class(self, pred_vals, true_vals):
+        #model = ske.HistGradientBoostingClassifier(max_bins=255, max_iter=100) 
+        conf_matrix = confusion_matrix(pred_vals, true_vals)
+        sns.heatmap(conf_matrix, 
+            annot=True,
+            fmt='g', 
+            xticklabels=['1','2', '3'],
+            yticklabels=['1','2', '3'])
+                
+        plt.ylabel('Actual', fontsize=13)
+        plt.title('Confusion Matrix', fontsize=17, pad=12)
+        plt.gca().xaxis.set_label_position('top') 
+        plt.xlabel('Prediction', fontsize=13)
+        plt.gca().xaxis.tick_top()
+
+        #plt.gca().figure.subplots_adjust(bottom=0.2)
+        #plt.gca().figure.text(0.5, 0.05, 'Prediction', ha='center', fontsize=13)
+        plt.show()
+        
+        print(conf_matrix)
+
+        #print(classification_report(true_vals, pred_vals))
         
     
     def evaluate_model(self, predicted_values: Iterable, true_values: Iterable, outfile: str=""):
@@ -353,8 +409,10 @@ class FileMLInterface(ABC):
         plt.xlabel("True - Pred")
         plt.savefig(f"diffs_5sigma_range_{outfile}")
         
-        plt.close()
+        plt.close()    
+
         
+
     @classmethod
     def is_notebook(cls) -> bool:
         try:

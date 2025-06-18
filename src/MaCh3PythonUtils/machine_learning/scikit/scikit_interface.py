@@ -1,6 +1,7 @@
 from pandas import DataFrame
 from MaCh3PythonUtils.machine_learning.file_ml_interface import FileMLInterface
 from tqdm import tqdm
+import sklearn.ensemble as ske
 
 """
 TODO: 
@@ -40,4 +41,13 @@ class SciKitInterface(FileMLInterface):
             raise ValueError("No Model has been set!")
 
         return self._model.predict(scale_data)
+    '''
+    def test_model_class(self):
+
+        model = ske.HistGradientBoostingClassifier(max_bins=255, max_iter=100) 
+        model.fit(self.test_data, self._training_labels) #trains the model to fit the test data with the training labels 
+        y_pred = model.predict(self.test_data) # "model, can you predict training labels from test data"
+
+        return y_pred    
     
+    '''
