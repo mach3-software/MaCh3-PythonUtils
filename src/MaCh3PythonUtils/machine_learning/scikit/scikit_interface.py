@@ -8,7 +8,8 @@ TODO:
  - Add staged predict
 """
 
-class SciKitInterface(FileMLInterface):    
+class SciKitInterface(FileMLInterface):   # SciKitInterface Class inherits the methods in FileMLInterface Class
+                                          # SciKitInterface Class has additional methods which are used to train the model, FileML only has tests 
     def train_model(self):
         """Trains model
 
@@ -41,13 +42,6 @@ class SciKitInterface(FileMLInterface):
             raise ValueError("No Model has been set!")
 
         return self._model.predict(scale_data)
-    '''
-    def test_model_class(self):
-
-        model = ske.HistGradientBoostingClassifier(max_bins=255, max_iter=100) 
-        model.fit(self.test_data, self._training_labels) #trains the model to fit the test data with the training labels 
-        y_pred = model.predict(self.test_data) # "model, can you predict training labels from test data"
-
-        return y_pred    
     
-    '''
+
+

@@ -232,34 +232,6 @@ class FileMLInterface(ABC):
         self.evaluate_model(test_prediction, test_as_numpy, outfile=f"{self._fit_name}")
         print("=====")
         
-# create test model for classifiers:
-    def test_model_class(self):
-        """Test model
-
-        :raises ValueError: No model set
-        :raises ValueError: No test data set 
-        """        
-        if self._model is None:
-            raise ValueError("No Model has been set!")
-
-        if self._test_data is None or self._test_labels is None:
-            raise ValueError("No test data set")
-
-
-        print("Training Results!")
-        train_prediction = self.model_predict(self.scale_data(self._training_data))
-        train_as_numpy = self.scale_labels(self._training_labels)#.T[0]
-        self.evaluate_model_class(train_prediction, train_as_numpy)
-
-        print("=====")
-        print("Testing Results!")
-
-        test_prediction = self.model_predict(self.scale_data(self._test_data))
-        test_as_numpy = self.scale_labels(self._test_labels)#.T[0]
-        
-        self.evaluate_model_class(test_prediction, test_as_numpy)
-        print("=====")
-
 
 
     def print_model_summary(self):
@@ -312,30 +284,122 @@ class FileMLInterface(ABC):
                 pdf.savefig()
                 plt.close()
 
-    def evaluate_model_class(self, pred_vals, true_vals):
-        #model = ske.HistGradientBoostingClassifier(max_bins=255, max_iter=100) 
-        conf_matrix = confusion_matrix(pred_vals, true_vals)
+
+    # create test model for classifiers:
+    def test_model_class(self, path_l):
+        """Test model
+
+        :raises ValueError: No model set
+        :raises ValueError: No test data set 
+        """        
+        if self._model is None:
+            raise ValueError("No Model has been set!")
+
+        if self._test_data is None or self._test_labels is None:
+            raise ValueError("No test data set")
+
+        chain_N = len(path_l)
+        print(f'Number of independent MCMCs: {chain_N}')
+        print("Training Results!")
+        train_prediction = self.model_predict(self.scale_data(self._training_data))
+        train_as_numpy = self.scale_labels(self._training_labels)#.T[0]
+        self.evaluate_model_class(train_prediction, train_as_numpy, chain_N, path_l)
+
+        print("=====")
+        print("Testing Results!")
+
+        test_prediction = self.model_predict(self.scale_data(self._test_data))
+        test_as_numpy = self.scale_labels(self._test_labels)#.T[0]
+        
+        self.evaluate_model_class(test_prediction, test_as_numpy, chain_N, path_l)
+        print("=====")                
+        
+
+    def evaluate_model_class(self, pred_vals, true_vals, num, path):
+        #assigns an index to each .root file (in ascending, starting from 0) and then puts it into a list
+        #this list is then used as input for the labelling for the Confusion Matrix
+        ID_list= []
+        for e, m in enumerate(path):
+            ID_list.append(str(e))
+
+        conf_matrix = confusion_matrix(pred_vals, true_vals) # confusion matrix code
         sns.heatmap(conf_matrix, 
             annot=True,
-            fmt='g', 
-            xticklabels=['1','2', '3'],
-            yticklabels=['1','2', '3'])
+            fmt='g',
+            xticklabels=ID_list,
+            yticklabels=ID_list)
                 
         plt.ylabel('Actual', fontsize=13)
         plt.title('Confusion Matrix', fontsize=17, pad=12)
         plt.gca().xaxis.set_label_position('top') 
         plt.xlabel('Prediction', fontsize=13)
         plt.gca().xaxis.tick_top()
-
-        #plt.gca().figure.subplots_adjust(bottom=0.2)
-        #plt.gca().figure.text(0.5, 0.05, 'Prediction', ha='center', fontsize=13)
         plt.show()
         
         print(conf_matrix)
 
-        #print(classification_report(true_vals, pred_vals))
+        #calc of R*
+        pred_acc = classification_report(true_vals, pred_vals, target_names=None, output_dict=True)['accuracy']
+        print(f'predictive accuracy: {pred_acc}')
+        print(f'R*: {pred_acc*num}')
+
         
-    
+        # create test model for classifiers:
+    def getRStar_vals(self, path_l): 
+
+        y_value2= []
+        y_value4=[]
+        y_value8=[]
+        y_value16=[]
+        
+        for f in range(5):
+            """Trains model
+
+            :raises ValueError: Model not initialised
+            :raises ValueError: Data set not initialised
+            """        
+            print(f"Training Model")
+            scaled_data = self.scale_data(self._training_data)
+            
+            if self._model is None:
+                raise ValueError("No Model has been set!")
+            
+            if self._training_data is None or self._training_labels is None:
+                raise ValueError("No test data set")
+            
+            self._model.fit(scaled_data, self.scale_labels(self._training_labels))            
+
+
+            chain_N = len(path_l)
+            print(f'Number of independent MCMCs: {chain_N}')
+            print("Training Results!")
+            train_prediction = self.model_predict(self.scale_data(self._training_data))
+            train_as_numpy = self.scale_labels(self._training_labels)#.T[0]
+                #self.evaluate_model_class(train_prediction, train_as_numpy, chain_N, path_l)
+
+            print("=====")
+            print("Testing Results!")
+
+            test_prediction = self.model_predict(self.scale_data(self._test_data))
+            test_as_numpy = self.scale_labels(self._test_labels)#.T[0]
+            
+                #self.evaluate_model_class(test_prediction, test_as_numpy, chain_N, path_l)
+            print("=====")  
+
+            R_star = classification_report(test_as_numpy, test_prediction, target_names=None, output_dict=True)['accuracy']*chain_N
+
+            if len(path_l) == 2:
+                y_value2.append(R_star)
+            elif len(path_l) == 4:
+                y_value4.append(R_star)
+            elif len(path_l) == 8:
+                y_value8.append(R_star)            
+            elif len(path_l) == 16:
+                y_value16.append(R_star) 
+
+            print(y_value2)
+            print(y_value4)
+
     def evaluate_model(self, predicted_values: Iterable, true_values: Iterable, outfile: str=""):
         """Evalulates model
 
@@ -411,7 +475,7 @@ class FileMLInterface(ABC):
         
         plt.close()    
 
-        
+
 
     @classmethod
     def is_notebook(cls) -> bool:
