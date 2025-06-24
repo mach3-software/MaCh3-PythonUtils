@@ -66,6 +66,7 @@ class FileMLInterface(ABC):
         # self._pca_matrix = PCA(n_components=0.95)
         
         self._label_scaler = StandardScaler()
+        #self.datapoints=None
         
         
             
@@ -278,6 +279,7 @@ class FileMLInterface(ABC):
                                         
                 prediction = self.model_predict(modified_values)
                 # Save as histogram
+                
                 plt.plot(param_range, prediction)
                 plt.xlabel(self.chain.plot_branches[i])
                 plt.ylabel("-2*loglikelihood")
@@ -343,30 +345,31 @@ class FileMLInterface(ABC):
         print(f'predictive accuracy: {pred_acc}')
         print(f'R*: {pred_acc*num}')
 
-        
-        # create test model for classifiers:
-    def getRStar_vals(self, path_l): 
+    global val_dict
+    val_dict= {'chain 1':[],
+               'chain 2': [],
+               'chain 3': [],
+               'chain 4': []
 
+                }
+    def getRStar_vals(self, path_l, datapoints): 
         y_value2= []
-        y_value4=[]
-        y_value8=[]
-        y_value16=[]
-        
-        for f in range(5):
+        for f in range(datapoints):
             """Trains model
 
             :raises ValueError: Model not initialised
             :raises ValueError: Data set not initialised
             """        
+            
             print(f"Training Model")
             scaled_data = self.scale_data(self._training_data)
-            
+                
             if self._model is None:
                 raise ValueError("No Model has been set!")
-            
+                
             if self._training_data is None or self._training_labels is None:
                 raise ValueError("No test data set")
-            
+                
             self._model.fit(scaled_data, self.scale_labels(self._training_labels))            
 
 
@@ -375,30 +378,30 @@ class FileMLInterface(ABC):
             print("Training Results!")
             train_prediction = self.model_predict(self.scale_data(self._training_data))
             train_as_numpy = self.scale_labels(self._training_labels)#.T[0]
-                #self.evaluate_model_class(train_prediction, train_as_numpy, chain_N, path_l)
+            #self.evaluate_model_class(train_prediction, train_as_numpy, chain_N, path_l)
 
             print("=====")
             print("Testing Results!")
 
             test_prediction = self.model_predict(self.scale_data(self._test_data))
             test_as_numpy = self.scale_labels(self._test_labels)#.T[0]
-            
-                #self.evaluate_model_class(test_prediction, test_as_numpy, chain_N, path_l)
+                
+            #self.evaluate_model_class(test_prediction, test_as_numpy, chain_N, path_l)
             print("=====")  
 
+            #self.R_star = classification_report(test_as_numpy, test_prediction, target_names=None, output_dict=True)['accuracy']*chain_N
             R_star = classification_report(test_as_numpy, test_prediction, target_names=None, output_dict=True)['accuracy']*chain_N
-
             if len(path_l) == 2:
-                y_value2.append(R_star)
+                y_value2.append(R_star)            
             elif len(path_l) == 4:
-                y_value4.append(R_star)
-            elif len(path_l) == 8:
-                y_value8.append(R_star)            
+                y_value2.append(R_star)
+            elif len(path_l) == 8:           
+                y_value2.append(R_star)      
             elif len(path_l) == 16:
-                y_value16.append(R_star) 
-
-            print(y_value2)
-            print(y_value4)
+                y_value2.append(R_star) 
+        return y_value2
+        
+   
 
     def evaluate_model(self, predicted_values: Iterable, true_values: Iterable, outfile: str=""):
         """Evalulates model
