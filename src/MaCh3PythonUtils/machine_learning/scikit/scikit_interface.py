@@ -2,6 +2,8 @@ from pandas import DataFrame
 from MaCh3PythonUtils.machine_learning.file_ml_interface import FileMLInterface
 from tqdm import tqdm
 import sklearn.ensemble as ske
+from sklearn.metrics import log_loss
+
 
 """
 TODO: 
@@ -26,6 +28,10 @@ class SciKitInterface(FileMLInterface):   # SciKitInterface Class inherits the m
             raise ValueError("No test data set")
         
         self._model.fit(scaled_data, self.scale_labels(self._training_labels))
+
+
+        
+
         
     def model_predict(self, test_data: DataFrame)->list:
         """Gets model prediction
@@ -43,5 +49,4 @@ class SciKitInterface(FileMLInterface):   # SciKitInterface Class inherits the m
 
         return self._model.predict(scale_data)
     
-
 

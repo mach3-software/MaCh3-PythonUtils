@@ -1,4 +1,6 @@
 from MaCh3PythonUtils.file_handling.chain_handler import ChainHandler
+from sklearn.ensemble import HistGradientBoostingClassifier
+
 
 from abc import ABC, abstractmethod
 from typing import Any, Tuple, Iterable
@@ -9,12 +11,14 @@ from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 import pickle
 from typing import List, Dict
-import tensorflow as tf
+# import tensorflow as tf
 import warnings
 from tqdm import tqdm
 from scipy.optimize import minimize, OptimizeResult
 import sklearn.ensemble as ske
-
+from sklearn.metrics import log_loss
+from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.metrics import roc_curve, auc
 
 from sklearn import metrics
 from sklearn.metrics import confusion_matrix, classification_report
@@ -141,6 +145,14 @@ class FileMLInterface(ABC):
         return self._training_data
 
     @property
+    def scaled_training_data(self):
+        return self.scale_data(self.training_data)
+    
+    @property
+    def scaled_training_labels(self):
+        return self.scale_labels(self._training_labels).T
+
+    @property
     def test_data(self)->pd.DataFrame:
         """Gets training data
 
@@ -233,6 +245,7 @@ class FileMLInterface(ABC):
         self.evaluate_model(test_prediction, test_as_numpy, outfile=f"{self._fit_name}")
         print("=====")
         
+        
 
 
     def print_model_summary(self):
@@ -310,48 +323,82 @@ class FileMLInterface(ABC):
         print("=====")
         print("Testing Results!")
 
+        print(f'train prediction:{train_prediction}')
+        print(f'train true:{train_as_numpy}')
+
         test_prediction = self.model_predict(self.scale_data(self._test_data))
         test_as_numpy = self.scale_labels(self._test_labels)#.T[0]
         
         self.evaluate_model_class(test_prediction, test_as_numpy, chain_N, path_l)
-        print("=====")                
+        print("=====")  
+
+        print(f'test prediction:{test_prediction}')
+        print(f'test true:{test_as_numpy}')
+        '''
+        y_pred_proba = self.model.predict_proba(test_as_numpy)[:, 1] 
+        fpr, tpr, thresholds = roc_curve(test_prediction, y_pred_proba) 
+        roc_auc = auc(fpr, tpr)
+        # Plot the ROC curve
+        plt.figure()  
+        plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
+        plt.plot([0, 1], [0, 1], 'k--', label='No Skill')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('ROC Curve')
+        plt.legend()
+        plt.show()
+        '''
         
 
-    def evaluate_model_class(self, pred_vals, true_vals, num, path):
+        
+    def evaluate_model_class(self, pred_vals, true_vals, num, mylist):
         #assigns an index to each .root file (in ascending, starting from 0) and then puts it into a list
         #this list is then used as input for the labelling for the Confusion Matrix
-        ID_list= []
-        for e, m in enumerate(path):
-            ID_list.append(str(e))
+        x_val=[]
+        if mylist == ['../models/demo_files 2/NoAdapt/T2K/mcmc_NoAdapt_T2K_oct_fix_mo_fix.root', '../models/demo_files 2/NoAdapt/T2K/mcmc_NoAdapt_T2K_oct_fix_no_only.root', '../models/demo_files 2/NoAdapt/T2K/mcmc_NoAdapt_T2K_all_fixed.root', '../models/demo_files 2/NoAdapt/T2K/mcmc_NoAdapt_T2K_all_on.root']:
+            for m in mylist:
+                bef, sep, after = m.partition('/NoAdapt/T2K/mcmc_')
+                x_val.append(after)              
+        elif mylist == ['../models/demo_files 2/NoAdapt/NOvA/mcmc_NoAdapt_NOvA_oct_fix_no_only.root', '../models/demo_files 2/NoAdapt/NOvA/mcmc_NoAdapt_NOvA_oct_fix_mo_fix.root', '../models/demo_files 2/NoAdapt/NOvA/mcmc_NoAdapt_NOvA_all_on.root']:
+            for m in mylist:
+                bef, sep, after = m.partition('/NoAdapt/NOvA/mcmc_')
+                x_val.append(after) 
+        elif mylist == ['../models/demo_files 2/Adapt/T2K/mcmc_Adapt_T2K_all_fixed.root', '../models/demo_files 2/Adapt/T2K/mcmc_Adapt_T2K_all_on.root', '../models/demo_files 2/Adapt/T2K/mcmc_Adapt_T2K_oct_fix_no_only.root', '../models/demo_files 2/Adapt/T2K/mcmc_Adapt_T2K_oct_fix_mo_fix.root']:
+            for m in mylist:
+                bef, sep, after = m.partition('/Adapt/T2K/mcmc_')
+                x_val.append(after) 
+        elif mylist == ['../models/demo_files 2/Adapt/NOvA/mcmc_Adapt_NOvA_oct_fix_mo_fix.root', '../models/demo_files 2/Adapt/NOvA/mcmc_Adapt_NOvA_oct_fix_no_only.root', '../models/demo_files 2/Adapt/NOvA/mcmc_Adapt_NOvA_all_on.root']:
+            for m in mylist:
+                bef, sep, after = m.partition('/Adapt/NOvA/mcmc_')
+                x_val.append(after) 
 
-        conf_matrix = confusion_matrix(pred_vals, true_vals) # confusion matrix code
+        
+        conf_matrix = confusion_matrix(true_vals, pred_vals) # confusion matrix code
         sns.heatmap(conf_matrix, 
             annot=True,
             fmt='g',
-            xticklabels=ID_list,
-            yticklabels=ID_list)
+            xticklabels=x_val,
+            yticklabels=x_val)
                 
         plt.ylabel('Actual', fontsize=13)
         plt.title('Confusion Matrix', fontsize=17, pad=12)
         plt.gca().xaxis.set_label_position('top') 
         plt.xlabel('Prediction', fontsize=13)
         plt.gca().xaxis.tick_top()
+        plt.xticks(rotation=45)
         plt.show()
         
-        print(conf_matrix)
-
         #calc of R*
         pred_acc = classification_report(true_vals, pred_vals, target_names=None, output_dict=True)['accuracy']
         print(f'predictive accuracy: {pred_acc}')
-        print(f'R*: {pred_acc*num}')
+        R_Star=  pred_acc *num
+        print(f'R*: {R_Star}')
+        return R_Star
 
-    global val_dict
-    val_dict= {'chain 1':[],
-               'chain 2': [],
-               'chain 3': [],
-               'chain 4': []
+       
 
-                }
     def getRStar_vals(self, path_l, datapoints): 
         y_value2= []
         for f in range(datapoints):
@@ -492,3 +539,4 @@ class FileMLInterface(ABC):
                 return False  # Other type (?)
         except NameError:
             return False      # Probably standard Python interpreter
+

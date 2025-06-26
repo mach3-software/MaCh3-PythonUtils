@@ -1,5 +1,7 @@
 from MaCh3PythonUtils.file_handling.chain_handler import ChainHandler
 import matplotlib.pyplot as plt
+from sklearn import metrics
+from sklearn.metrics import confusion_matrix, classification_report
 
 class ChainDiagnostics:
     def __init__(self, config_reader: ChainHandler) -> None:
@@ -76,3 +78,5 @@ class ChainDiagnostics:
 
         # fig, axs[1][0] = self.make_autocorr_plot(parameter_name, axs=axs[1][0], fig=fig)
         return fig, axs
+    
+

@@ -15,7 +15,7 @@ from MaCh3PythonUtils.machine_learning.torch.torch_interface import TorchInterfa
 
 from MaCh3PythonUtils.file_handling.chain_handler import ChainHandler
 import sklearn.ensemble as ske
-import tensorflow.keras as tfk
+# import tensorflow.keras as tfk
 
 
 class MLFactory:
