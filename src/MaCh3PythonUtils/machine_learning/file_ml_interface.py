@@ -17,7 +17,6 @@ from tqdm import tqdm
 from scipy.optimize import minimize, OptimizeResult
 import sklearn.ensemble as ske
 from sklearn.metrics import log_loss
-from sklearn.metrics import ConfusionMatrixDisplay
 from sklearn.metrics import roc_curve, auc
 
 from sklearn import metrics
@@ -27,6 +26,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+from sklearn.preprocessing import LabelBinarizer
 
 from rich import print
 
@@ -301,7 +301,7 @@ class FileMLInterface(ABC):
 
 
     # create test model for classifiers:
-    def test_model_class(self, path_l):
+    def test_model_class(self, path_l, adapt, exp, norm):
         """Test model
 
         :raises ValueError: No model set
@@ -318,86 +318,104 @@ class FileMLInterface(ABC):
         print("Training Results!")
         train_prediction = self.model_predict(self.scale_data(self._training_data))
         train_as_numpy = self.scale_labels(self._training_labels)#.T[0]
-        self.evaluate_model_class(train_prediction, train_as_numpy, chain_N, path_l)
+        self.evaluate_model_class(train_prediction, train_as_numpy, chain_N, path_l, adapt, exp, norm)
 
         print("=====")
         print("Testing Results!")
 
-        print(f'train prediction:{train_prediction}')
-        print(f'train true:{train_as_numpy}')
+        #print(f'train prediction:{train_prediction}')
+        #print(f'train true:{train_as_numpy}')
 
         test_prediction = self.model_predict(self.scale_data(self._test_data))
         test_as_numpy = self.scale_labels(self._test_labels)#.T[0]
         
-        self.evaluate_model_class(test_prediction, test_as_numpy, chain_N, path_l)
+        self.evaluate_model_class(test_prediction, test_as_numpy, chain_N, path_l, adapt, exp, norm)
         print("=====")  
 
-        print(f'test prediction:{test_prediction}')
-        print(f'test true:{test_as_numpy}')
-        '''
-        y_pred_proba = self.model.predict_proba(test_as_numpy)[:, 1] 
-        fpr, tpr, thresholds = roc_curve(test_prediction, y_pred_proba) 
-        roc_auc = auc(fpr, tpr)
-        # Plot the ROC curve
-        plt.figure()  
-        plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
-        plt.plot([0, 1], [0, 1], 'k--', label='No Skill')
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.title('ROC Curve')
-        plt.legend()
-        plt.show()
-        '''
+        #print(f'test prediction:{test_prediction}')
+        #print(f'test true:{test_as_numpy}')
+    
         
 
         
-    def evaluate_model_class(self, pred_vals, true_vals, num, mylist):
+    def evaluate_model_class(self, pred_vals, true_vals, num, mylist, adapt, exp, norm, ):
         #assigns an index to each .root file (in ascending, starting from 0) and then puts it into a list
-        #this list is then used as input for the labelling for the Confusion Matrix
+        #this list is then used as input for the labelling for the Confusion Matrixt_fix_no_only.root', '../models/demo_files 2/NoAdapt/T2K/mcmc_NoAdapt_T2K_all_fixed.root', '../models/demo_files 2/NoAdapt/T2K/mcmc_NoAdapt_T2K_all_on.root']:
         x_val=[]
-        if mylist == ['../models/demo_files 2/NoAdapt/T2K/mcmc_NoAdapt_T2K_oct_fix_mo_fix.root', '../models/demo_files 2/NoAdapt/T2K/mcmc_NoAdapt_T2K_oct_fix_no_only.root', '../models/demo_files 2/NoAdapt/T2K/mcmc_NoAdapt_T2K_all_fixed.root', '../models/demo_files 2/NoAdapt/T2K/mcmc_NoAdapt_T2K_all_on.root']:
+
+        if adapt == 'NoAdapt' or 'noadapt' and exp == 'T2K' or 't2k':
             for m in mylist:
                 bef, sep, after = m.partition('/NoAdapt/T2K/mcmc_')
-                x_val.append(after)              
-        elif mylist == ['../models/demo_files 2/NoAdapt/NOvA/mcmc_NoAdapt_NOvA_oct_fix_no_only.root', '../models/demo_files 2/NoAdapt/NOvA/mcmc_NoAdapt_NOvA_oct_fix_mo_fix.root', '../models/demo_files 2/NoAdapt/NOvA/mcmc_NoAdapt_NOvA_all_on.root']:
+                x_val.append(after)      
+
+        elif adapt == 'NoAdapt' or 'noadapt' and exp == 'NOVA' or 'nova' or 'NOvA':
             for m in mylist:
                 bef, sep, after = m.partition('/NoAdapt/NOvA/mcmc_')
-                x_val.append(after) 
-        elif mylist == ['../models/demo_files 2/Adapt/T2K/mcmc_Adapt_T2K_all_fixed.root', '../models/demo_files 2/Adapt/T2K/mcmc_Adapt_T2K_all_on.root', '../models/demo_files 2/Adapt/T2K/mcmc_Adapt_T2K_oct_fix_no_only.root', '../models/demo_files 2/Adapt/T2K/mcmc_Adapt_T2K_oct_fix_mo_fix.root']:
+                x_val.append(after)
+
+        elif adapt == 'Adapt' or 'adapt' and exp == 'NOVA' or 'nova' or 'NOvA':
+            for m in mylist:
+                bef, sep, after = m.partition('/Adapt/NOvA/mcmc_')
+                x_val.append(after)    
+
+        elif adapt == 'Adapt' or 'adapt' and exp == 'T2K' or 't2k':
             for m in mylist:
                 bef, sep, after = m.partition('/Adapt/T2K/mcmc_')
                 x_val.append(after) 
-        elif mylist == ['../models/demo_files 2/Adapt/NOvA/mcmc_Adapt_NOvA_oct_fix_mo_fix.root', '../models/demo_files 2/Adapt/NOvA/mcmc_Adapt_NOvA_oct_fix_no_only.root', '../models/demo_files 2/Adapt/NOvA/mcmc_Adapt_NOvA_all_on.root']:
-            for m in mylist:
-                bef, sep, after = m.partition('/Adapt/NOvA/mcmc_')
-                x_val.append(after) 
+        
+        conf_matrix = confusion_matrix(true_vals, pred_vals)    
+        if norm == True:
+            cm_normalized = self.normalise_confusion_matrix(conf_matrix, 'all')
 
-        
-        conf_matrix = confusion_matrix(true_vals, pred_vals) # confusion matrix code
-        sns.heatmap(conf_matrix, 
-            annot=True,
-            fmt='g',
-            xticklabels=x_val,
-            yticklabels=x_val)
-                
-        plt.ylabel('Actual', fontsize=13)
-        plt.title('Confusion Matrix', fontsize=17, pad=12)
-        plt.gca().xaxis.set_label_position('top') 
-        plt.xlabel('Prediction', fontsize=13)
-        plt.gca().xaxis.tick_top()
-        plt.xticks(rotation=45)
-        plt.show()
-        
+            sns.heatmap(cm_normalized, annot=True, fmt='.2f', cmap='Blues', xticklabels=x_val, yticklabels=x_val)
+            plt.ylabel('Actual', fontsize=13)
+            plt.title('Confusion Matrix', fontsize=17, pad=12)
+            plt.gca().xaxis.set_label_position('top') 
+            plt.xlabel('Prediction', fontsize=13)
+            plt.gca().xaxis.tick_top()
+            plt.xticks(rotation=45)
+            plt.show()
+
+        elif norm == False:
+            sns.heatmap(conf_matrix, 
+                annot=True,
+                fmt='g',
+                xticklabels=x_val,
+                yticklabels=x_val)
+                    
+            plt.ylabel('Actual', fontsize=13)
+            plt.title('Confusion Matrix', fontsize=17, pad=12)
+            plt.gca().xaxis.set_label_position('top') 
+            plt.xlabel('Prediction', fontsize=13)
+            plt.gca().xaxis.tick_top()
+            plt.xticks(rotation=45)
+            plt.show()
+
+        elif norm == 'None' or 'none':
+            pass
+
+
         #calc of R*
         pred_acc = classification_report(true_vals, pred_vals, target_names=None, output_dict=True)['accuracy']
         print(f'predictive accuracy: {pred_acc}')
         R_Star=  pred_acc *num
         print(f'R*: {R_Star}')
         return R_Star
+    
 
-       
+
+    def normalise_confusion_matrix(self, cm, normalise):
+
+        if normalise == 'true':
+            cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        elif normalise == 'pred':
+            cm_normalized = cm.astype('float') / cm.sum(axis=0)[np.newaxis, :]
+        elif normalise == 'all':
+            cm_normalized = cm.astype('float') / cm.sum()
+        else:
+            raise ValueError("Unknown normalization type. Use 'true', 'pred', or 'all'.")
+        
+        return cm_normalized
 
     def getRStar_vals(self, path_l, datapoints): 
         y_value2= []
@@ -449,6 +467,41 @@ class FileMLInterface(ABC):
         return y_value2
         
    
+    def plot_loss(self, model):
+        train_loss = model.train_score_
+        train_loss_list = train_loss.tolist()
+
+        train_loss_list = [abs(x) for x in train_loss_list]# abs val
+
+        x_vals= list(range(1,len(train_loss_list)+1 ))
+
+        w, h = 12, 8             
+        margin = 2
+
+        # create a 1×2 grid of axes
+        fig, axes = plt.subplots(nrows=1, ncols=2,
+                                figsize=(w, h),
+                                facecolor='lightblue')
+
+        fig.subplots_adjust(
+            left=margin/w,         # space on left
+            right=1 - margin/w,    # space on right
+            bottom=margin/h,       # space on bottom
+            top=1 - margin/h,      # space on top
+            wspace=margin/h        # horizontal gap between plots
+        )
+
+        # now you can plot into each axis:
+        axes[0].plot(x_vals, train_loss_list)
+        axes[0].set_title('Training Loss')
+        axes[0].set_xlabel('Epochs')
+        axes[0].set_ylabel('Loss')
+
+        axes[1].loglog(x_vals, train_loss_list)
+        axes[1].set_title('Log - Training Loss')
+        axes[1].set_xlabel('Epochs - Log')
+        axes[1].set_ylabel('Loss - Log')
+        plt.show()
 
     def evaluate_model(self, predicted_values: Iterable, true_values: Iterable, outfile: str=""):
         """Evalulates model

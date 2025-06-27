@@ -3,6 +3,8 @@ from MaCh3PythonUtils.machine_learning.file_ml_interface import FileMLInterface
 from tqdm import tqdm
 import sklearn.ensemble as ske
 from sklearn.metrics import log_loss
+from sklearn.model_selection import RandomizedSearchCV
+
 
 
 """
