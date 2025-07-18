@@ -1,0 +1,8 @@
+*ENV*
+*env*
+*__pycache__*
+*pdf
+*.pkl
+*.keras
+*.egg-info
+build/
