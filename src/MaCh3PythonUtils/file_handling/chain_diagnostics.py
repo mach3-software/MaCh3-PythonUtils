@@ -63,6 +63,7 @@ class ChainDiagnostics:
 
         return fig, axs
     
+        
     def __call__(self, parameter_name: str):
         fig, axs = plt.subplots(2, 2, figsize=(15, 5))
         axs[1][1].remove()
