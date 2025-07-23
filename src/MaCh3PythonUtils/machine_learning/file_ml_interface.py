@@ -301,7 +301,7 @@ class FileMLInterface(ABC):
 
 
     # create test model for classifiers:
-    def test_model_class(self, path_l, norm, model):
+    def test_model_class(self, num_of_chains, norm, model):
         """Test model
 
         :raises ValueError: No model set
@@ -321,7 +321,7 @@ class FileMLInterface(ABC):
         train_as_numpy = model.scale_labels(self._training_labels)#.T[0]
         
         
-        self.evaluate_model_class(train_prediction, train_as_numpy, path_l, norm)
+        self.evaluate_model_class(num_of_chains, train_prediction, train_as_numpy, norm)
 
         #print(f'unscaled data: {self._training_data}')
         #print(f'scaled data: {self.scale_data(self._training_data)}')
@@ -338,7 +338,7 @@ class FileMLInterface(ABC):
         test_as_numpy = model.scale_labels(self._test_labels)#.T[0]
 
         
-        self.evaluate_model_class(test_prediction, test_as_numpy, path_l, norm)
+        self.evaluate_model_class(num_of_chains, test_prediction, test_as_numpy, norm)
         print("=====")  
 
         self.plot_loss(model.model, self._test_labels, self._test_data)
@@ -353,32 +353,24 @@ class FileMLInterface(ABC):
         
 
         
-    def evaluate_model_class(self, pred_vals, true_vals, num, norm):
-        #assigns an index to each .root file (in ascending, starting from 0) and then puts it into a list
-        #this list is then used as input for the labelling for the Confusion Matrixt_fix_no_only.root', '../models/demo_files 2/NoAdapt/T2K/mcmc_NoAdapt_T2K_all_fixed.root', '../models/demo_files 2/NoAdapt/T2K/mcmc_NoAdapt_T2K_all_on.root']:
-        # Automatically extract all class labels from predictions and truth
+    def evaluate_model_class(self, num_of_chains, pred_vals, true_vals, norm):
         
-        ID_list= [i for i in range(num)]
-
+    
         #for e, m in enumerate(mylist):
 
             #ID_list.append(str(e))
         
-        conf_matrix = confusion_matrix(true_vals, pred_vals, labels=list(range(len(ID_list))))
+        conf_matrix = confusion_matrix(true_vals, pred_vals)
         print(conf_matrix)
         print(len(conf_matrix))
-        
-        print(f'length of id list:{len(ID_list)}')
-        
+    
         if norm == True:
             cm_normalized = self.normalise_confusion_matrix(conf_matrix, 'all')
-            sns.heatmap(cm_normalized, annot=True, fmt='.2f', cmap='Blues',
-                xticklabels=ID_list, yticklabels=ID_list, cbar_kws={
+            sns.heatmap(cm_normalized, annot=True, fmt='.2f', cmap='Blues', cbar_kws={
                 'orientation': 'vertical',
                 'ticks': [0, 0.25, 0.5, 0.75, 1.0],
                 'shrink': 0.8
                 }, vmin=0, vmax=1, linewidths=0.5, linecolor='black')
-
             ax = plt.gca()
             plt.rcParams["figure.figsize"] = (10,8)
             plt.ylabel('Actual Chain ID', fontsize=13)
@@ -391,8 +383,7 @@ class FileMLInterface(ABC):
 
 
         elif norm == False:
-            sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues',
-                xticklabels=ID_list, yticklabels=ID_list, cbar_kws={
+            sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues', cbar_kws={
                 'orientation': 'vertical',
                 'ticks': [0, 25000, 50000, 75000, 100000],
                 'shrink': 0.8
@@ -415,11 +406,29 @@ class FileMLInterface(ABC):
         #calc of R*
         pred_acc = classification_report(true_vals, pred_vals, target_names=None, output_dict=True)['accuracy']
         print(f'predictive accuracy: {pred_acc}')
-        R_Star=  pred_acc *num
-        print(f'R*: {R_Star}')
-        return R_Star
-    
+        R_star=  pred_acc * num_of_chains
+        print(f'R*: {R_star}')
 
+        #plots the result of R* into a number scale
+        fig, ax = plt.subplots(figsize=(6, 1.5))
+
+        # Formatting
+        if R_star < 1:
+            ax.set_xlim(R_star-0.1, num_of_chains)
+            ax.hlines(0, R_star-0.1, num_of_chains, linewidth=5, color='#dddddd')
+        elif R_star >= 1:
+            ax.set_xlim(1, num_of_chains)
+            ax.hlines(0, 1, num_of_chains, linewidth=5, color='#dddddd')
+        ax.plot(R_star, 0, '*', markersize=15, color="#fbff00", markeredgecolor='black', markeredgewidth=0.8)           
+        ax.set_ylim(-1, 1)
+        ax.get_yaxis().set_visible(False)
+        ax.set_xlabel(f'R* value for {num_of_chains} chains')
+        ax.set_title(f'R* = {R_star} (Min Value: 1 to Max Value: {num_of_chains})', pad=10)
+
+        plt.tight_layout()
+        plt.show()
+    
+        #return R_star
 
     def normalise_confusion_matrix(self, cm, normalise):
 
@@ -507,42 +516,6 @@ class FileMLInterface(ABC):
         axes.legend()
         plt.legend()
         plt.show()
-
-    '''
-
-    def plot_loss(self, model, y_test, X_test):
-        train_loss = model.train_score_
-        train_loss_list = train_loss.tolist()
-
-        #train_loss_list = [
-        #log_loss(y_train, proba)        
-        #for proba in model.staged_predict_proba(X_train)]
-
-
-        x_vals= list(range(1,len(train_loss_list)+1 ))
-
-        test_losses = [
-        log_loss(y_test, proba)        
-        for proba in model.staged_predict_proba(X_test)]
-        #print(test_losses)
-
-        #train_loss_list= [log_loss(y_train, proba) for proba in model.staged_predict_proba(X_train)]
-        train_loss_list = [abs(x) for x in train_loss_list]# abs val
-        test_losses = [abs(x) for x in test_losses]# abs val
-
-        x_vals2= list(range(1,len(test_losses)+1 ))
-        
-        # now you can plot into each axis:
-        #plt.figure(facecolor='honeydew')
-        plt.plot(x_vals, train_loss_list, label= 'Training Loss')
-        plt.plot(x_vals2, test_losses, label='Testing loss')
-        plt.title('Training and Testing Loss Over Epochs')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.legend()
-        plt.show()
-        '''
-
 
 
 
