@@ -174,8 +174,8 @@ def v2_run_mcmc(ml_model,training_data,min_no,max_no,min_io,max_io):
            #print('flipped priors: '+str(new_priors))
            flipturn += 1
 
-        proposed_L = ml_model.model_predict(new_priors) #returns logL based on new set of priors
-        #proposed_L = ml_model.model_predict_unscale(new_priors) #returns logL based on new set of priors
+        #proposed_L = ml_model.model_predict(new_priors) #returns logL based on new set of priors
+        proposed_L = ml_model.model_predict_unscale(new_priors) #returns logL based on new set of priors
         current_L = current_L.flatten()
         proposed_L = proposed_L.flatten()
 
@@ -284,7 +284,7 @@ trace_ax.set_xlabel('Step')
 ##
 post_ax.hist(delM_values, bins=50, color='r', alpha=0.5, orientation='horizontal', density=True, label=' MCMC Result \n (Combined Chains)')
 post_ax.set_xlabel('Probability Density')
-# Merge the two axes
+#merge the two axes
 plt.setp(post_ax.get_yticklabels(), visible=False)
 fig.subplots_adjust(left=0.15,wspace=.08)
 post_ax.legend()
@@ -299,7 +299,7 @@ trace_ax.set_xlabel('Step')
 ##
 post_ax.hist(x_0, bins=50, color='darkorange', alpha=0.5, orientation='horizontal', density=True, label=' MCMC Result \n (Combined Chains)')
 post_ax.set_xlabel('Probability Density')
-# Merge the two axes
+#merge the two axes
 plt.setp(post_ax.get_yticklabels(), visible=False)
 figA.subplots_adjust(left=0.13,wspace=.1)
 post_ax.legend()
