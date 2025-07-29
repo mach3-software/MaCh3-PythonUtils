@@ -104,6 +104,13 @@ class ConfigReader:
 
         self._file_handler.convert_ttree_to_array()
 
+    def get_settings(self)->dict:
+        """Returns settings for chain
+
+        :return: Settings for chain
+        :rtype: dict
+        """        
+        return self.__chain_settings
     
     def make_ml_interface(self)->None:
         """Generates ML interface objects

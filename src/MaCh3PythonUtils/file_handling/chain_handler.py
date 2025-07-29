@@ -231,3 +231,58 @@ class ChainHandler:
             return np.empty(self.ndim)
         
         return self._ttree_array.max(axis=0).to_numpy()
+    
+
+class MultiChainHandler(ChainHandler):
+    """
+    Class to handle multiple chains, inherits from ChainHandler
+    """
+    def __init__(self, file_names: List[str], ttree_name: str="posteriors", verbose=False, add_id_col: bool = True)->None:
+        """Initialises MultiChainHandler
+
+        :param file_names: List of ROOT files to open
+        :type file_names: List[str]
+        :param ttree_name: Name of TTree contained in ROOT file, defaults to "posteriors"
+        :type ttree_name: str, optional
+        :param verbose: Verbose or not, defaults to False
+        :type verbose: bool, optional
+        """
+        super().__init__(file_names[0], ttree_name, verbose)
+        
+        self._add_id_col = add_id_col
+        self._n_files = len(file_names)
+        
+        self._chain = [ChainHandler(file_name, ttree_name, verbose) for file_name in file_names]
+    
+    @property
+    def n_files(self)->int:
+        """Number of files in the chain
+
+        :return: Number of files
+        :rtype: int
+        """
+        return self._n_files
+    
+    def convert_ttree_to_array(self, close_file=True)->None:
+        """Converts all TTree objects to array
+
+        :param close_file: Do you want to close the ROOT file after calling this method?
+        :type close_file: bool, optional
+        """
+        if not self._is_file_open:
+            raise IOError("Cannot convert TTree to array after input ROOT file is shut")
+
+        for i, chain in enumerate(self._chain):
+            chain.convert_ttree_to_array(close_file=False)
+            if add_id_col:
+                # Add chain ID to each chain
+                chain.ttree_array['chain_id'] = i
+
+
+        # Now we can concatenate all the arrays together
+        self._ttree_array = pd.concat([chain.ttree_array for chain in self._chain], ignore_index=True)
+
+        if close_file:
+            self.close_file()
+
+        gc.collect()

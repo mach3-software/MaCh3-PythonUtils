@@ -40,4 +40,3 @@ class SciKitInterface(FileMLInterface):
             raise ValueError("No Model has been set!")
 
         return self._model.predict(scale_data)
-    

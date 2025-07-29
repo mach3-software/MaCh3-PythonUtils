@@ -25,7 +25,8 @@ class MLFactory:
             "randomforest"  : ske.RandomForestRegressor,
             "gradientboost" : ske.GradientBoostingRegressor,
             "adaboost"      : ske.AdaBoostRegressor,
-            "histboost"     : ske.HistGradientBoostingRegressor
+            "histboost"     : ske.HistGradientBoostingRegressor,
+            "histboostclassifier": ske.HistGradientBoostingClassifier,
         },
         "tensorflow": {
             "sequential" : TfSequentialModel,
@@ -145,4 +146,3 @@ class MLFactory:
         
             case _:
                 raise Exception(f"{interface_type} not implemented!")
-            
