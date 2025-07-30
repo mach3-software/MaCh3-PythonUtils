@@ -2,10 +2,11 @@ from MaCh3PythonUtils.file_handling.chain_handler import ChainHandler
 
 from abc import ABC, abstractmethod
 from typing import Any, Tuple, Iterable, Optional
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, StratifiedKFold
 import pandas as pd
 import numpy as np
 import pickle
+from rich import print
 
 from sklearn.preprocessing import StandardScaler
 
@@ -68,7 +69,9 @@ class FileMLInterface(ABC):
         """        
         # Splits in traing + test_spit
         features, labels = self.__separate_dataframe()
-        self._training_data, self._test_data, self._training_labels, self._test_labels =  train_test_split(features, labels, test_size=test_size)
+        
+        self._training_data, self._test_data, self._training_labels, self._test_labels =  train_test_split(features, labels, 
+                                                                                                           test_size=test_size)
 
         # Fit scaling pre-processors. These get applied properly when scale_data is called
         self._scaler.fit(self._training_data)
@@ -117,6 +120,15 @@ class FileMLInterface(ABC):
 
         return self._training_labels
 
+    @training_labels.setter
+    def training_labels(self, labels: pd.DataFrame):
+        """Sets training labels
+
+        :param labels: Labels to set
+        :type labels: pd.DataFrame
+        """        
+        self._training_labels = labels
+
     @property
     def training_data(self)->pd.DataFrame:
         """Gets training data
@@ -126,8 +138,19 @@ class FileMLInterface(ABC):
         """        
         if self._training_data is None:
             return self._chain.ttree_array.iloc[:,:-1]
-
+        
         return self._training_data
+    
+    @training_data.setter
+    def training_data(self, data: pd.DataFrame):
+        """Sets training data
+
+        :param data: Data to set
+        :type data: pd.DataFrame
+        """        
+        
+        self._scaler.fit(data)
+        self._training_data = data
 
     @property
     def scaled_training_data(self)->pd.DataFrame:
@@ -164,6 +187,16 @@ class FileMLInterface(ABC):
             return self._chain.ttree_array.iloc[:,-1]
         return self._test_labels
 
+    @test_labels.setter
+    def test_labels(self, labels: pd.DataFrame):
+        """Sets test labels
+
+        :param labels: Labels to set
+        :type labels: pd.DataFrame
+        """        
+        self._label_scaler.fit(labels)
+        self._test_labels = labels
+
     @property
     def scaled_test_labels(self)->pd.DataFrame:
         """Gets scaled test labels
@@ -188,6 +221,15 @@ class FileMLInterface(ABC):
             return self._chain.ttree_array.iloc[:,:-1]
         
         return self._test_data
+
+    @test_data.setter
+    def test_data(self, data: pd.DataFrame):
+        """Sets test data
+
+        :param data: Data to set
+        :type data: pd.DataFrame
+        """        
+        self._test_data = data
 
     @property
     def scaled_test_data(self)->pd.DataFrame:
@@ -260,8 +302,9 @@ class FileMLInterface(ABC):
         
         if testing_data is None and self._test_data is not None:
             testing_data = self._test_data
-        else:
-            raise Exception(f"[bold red3]No test data set![/bold red3]")            
+            
+        if testing_data is None:
+            raise Exception(f"No test data set!")
 
         if np.ndim(testing_data) == 1:
             testing_data = testing_data.reshape(-1, 1)

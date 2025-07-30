@@ -13,10 +13,8 @@ from MaCh3PythonUtils.machine_learning.tensorflow.tf_interface import TfInterfac
 
 from MaCh3PythonUtils.machine_learning.torch.torch_interface import TorchInterface
 
-from MaCh3PythonUtils.file_handling.chain_handler import ChainHandler
+from MaCh3PythonUtils.file_handling.chain_handler import ChainProtocol
 import sklearn.ensemble as ske
-import tensorflow.keras as tfk
-
 
 class MLFactory:
     # Implement algorithms here
@@ -39,11 +37,11 @@ class MLFactory:
         }
     }
 
-    def __init__(self, input_chain: ChainHandler, prediction_variable: str, plot_name: str):
+    def __init__(self, input_chain: ChainProtocol, prediction_variable: str, plot_name: str):
         """Constructor for ML factory method
 
-        :param input_chain: ChainHandler instance
-        :type input_chain: ChainHandler
+        :param input_chain: ChainProtocol instance
+        :type input_chain: ChainProtocol
         :param prediction_variable: Variable we want to predict the value of
         :type prediction_variable: str
         """        

@@ -14,7 +14,6 @@ class SciKitInterface(FileMLInterface):
         :raises ValueError: Model not initialised
         :raises ValueError: Data set not initialised
         """        
-        print(f"Training Model")
         scaled_data = self.scale_data(self._training_data)
         
         if self._model is None:

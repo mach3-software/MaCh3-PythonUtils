@@ -3,12 +3,43 @@ Python tool to load in some generic TTree objects and export to numpy array/pand
 '''
 import uproot as ur
 import pandas as pd
-from typing import List, Union, Any
+from typing import List, Union, Any, Protocol
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 import gc
 import numpy as np
 from numpy.typing import NDArray
+
+class ChainProtocol(Protocol):
+    """Protocol defining the interface for chain handlers."""
+    
+    @property
+    def plot_branches(self) -> List[str]: ...
+    
+    @plot_branches.setter
+    def plot_branches(self, useful_branches: List[str]) -> None: ...
+    
+    def add_additional_plots(self, additional_branches: List[str] | str, exact: bool = False) -> None: ...
+    
+    def ignore_plots(self, ignored_branches: List[str] | str) -> None: ...
+    
+    def add_new_cuts(self, new_cuts: Union[str, List[str]]) -> None: ...
+    
+    def convert_ttree_to_array(self, close_file: bool = True) -> None: ...
+    
+    def close_file(self) -> None: ...
+    
+    @property
+    def ttree_array(self) -> pd.DataFrame: ...
+    
+    @property
+    def ndim(self) -> int: ...
+    
+    @property
+    def lower_bounds(self) -> NDArray: ...
+    
+    @property
+    def upper_bounds(self) -> NDArray: ...
 
 class ChainHandler:
     """
@@ -233,56 +264,115 @@ class ChainHandler:
         return self._ttree_array.max(axis=0).to_numpy()
     
 
-class MultiChainHandler(ChainHandler):
+class MultiChainHandler:
     """
-    Class to handle multiple chains, inherits from ChainHandler
+    Wrapper class to handle multiple chains, applies all ChainHandler methods to all chains.
+    Implements ChainProtocol for consistent interface.
     """
     def __init__(self, file_names: List[str], ttree_name: str="posteriors", verbose=False, add_id_col: bool = True)->None:
-        """Initialises MultiChainHandler
-
-        :param file_names: List of ROOT files to open
-        :type file_names: List[str]
-        :param ttree_name: Name of TTree contained in ROOT file, defaults to "posteriors"
-        :type ttree_name: str, optional
-        :param verbose: Verbose or not, defaults to False
-        :type verbose: bool, optional
-        """
-        super().__init__(file_names[0], ttree_name, verbose)
-        
         self._add_id_col = add_id_col
         self._n_files = len(file_names)
-        
         self._chain = [ChainHandler(file_name, ttree_name, verbose) for file_name in file_names]
-    
+
     @property
     def n_files(self)->int:
-        """Number of files in the chain
-
-        :return: Number of files
-        :rtype: int
-        """
         return self._n_files
+
+    def close_file(self) -> None:
+        """Close all chain files."""
+        for chain in self._chain:
+            chain.close_file()
     
+    def add_additional_plots(self, additional_branches: List[str] | str, exact=False) -> None:
+        """Add additional plotting branches to all chains."""
+        for chain in self._chain:
+            chain.add_additional_plots(additional_branches, exact)
+    
+    def ignore_plots(self, ignored_branches: List[str] | str) -> None:
+        """Ignore specified branches in all chains."""
+        for chain in self._chain:
+            chain.ignore_plots(ignored_branches)
+    
+    def add_new_cuts(self, new_cuts: Union[str, List[str]]) -> None:
+        """Add cuts to all chains."""
+        for chain in self._chain:
+            chain.add_new_cuts(new_cuts)
+    
+    @property
+    def ndim(self) -> int:
+        """Get number of dimensions from the combined array."""
+        if hasattr(self, '_ttree_array') and self._ttree_array is not None:
+            return self._ttree_array.shape[1]
+        elif len(self._chain) > 0:
+            return self._chain[0].ndim
+        return 0
+
     def convert_ttree_to_array(self, close_file=True)->None:
-        """Converts all TTree objects to array
-
-        :param close_file: Do you want to close the ROOT file after calling this method?
-        :type close_file: bool, optional
-        """
-        if not self._is_file_open:
-            raise IOError("Cannot convert TTree to array after input ROOT file is shut")
-
+        # Special handling to concatenate arrays and add chain_id
         for i, chain in enumerate(self._chain):
             chain.convert_ttree_to_array(close_file=False)
-            if add_id_col:
-                # Add chain ID to each chain
+            if self._add_id_col:
                 chain.ttree_array['chain_id'] = i
-
-
-        # Now we can concatenate all the arrays together
-        self._ttree_array = pd.concat([chain.ttree_array for chain in self._chain], ignore_index=True)
-
+        self._ttree_array = pd.concat([chain.ttree_array for chain in self._chain])        
         if close_file:
             self.close_file()
-
         gc.collect()
+
+    @property
+    def ttree_array(self)->pd.DataFrame:
+        '''
+        Getter for the converted TTree array
+        :return: Table containing TTree in non-ROOT format
+        :rtype: Union[np.array, pd.DataFrame, ak.Array]
+        '''
+        return self._ttree_array
+
+ 
+    @property
+    def lower_bounds(self)->NDArray:
+        # Lower bounds for all params
+        if self._ttree_array is None:    
+            return np.empty(self.ndim)
+        return self._ttree_array.min(axis=0).to_numpy()
+
+    @property
+    def upper_bounds(self)->NDArray:
+        # Upper bounds for all params
+        if self._ttree_array is None:    
+            return np.empty(self.ndim)
+        
+        return self._ttree_array.max(axis=0).to_numpy()
+
+
+    @property
+    def plot_branches(self)->List[str]:
+        '''
+        Getter for list of useful branches
+        :return: List of branches used in file
+        :rtype: list
+        '''
+        return self._chain[0]._plotting_branches
+    
+    @plot_branches.setter
+    def plot_branches(self, useful_branches: List[str]) -> None:
+        """Set plotting branches for all chains."""
+        for chain in self._chain:
+            chain.plot_branches = useful_branches
+    
+    def get_individual_results(self, method_name: str, *args, **kwargs) -> List[Any]:
+        """
+        Call a method on all individual chains and return list of results.
+        Useful when you need results from each chain separately.
+        """
+        results = []
+        for chain in self._chain:
+            method = getattr(chain, method_name)
+            results.append(method(*args, **kwargs))
+        return results
+    
+    def get_individual_properties(self, property_name: str) -> List[Any]:
+        """
+        Get a property value from all individual chains.
+        Useful when you need property values from each chain separately.
+        """
+        return [getattr(chain, property_name) for chain in self._chain]

@@ -21,6 +21,11 @@ keras_tuner
 mplhep
 seaborn
 psutil
+ipython
+rich
+ipykernel
+gdown
+ipywidgets
 
 # Documentation generation
 sphinx
