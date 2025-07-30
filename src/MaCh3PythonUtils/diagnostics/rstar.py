@@ -1,24 +1,25 @@
+
 from sklearn.metrics import classification_report
-from typing import TypedDict, List, Optional
-from rich import print as rprint
+from typing import TypedDict, List
 import numpy as np
-import pandas as pd
+import multiprocessing as mp 
 from tqdm import tqdm_notebook
 import matplotlib.pyplot as plt
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import multiprocessing as mp 
-from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from rich import print as rprint
+from sklearn.metrics import log_loss
 
 from MaCh3PythonUtils.machine_learning.file_ml_interface import FileMLInterface
 from MaCh3PythonUtils.machine_learning.ml_factory import MLFactory
 from MaCh3PythonUtils.machine_learning.diagnostics import MLDiagnostics
 from MaCh3PythonUtils.file_handling.chain_handler import MultiChainHandler
 
-'''
-Application class for R* diagnostics.
-'''
 class RStarOutput(TypedDict):
+    '''
+    Application class for R* diagnostics.
+    '''
     train_rstar: List[float]
     train_rstar_mean:  np.float32
     train_rstar_std: np.float32
@@ -57,44 +58,19 @@ class RStar:
             factory.make_interface("scikit", algorithm, **kwargs) for _ in tqdm_notebook(range(n_iterations), desc="Creating Models")
         ]
                 
-        # Create different train/test splits for each model using only indices
-        self._train_indices = []
-        self._test_indices = []
         
         rprint(f"[green]Creating {n_iterations} different train/test splits...[/green]")
                 
         # Now assign data to each model using the indices (working with internal attributes)
-        def assign_data_to_model(model: FileMLInterface):
-            """Helper function to assign data to a single model."""
-
-            train_idx, test_idx = train_test_split(
-                np.arange(len(self.chain_handler.ttree_array)),
-                test_size=self._test_size,
-            )
-
-            # Set the internal attributes directly
-            model._training_data = self.chain_handler.ttree_array.iloc[train_idx]
-            model._training_labels = self.chain_handler.ttree_array.iloc[train_idx]
-            model._test_data = self.chain_handler.ttree_array.iloc[test_idx]
-            model._test_labels = self.chain_handler.ttree_array.iloc[train_idx]
-    
         
         rprint(f"[green]Assigning data to {len(self.models)} models in parallel...[/green]")
-        with ThreadPoolExecutor(max_workers=mp.cpu_count()) as executor:
-            # Submit all data assignment tasks
-            futures = [
-                executor.submit(assign_data_to_model, model) 
-                for model in self.models
-            ]
-            
-            
-            # Use tqdm to track progress
-            for future in tqdm_notebook(as_completed(futures), total=len(futures), desc="Assigning Data"):
-                future.result()  # Get the result to ensure any exceptions are raised
-        
+        for model in tqdm_notebook(self.models, desc="Assigning Data"):
+            model.set_training_test_set(self._test_size)
+
+        rprint(f"[cyan]Using {self._n_files} files for R* diagnostics, with a training set containing [bold green]{len(self.models[0].train_labels)}[/bold green] entries and a testing set containing [bold green]{len(self.models[0].test_labels)}[/bold green] entries[/cyan]")
+
         self._trained = False
         rprint(f"[bold green]Initialised RStar with {len(self.models)} models using {algorithm} algorithm[/bold green]")
-        rprint(f"[green]Each model has a unique train/test split (seed base: {self._random_seed})[/green]")
         
         
     def train_models(self):
@@ -140,7 +116,8 @@ class RStar:
        
         # Just in case we get get a dictionary
         if isinstance(report, str):
-            report = eval(report)
+            import json
+            report = json.loads(report)
         
         pred_acc = report.get('accuracy', 0)
         

@@ -4,7 +4,7 @@ import tensorflow.keras as tfk
 
 class TfResidualModel(TfManualLayeredInterface):
     def build_model(self, **kwargs):
-        input_shape = self.training_data.shape[1:]  # Assuming shape is (batch_size, features)
+        input_shape = self.train_data.shape[1:]  # Assuming shape is (batch_size, features)
         network_input = tfk.layers.Input(shape=input_shape)
 
         # Initial layer

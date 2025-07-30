@@ -14,15 +14,15 @@ class SciKitInterface(FileMLInterface):
         :raises ValueError: Model not initialised
         :raises ValueError: Data set not initialised
         """        
-        scaled_data = self.scale_data(self._training_data)
+        scaled_data = self.scaled_train_data
         
         if self._model is None:
             raise ValueError("No Model has been set!")
         
-        if self._training_data is None or self._training_labels is None:
+        if self.scaled_train_data is None or self.scaled_train_labels is None:
             raise ValueError("No test data set")
         
-        self._model.fit(scaled_data, self._training_labels)
+        self._model.fit(scaled_data, self.scaled_train_labels)
         
     def model_predict(self, test_data: DataFrame)->list:
         """Gets model prediction

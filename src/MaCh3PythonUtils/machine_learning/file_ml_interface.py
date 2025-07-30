@@ -1,13 +1,13 @@
 from MaCh3PythonUtils.file_handling.chain_handler import ChainHandler
 
 from abc import ABC, abstractmethod
-from typing import Any, Tuple, Iterable, Optional
-from sklearn.model_selection import train_test_split, StratifiedKFold
+from typing import Any, Optional
 import pandas as pd
 import numpy as np
 import pickle
 from rich import print
 
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from rich import print
@@ -39,43 +39,30 @@ class FileMLInterface(ABC):
         
         self._model = None
         
-        self._training_data=None
-        self._training_labels=None
-        self._test_data=None
-        self._test_labels=None
-
         # Scaling components        
         self._scaler = StandardScaler(with_mean=scale_features, with_std=scale_features)
         self._label_scaler = StandardScaler(with_mean=scale_labels, with_std=scale_labels)
         
+        # Defaults
+        self._train_data_indices = np.arange(len(self._chain.ttree_array))
+        self._test_data_indices = np.arange(len(self._chain.ttree_array))
             
-    def __separate_dataframe(self)->Tuple[pd.DataFrame, pd.DataFrame]:
-        """Split data frame into feature + label objects
-
-        :return: features, labels
-        :rtype: Tuple[pd.DataFrame, pd.DataFrame]
-        """        
-        # Separates dataframe into features + labels
-        features = self._chain.ttree_array.copy()
-        labels   = pd.DataFrame(features.pop(self._prediction_variable) )
-        
-        return features, labels
-    
     def set_training_test_set(self, test_size: float):
         """Splits data/labels into training and testing tests
 
         :param test_size: Proportion of data used for testing
         :type test_size: float
         """        
-        # Splits in traing + test_spit
-        features, labels = self.__separate_dataframe()
-        
-        self._training_data, self._test_data, self._training_labels, self._test_labels =  train_test_split(features, labels, 
-                                                                                                           test_size=test_size)
+        # Splits in traing + test_spit        
+        self._train_data_indices, self._test_data_indices = train_test_split(
+            np.arange(len(self._chain.ttree_array)), test_size=test_size, random_state=42, shuffle=True
+        )
 
         # Fit scaling pre-processors. These get applied properly when scale_data is called
-        self._scaler.fit(self._training_data)
-        self._label_scaler.fit(self._training_labels)
+        
+        
+        self._scaler.fit(self.train_data)
+        self._label_scaler.fit(self.train_labels)
         
         # self._pca_matrix.fit(scaled_training)
 
@@ -109,93 +96,51 @@ class FileMLInterface(ABC):
         return self._chain
 
     @property
-    def training_labels(self)->pd.DataFrame:
+    def train_labels(self)->pd.Series:
         """Gets training labels
 
         :return: Training labels set
         :rtype: pd.DataFrame
         """        
-        if self._training_labels is None:
-            return self._chain.ttree_array.iloc[:,-1]
-
-        return self._training_labels
-
-    @training_labels.setter
-    def training_labels(self, labels: pd.DataFrame):
-        """Sets training labels
-
-        :param labels: Labels to set
-        :type labels: pd.DataFrame
-        """        
-        self._training_labels = labels
+        return self.chain.ttree_array.iloc[self._train_data_indices][[self._prediction_variable]]
 
     @property
-    def training_data(self)->pd.DataFrame:
+    def train_data(self)->pd.DataFrame:
         """Gets training data
 
         :return: Training data set
         :rtype: pd.DataFrame
         """        
-        if self._training_data is None:
-            return self._chain.ttree_array.iloc[:,:-1]
-        
-        return self._training_data
+        return self.chain.ttree_array.iloc[self._train_data_indices].drop(columns=[self._prediction_variable])
     
-    @training_data.setter
-    def training_data(self, data: pd.DataFrame):
-        """Sets training data
-
-        :param data: Data to set
-        :type data: pd.DataFrame
-        """        
-        
-        self._scaler.fit(data)
-        self._training_data = data
 
     @property
-    def scaled_training_data(self)->pd.DataFrame:
+    def scaled_train_data(self)->pd.DataFrame:
         """Gets scaled training data
 
         :return: Scaled training data set
         :rtype: pd.DataFrame
         """        
-        if self._training_data is None:
-            return self._chain.ttree_array.iloc[:,:-1]
-
-        return self.scale_data(self._training_data)
+        return self.scale_data(self.train_data)
     
     @property
-    def scaled_training_labels(self)->pd.DataFrame:
+    def scaled_train_labels(self)->pd.DataFrame:
         """Gets scaled training labels
 
         :return: Scaled training labels set
         :rtype: pd.DataFrame
         """        
-        if self._training_labels is None:
-            return self._chain.ttree_array.iloc[:,-1]
-
-        return self.scale_labels(self._training_labels)
+        return self.scale_labels(self.train_labels)
     
     @property
-    def test_labels(self)->pd.DataFrame:
+    def test_labels(self)->pd.Series:
         """Gets test labels
 
         :return: Test labels set
         :rtype: pd.DataFrame
         """        
-        if self._test_labels is None:
-            return self._chain.ttree_array.iloc[:,-1]
-        return self._test_labels
+        return self.chain.ttree_array.iloc[self._test_data_indices][[self._prediction_variable]]
 
-    @test_labels.setter
-    def test_labels(self, labels: pd.DataFrame):
-        """Sets test labels
-
-        :param labels: Labels to set
-        :type labels: pd.DataFrame
-        """        
-        self._label_scaler.fit(labels)
-        self._test_labels = labels
 
     @property
     def scaled_test_labels(self)->pd.DataFrame:
@@ -204,10 +149,7 @@ class FileMLInterface(ABC):
         :return: Scaled test labels set
         :rtype: pd.DataFrame
         """        
-        if self._test_labels is None:
-            return self._chain.ttree_array.iloc[:,-1]
-        
-        return self.scale_labels(self._test_labels)
+        return self.scale_labels(self.test_labels)
 
 
     @property
@@ -217,19 +159,7 @@ class FileMLInterface(ABC):
         :return: Training data set
         :rtype: pd.DataFrame
         """ 
-        if self._test_data is None:
-            return self._chain.ttree_array.iloc[:,:-1]
-        
-        return self._test_data
-
-    @test_data.setter
-    def test_data(self, data: pd.DataFrame):
-        """Sets test data
-
-        :param data: Data to set
-        :type data: pd.DataFrame
-        """        
-        self._test_data = data
+        return self.chain.ttree_array.iloc[self._test_data_indices].drop(columns=[self._prediction_variable])
 
     @property
     def scaled_test_data(self)->pd.DataFrame:
@@ -238,9 +168,7 @@ class FileMLInterface(ABC):
         :return: Scaled test data set
         :rtype: pd.DataFrame
         """        
-        if self._test_data is None:
-            return self._chain.ttree_array.iloc[:,:-1]
-        return self.scale_data(self._test_data)
+        return self.scale_data(self.test_data)
 
     
     def add_model(self, ml_model: Any)->None:
@@ -260,7 +188,7 @@ class FileMLInterface(ABC):
         pass
     
     @abstractmethod
-    def model_predict(self, testing_data: pd.DataFrame)->Iterable:
+    def model_predict(self, testing_data: pd.DataFrame):
         """Abstract method, should return model prediction
 
         :param testing_data: Data to test model on 
@@ -294,14 +222,14 @@ class FileMLInterface(ABC):
         with open(input_model, 'rb') as f:
             self._model = pickle.load(f)
         
-    def test_model(self, testing_data: Optional[pd.DataFrame] = None)->Iterable:
+    def test_model(self, testing_data: Optional[pd.DataFrame] = None):
         """Test model
         """    
         if self._model is None:
             raise ValueError("No model has been set!")
         
-        if testing_data is None and self._test_data is not None:
-            testing_data = self._test_data
+        if testing_data is None and self.test_data is not None:
+            testing_data = self.test_data
             
         if testing_data is None:
             raise Exception(f"No test data set!")

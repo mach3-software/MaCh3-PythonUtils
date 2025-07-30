@@ -3,13 +3,13 @@ ML Factory implementation, effectively a selector for making models
 """
 
 from MaCh3PythonUtils.machine_learning.scikit.scikit_interface import SciKitInterface
-from MaCh3PythonUtils.machine_learning.tensorflow.tf_autotune_interface import TfAutotuneInterface
-from MaCh3PythonUtils.machine_learning.tensorflow.tf_sequential_model import TfSequentialModel
-from MaCh3PythonUtils.machine_learning.tensorflow.tf_residual_model import TfResidualModel
-from MaCh3PythonUtils.machine_learning.tensorflow.tf_normalizing_flow_model import TfNormalizingFlowModel
+# from MaCh3PythonUtils.machine_learning.tensorflow.tf_autotune_interface import TfAutotuneInterface
+# from MaCh3PythonUtils.machine_learning.tensorflow.tf_sequential_model import TfSequentialModel
+# from MaCh3PythonUtils.machine_learning.tensorflow.tf_residual_model import TfResidualModel
+# from MaCh3PythonUtils.machine_learning.tensorflow.tf_normalizing_flow_model import TfNormalizingFlowModel
 
-from MaCh3PythonUtils.machine_learning.tensorflow.tf_manual_interface import TfManualLayeredInterface
-from MaCh3PythonUtils.machine_learning.tensorflow.tf_interface import TfInterface
+# from MaCh3PythonUtils.machine_learning.tensorflow.tf_manual_interface import TfManualLayeredInterface
+# from MaCh3PythonUtils.machine_learning.tensorflow.tf_interface import TfInterface
 
 from MaCh3PythonUtils.machine_learning.torch.torch_interface import TorchInterface
 
@@ -26,12 +26,12 @@ class MLFactory:
             "histboost"     : ske.HistGradientBoostingRegressor,
             "histboostclassifier": ske.HistGradientBoostingClassifier,
         },
-        "tensorflow": {
-            "sequential" : TfSequentialModel,
-            "residual": TfResidualModel,
-            "normalizing_flow": TfNormalizingFlowModel,
-            "autotune": TfAutotuneInterface
-        },
+        # "tensorflow": {
+        #     "sequential" : TfSequentialModel,
+        #     "residual": TfResidualModel,
+        #     "normalizing_flow": TfNormalizingFlowModel,
+        #     "autotune": TfAutotuneInterface
+        # },
         "torch": {
             "sequential": TorchInterface
         }
@@ -92,30 +92,30 @@ class MLFactory:
         return interface    
         
     
-    def __make_tensorflow_layered_model(self, interface: TfManualLayeredInterface, layers: dict)->TfManualLayeredInterface:
-        for layer in layers:
-            layer_id = list(layer.keys())[0]                
-            interface.add_layer(layer_id, layer[layer_id].copy())
+    # def __make_tensorflow_layered_model(self, interface: TfManualLayeredInterface, layers: dict)->TfManualLayeredInterface:
+    #     for layer in layers:
+    #         layer_id = list(layer.keys())[0]                
+    #         interface.add_layer(layer_id, layer[layer_id].copy())
 
-        return interface
+    #     return interface
 
-    def __make_tensorflow_model(self, algorithm: str, **kwargs)->TfInterface:
-        model_func = self.__IMPLEMENTED_ALGORITHMS["tensorflow"].get(algorithm.lower(), None)
+    # def __make_tensorflow_model(self, algorithm: str, **kwargs)->TfInterface:
+    #     model_func = self.__IMPLEMENTED_ALGORITHMS["tensorflow"].get(algorithm.lower(), None)
         
-        if model_func is None:
-            raise Exception(f"Cannot find {algorithm}")
+    #     if model_func is None:
+    #         raise Exception(f"Cannot find {algorithm}")
         
-        model: TfInterface = model_func(self._chain, self._prediction_variable, self._plot_name)
+    #     model: TfInterface = model_func(self._chain, self._prediction_variable, self._plot_name)
 
-        # Ugh
-        if algorithm=="sequential" or algorithm=="residual":
-            model = self.__make_tensorflow_layered_model(model, kwargs["Layers"])
-            model.set_training_settings(kwargs.get("FitSettings"))
+    #     # Ugh
+    #     if algorithm=="sequential" or algorithm=="residual":
+    #         model = self.__make_tensorflow_layered_model(model, kwargs["Layers"])
+    #         model.set_training_settings(kwargs.get("FitSettings"))
 
 
-        model.build_model(**kwargs["BuildSettings"])
+    #     model.build_model(**kwargs["BuildSettings"])
         
-        return model
+    #     return model
     
     def __make_torch_model(self, algorithm: str, **kwargs)->TorchInterface:
         model_func = self.__IMPLEMENTED_ALGORITHMS["torch"].get(algorithm.lower(), None)
@@ -138,7 +138,8 @@ class MLFactory:
             case "scikit":
                 return self.__make_scikit_model(algorithm, **kwargs)
             case "tensorflow":
-                return self.__make_tensorflow_model(algorithm, **kwargs)
+                raise NotImplementedError("TensorFlow interface is not implemented in this version.")
+                # return self.__make_tensorflow_model(algorithm, **kwargs)
             case "torch":
                 return self.__make_torch_model(algorithm, **kwargs)
         

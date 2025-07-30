@@ -66,8 +66,6 @@ class TorchInterface(FileMLInterface):
 
 
     def train_model(self):
-        scaled_data = self.to_tensor(self.scale_data(self._training_data))
-        scaled_labels = self.to_tensor(self.scale_labels(self._training_labels))
 
         loss = torch.nn.MSELoss()
         self._learning_rate = self._fit_settings.get("learning_rate", 1e-5)
@@ -87,7 +85,7 @@ class TorchInterface(FileMLInterface):
 
 
         for i in (pbar:=tqdm_notebook(range(num_epochs), desc="Training model", unit="epoch")):
-            self.model_training_iter(scaled_data, scaled_labels, loss, self._learning_rate, debug, i)
+            self.model_training_iter(self.scaled_train_data, self.scaled_train_labels, loss, self._learning_rate, debug, i)
             pbar.set_description(f"Epoch {i+1}/{num_epochs} - Loss: {self._loss_vals[i]:.5f}")
 
             # Early stopping
