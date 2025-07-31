@@ -45,7 +45,7 @@ class XGBoostInterface(FileMLInterface):
         )
 
         self._model.fit(self.scaled_train_data[train_indices], self.scaled_train_labels[train_indices],
-                        eval_set=[(self.scaled_train_data[val_indices], self.scaled_train_labels[val_indices])],
+                        # eval_set=[(self.scaled_train_data[val_indices], self.scaled_train_labels[val_indices])],
                         verbose=False)
 
     def model_predict(self, test_data: DataFrame) -> np.ndarray:

@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 import gc
 import numpy as np
 from numpy.typing import NDArray
+from tqdm.auto import tqdm
 
 class ChainProtocol(Protocol):
     """Protocol defining the interface for chain handlers."""
@@ -309,14 +310,27 @@ class MultiChainHandler:
 
     def convert_ttree_to_array(self, close_file=True)->None:
         # Special handling to concatenate arrays and add chain_id
-        for i, chain in enumerate(self._chain):
+        self._ttree_array = None
+        for i, chain in tqdm(enumerate(self._chain), desc="Converting TTrees", total=len(self._chain)):
             chain.convert_ttree_to_array(close_file=False)
             if self._add_id_col:
                 chain.ttree_array['chain_id'] = i
-        self._ttree_array = pd.concat([chain.ttree_array for chain in self._chain])        
-        if close_file:
-            self.close_file()
-        gc.collect()
+        # Concatenate DataFrames one by one to reduce memory usage
+            if self._ttree_array is None:    
+                # Use the original array instead of copying to save memory
+                self._ttree_array = chain.ttree_array
+            else:
+                self._ttree_array = pd.concat([self._ttree_array, chain.ttree_array], ignore_index=True)
+                # Free memory from individual chain
+            chain._ttree_array = None  # Free memory from individual chain
+            # Now we can free memory from the individual chain
+            chain.close_file()  # Close the file to free up resources
+            gc.collect()
+    
+        # Get total amount of memory used
+        if self._ttree_array is not None:
+            total_memory_used = self._ttree_array.memory_usage(deep=True).sum()
+            print(f"Total memory used by concatenated TTree array: {total_memory_used / 1e6:.2f} MB")
 
     @property
     def ttree_array(self)->pd.DataFrame:
@@ -325,6 +339,8 @@ class MultiChainHandler:
         :return: Table containing TTree in non-ROOT format
         :rtype: Union[np.array, pd.DataFrame, ak.Array]
         '''
+        if self._ttree_array is None:
+            raise ValueError("TTree array has not been converted yet. Call convert_ttree_to_array() first.")
         return self._ttree_array
 
  

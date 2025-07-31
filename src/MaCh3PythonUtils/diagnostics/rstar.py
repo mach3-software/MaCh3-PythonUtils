@@ -65,6 +65,10 @@ class RStar:
             for model in tqdm_notebook(self.models, desc="Assigning Data"):
                 futures.append(executor.submit(model.set_training_test_set, self._test_size))
 
+        # Wait for all futures to complete
+        for future in futures:
+            future.result()
+
 
         rprint(f"[cyan]Using {self._n_files} files for R* diagnostics, with a training set containing [bold green]{len(self.models[0].train_labels)}[/bold green] entries and a testing set containing [bold green]{len(self.models[0].test_labels)}[/bold green] entries[/cyan]")
 
@@ -104,10 +108,10 @@ class RStar:
             min_bin = min(rstars)
             
         
-        plt.hist(rstars, bins=np.linspace(min_bin, self._n_files, 100, dtype=np.float32),
+        plt.hist(rstars, bins=np.linspace(min_bin, self._n_files, 100).tolist(),
                 color='blue', alpha=0.7)
         # Add a vertical line at the mean
-        mean_rstar = np.mean(rstars)
+        mean_rstar = float(np.mean(rstars))
         plt.axvline(mean_rstar, color='red', linestyle='dashed', linewidth=1, label=f'Mean R*: {mean_rstar:.2f}')
         plt.title('Histogram of R* Values')
         plt.xlabel('R* Value')

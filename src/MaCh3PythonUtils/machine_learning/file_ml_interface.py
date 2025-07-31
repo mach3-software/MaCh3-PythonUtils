@@ -53,16 +53,21 @@ class FileMLInterface(ABC):
         :param test_size: Proportion of data used for testing
         :type test_size: float
         """        
-        # Splits in traing + test_spit        
+        # Splits in training + test_split        
         self._train_data_indices, self._test_data_indices = train_test_split(
             np.arange(len(self._chain.ttree_array)), test_size=test_size, shuffle=True
         )
 
-        # Fit scaling pre-processors. These get applied properly when scale_data is called
+        # Fit scaling pre-processors on a sample to avoid loading full data into memory
+        # Use smaller sample for scaler fitting to reduce memory usage
+        sample_size = min(10000, len(self._train_data_indices))
+        sample_indices = np.random.choice(self._train_data_indices, size=sample_size, replace=False)
         
+        sample_data = self._chain.ttree_array.iloc[sample_indices].drop(columns=[self._prediction_variable])
+        sample_labels = self._chain.ttree_array.iloc[sample_indices][[self._prediction_variable]]
         
-        self._scaler.fit(self.train_data)
-        self._label_scaler.fit(self.train_labels)
+        self._scaler.fit(sample_data)
+        self._label_scaler.fit(sample_labels)
         
         # self._pca_matrix.fit(scaled_training)
 
@@ -100,9 +105,9 @@ class FileMLInterface(ABC):
         """Gets training labels
 
         :return: Training labels set
-        :rtype: pd.DataFrame
+        :rtype: pd.Series
         """        
-        return self.chain.ttree_array.iloc[self._train_data_indices][[self._prediction_variable]]
+        return self.chain.ttree_array.loc[self._train_data_indices, self._prediction_variable]
 
     @property
     def train_data(self)->pd.DataFrame:
@@ -111,62 +116,66 @@ class FileMLInterface(ABC):
         :return: Training data set
         :rtype: pd.DataFrame
         """        
-        return self.chain.ttree_array.iloc[self._train_data_indices].drop(columns=[self._prediction_variable])
-    
+        # Use more memory-efficient indexing with loc for better performance
+        data = self.chain.ttree_array.loc[self._train_data_indices]
+        return data.drop(columns=[self._prediction_variable])
 
     @property
-    def scaled_train_data(self)->pd.DataFrame:
+    def scaled_train_data(self)->np.ndarray:
         """Gets scaled training data
 
-        :return: Scaled training data set
-        :rtype: pd.DataFrame
+        :return: Scaled training data set as numpy array to save memory
+        :rtype: np.ndarray
         """        
         return self.scale_data(self.train_data)
     
     @property
-    def scaled_train_labels(self)->pd.DataFrame:
+    def scaled_train_labels(self)->np.ndarray:
         """Gets scaled training labels
 
-        :return: Scaled training labels set
-        :rtype: pd.DataFrame
+        :return: Scaled training labels set as numpy array
+        :rtype: np.ndarray
         """        
-        return self.scale_labels(self.train_labels)
+        labels = np.array(self.train_labels).reshape(-1, 1)
+        return self.scale_labels(labels).ravel()
     
     @property
     def test_labels(self)->pd.Series:
         """Gets test labels
 
         :return: Test labels set
-        :rtype: pd.DataFrame
+        :rtype: pd.Series
         """        
-        return self.chain.ttree_array.iloc[self._test_data_indices][[self._prediction_variable]]
+        return self.chain.ttree_array.loc[self._test_data_indices, self._prediction_variable]
 
 
     @property
-    def scaled_test_labels(self)->pd.DataFrame:
+    def scaled_test_labels(self)->np.ndarray:
         """Gets scaled test labels
 
-        :return: Scaled test labels set
-        :rtype: pd.DataFrame
+        :return: Scaled test labels set as numpy array
+        :rtype: np.ndarray
         """        
-        return self.scale_labels(self.test_labels)
+        labels = np.array(self.test_labels).reshape(-1, 1)
+        return self.scale_labels(labels).ravel()
 
 
     @property
     def test_data(self)->pd.DataFrame:
-        """Gets training data
+        """Gets test data
 
-        :return: Training data set
+        :return: Test data set
         :rtype: pd.DataFrame
         """ 
-        return self.chain.ttree_array.iloc[self._test_data_indices].drop(columns=[self._prediction_variable])
+        data = self.chain.ttree_array.loc[self._test_data_indices]
+        return data.drop(columns=[self._prediction_variable])
 
     @property
-    def scaled_test_data(self)->pd.DataFrame:
+    def scaled_test_data(self)->np.ndarray:
         """Gets scaled test data
 
-        :return: Scaled test data set
-        :rtype: pd.DataFrame
+        :return: Scaled test data set as numpy array
+        :rtype: np.ndarray
         """        
         return self.scale_data(self.test_data)
 
@@ -228,13 +237,16 @@ class FileMLInterface(ABC):
         if self._model is None:
             raise ValueError("No model has been set!")
         
-        if testing_data is None and self.test_data is not None:
+        if testing_data is None:
             testing_data = self.test_data
             
         if testing_data is None:
             raise Exception(f"No test data set!")
 
-        if np.ndim(testing_data) == 1:
-            testing_data = testing_data.reshape(-1, 1)
+        # Convert to numpy array if needed
+        if isinstance(testing_data, pd.Series):
+            testing_data = testing_data.to_frame().T
+        elif hasattr(testing_data, 'values') and np.ndim(testing_data.values) == 1:
+            testing_data = pd.DataFrame(testing_data.values.reshape(-1, 1))
             
         return self.model_predict(testing_data)
