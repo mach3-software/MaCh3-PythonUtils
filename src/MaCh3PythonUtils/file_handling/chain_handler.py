@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 import gc
 import numpy as np
 from numpy.typing import NDArray
-from tqdm.auto import tqdm
+from tqdm import tqdm_notebook as tqdm
 
 class ChainProtocol(Protocol):
     """Protocol defining the interface for chain handlers."""
@@ -308,7 +308,7 @@ class MultiChainHandler:
             return self._chain[0].ndim
         return 0
 
-    def convert_ttree_to_array(self, close_file=True)->None:
+    def convert_ttree_to_array(self)->None:
         # Special handling to concatenate arrays and add chain_id
         self._ttree_array = None
         for i, chain in tqdm(enumerate(self._chain), desc="Converting TTrees", total=len(self._chain)):

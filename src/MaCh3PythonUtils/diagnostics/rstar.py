@@ -106,7 +106,6 @@ class RStar:
             min_bin = min(1.0, min(rstars))
         else:
             min_bin = min(rstars)
-            
         
         plt.hist(rstars, bins=np.linspace(min_bin, self._n_files, 100).tolist(),
                 color='blue', alpha=0.7)
@@ -179,21 +178,27 @@ class RStar:
 
         def run_phase(phase)->List[float]:
             rprint(f"[bold green]Running R* diagnostics for {phase} data...[/bold green]")
-            rstars = []
-            all_predictions = []
-            all_true_values = []
-            
-            for model in tqdm_notebook(self.models, desc=f"Getting R* for {phase}", total=len(self.models)):
-                predictions = model.model_predict(getattr(model, f"scaled_{phase}_data"))
-                all_predictions.extend(predictions)
-                all_true_values.extend(getattr(model, f"scaled_{phase}_labels"))
-                
-                rstar = self.get_rstar_single_iter(predictions, getattr(model, f"scaled_{phase}_labels"), full_report=False, verbose=False)                                
-                rstars.append(rstar)
-            
-            
+            rstars = np.empty(len(self.models), dtype=np.float32)
+
+            # Precompute total number of predictions/labels for allocation
+            total_preds = sum(len(getattr(model, f"scaled_{phase}_labels")) for model in self.models)
+            all_predictions = np.empty(total_preds, dtype=np.float32)
+            all_true_values = np.empty(total_preds, dtype=np.float32)
+
+            idx = 0
+            for i, model in enumerate(tqdm_notebook(self.models, desc=f"Getting R* for {phase}", total=len(self.models))):
+                preds = model.model_predict(getattr(model, f"scaled_{phase}_data"))
+                labels = getattr(model, f"scaled_{phase}_labels")
+                n = len(labels)
+                all_predictions[idx:idx+n] = preds
+                all_true_values[idx:idx+n] = labels
+                idx += n
+
+                rstar = self.get_rstar_single_iter(preds, labels, full_report=False, verbose=False)
+                rstars[i] = rstar
+
             # Get confusion matrix for all models
-            MLDiagnostics.confusion_matrix(all_predictions, all_true_values, outfile=f"confusion_matrix_{phase}.pdf", normalise=True)
+            MLDiagnostics.confusion_matrix(all_predictions.tolist(), all_true_values.tolist(), outfile=f"confusion_matrix_{phase}.pdf", normalise=True)
 
             rprint(f"[bold green]Average R* for {phase} data: [bold cyan]{np.mean(rstars):.4f}±{np.std(rstars):.4f}[/bold cyan][/bold green]")
             rprint(f"[dim green] For [cyan]{self._n_files}[/cyan] files, an R* of ~[cyan]1.0[cyan] indicates a model that cannot distinguish between chains (i.e. they're similarly mixed).\n\

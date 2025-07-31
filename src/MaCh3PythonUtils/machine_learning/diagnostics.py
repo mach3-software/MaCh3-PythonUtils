@@ -114,8 +114,9 @@ class MLDiagnostics:
         
         # Set so sum(cm) = 1
         if normalise:
-            cm = cm/cm.sum()
-        
+            # Divide each row by its sum
+            cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
         # Generate heat map
         sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', cbar_kws={
             'orientation': 'vertical',
