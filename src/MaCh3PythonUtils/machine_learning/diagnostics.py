@@ -103,7 +103,7 @@ class MLDiagnostics:
 
     
     @classmethod
-    def confusion_matrix(cls, predicted_values, true_values, outfile: str="confusion_matrix.pdf", normalise: bool = False):
+    def confusion_matrix(cls, predicted_values, true_values, outfile: str="confusion_matrix.pdf", normalise: bool = False)-> "np.ndarray":
         """
         Plots a confusion matrix for the predicted and true values.
         """
@@ -146,6 +146,7 @@ class MLDiagnostics:
             ...
         
         plt.close()
+        return cm
     
 
     @classmethod

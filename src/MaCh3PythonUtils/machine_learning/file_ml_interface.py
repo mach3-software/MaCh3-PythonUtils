@@ -55,7 +55,7 @@ class FileMLInterface(ABC):
         """        
         # Splits in traing + test_spit        
         self._train_data_indices, self._test_data_indices = train_test_split(
-            np.arange(len(self._chain.ttree_array)), test_size=test_size, random_state=42, shuffle=True
+            np.arange(len(self._chain.ttree_array)), test_size=test_size, shuffle=True
         )
 
         # Fit scaling pre-processors. These get applied properly when scale_data is called

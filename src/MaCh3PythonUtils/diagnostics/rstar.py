@@ -1,17 +1,15 @@
 
 from sklearn.metrics import classification_report
-from typing import TypedDict, List
+from typing import TypedDict, List, Tuple
 import numpy as np
 import multiprocessing as mp 
 from tqdm import tqdm_notebook
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
+from concurrent.futures import ThreadPoolExecutor
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from rich import print as rprint
 from sklearn.metrics import log_loss
 
-from MaCh3PythonUtils.machine_learning.file_ml_interface import FileMLInterface
 from MaCh3PythonUtils.machine_learning.ml_factory import MLFactory
 from MaCh3PythonUtils.machine_learning.diagnostics import MLDiagnostics
 from MaCh3PythonUtils.file_handling.chain_handler import MultiChainHandler
@@ -29,7 +27,7 @@ class RStarOutput(TypedDict):
 
 
 class RStar:
-    def __init__(self, chain_handler: MultiChainHandler, n_iterations: int=1, algorithm: str="histboostclassifier", 
+    def __init__(self, chain_handler: MultiChainHandler, n_fitters: int=1, interface: str="scikit", algorithm: str="histboostclassifier",
                  test_size: float= 0.8, **kwargs):
         """Initialises R* diagnostics with chain files.
 
@@ -41,8 +39,6 @@ class RStar:
         :type algorithm: str
         :param test_size: Fraction of data to use for testing
         :type test_size: float
-        :param random_seed: Base random seed for reproducibility. Each model gets seed + iteration
-        :type random_seed: Optional[int]
         """
         self.chain_handler = chain_handler
         
@@ -51,21 +47,24 @@ class RStar:
         
         factory = MLFactory(self.chain_handler, prediction_variable="chain_id", plot_name="rstar")
         
-        rprint(f"[bold green]Creating {n_iterations} models using {algorithm} algorithm[/bold green]")
+        rprint(f"[bold green]Creating {n_fitters} models using {algorithm} algorithm[/bold green]")
 
         # Create models but don't set training data yet
         self.models = [
-            factory.make_interface("scikit", algorithm, **kwargs) for _ in tqdm_notebook(range(n_iterations), desc="Creating Models")
+            factory.make_interface(interface, algorithm, **kwargs) for _ in tqdm_notebook(range(n_fitters), desc="Creating Models")
         ]
                 
         
-        rprint(f"[green]Creating {n_iterations} different train/test splits...[/green]")
+        rprint(f"[green]Creating {n_fitters} different train/test splits...[/green]")
                 
         # Now assign data to each model using the indices (working with internal attributes)
         
         rprint(f"[green]Assigning data to {len(self.models)} models in parallel...[/green]")
-        for model in tqdm_notebook(self.models, desc="Assigning Data"):
-            model.set_training_test_set(self._test_size)
+        with ThreadPoolExecutor(max_workers=mp.cpu_count()) as executor:
+            futures = []
+            for model in tqdm_notebook(self.models, desc="Assigning Data"):
+                futures.append(executor.submit(model.set_training_test_set, self._test_size))
+
 
         rprint(f"[cyan]Using {self._n_files} files for R* diagnostics, with a training set containing [bold green]{len(self.models[0].train_labels)}[/bold green] entries and a testing set containing [bold green]{len(self.models[0].test_labels)}[/bold green] entries[/cyan]")
 
@@ -88,7 +87,7 @@ class RStar:
 
         rprint(f"[bold green]Trained {len(self.models)} models[/bold green]")
     
-    def make_rstar_hist(self, rstars: List[float], outfile: str):
+    def make_rstar_hist(self, rstars: List[float], outfile: str, zoom: bool = True):
         """Creates a histogram of R* values.
 
         :param outfile: Output file path for the histogram
@@ -98,13 +97,27 @@ class RStar:
         """
         
         plt.figure(figsize=(10, 6))
-        plt.hist(rstars, bins=30, color='blue', alpha=0.7)
+        
+        if zoom:
+            min_bin = min(1.0, min(rstars))
+        else:
+            min_bin = min(rstars)
+            
+        
+        plt.hist(rstars, bins=np.linspace(min_bin, self._n_files, 100, dtype=np.float32),
+                color='blue', alpha=0.7)
+        # Add a vertical line at the mean
+        mean_rstar = np.mean(rstars)
+        plt.axvline(mean_rstar, color='red', linestyle='dashed', linewidth=1, label=f'Mean R*: {mean_rstar:.2f}')
         plt.title('Histogram of R* Values')
         plt.xlabel('R* Value')
         plt.ylabel('Frequency')
         plt.grid(True)
+        
         print(outfile)
         plt.savefig(outfile)
+        
+        
         
         MLDiagnostics.show_plot()
         plt.close()
@@ -131,9 +144,9 @@ class RStar:
             rprint(f"[bold spring_green1]R*: {pred_acc*self._n_files:.4f}[/bold spring_green1]")
         
         return pred_acc * self._n_files
-    
-    
-    def get_rstar(self, print_all_confusion: bool = False)->RStarOutput:
+
+
+    def get_rstar(self, plot_log_loss: bool = False)->RStarOutput:
         """Runs the R* diagnostics.
 
         :param true_values: True values for comparison
@@ -150,28 +163,33 @@ class RStar:
 
         loss = []
         
-        rprint("Getting final Log Loss for each model:")
-        for model in tqdm_notebook(self.models, desc="Calculating Log Loss"):
-            predictions = model.model_predict(model.test_data)
-            loss.append(log_loss(model.scaled_test_labels, predictions))
+        if plot_log_loss:
+            rprint("Getting final Log Loss for each model:")
+            for model in tqdm_notebook(self.models, desc="Calculating Log Loss"):
+                predictions = model.model_predict(model.test_data)
+                loss.append(log_loss(model.scaled_test_labels, predictions))
 
-        rprint(f"[bold green]Average Log Loss: {np.mean(loss):.4f}±{np.std(loss):.4f}[/bold green]")
-        rprint("[bold green]Running R* diagnostics...[/bold green]")
+            rprint(f"[bold green]Average Log Loss: {np.mean(loss):.4f}±{np.std(loss):.4f}[/bold green]")
+            rprint("[bold green]Running R* diagnostics...[/bold green]")
 
 
-        def run_phase(data_attr, label_attr, phase, print_all_confusion: bool = False)->List[float]:
+        def run_phase(phase)->List[float]:
             rprint(f"[bold green]Running R* diagnostics for {phase} data...[/bold green]")
             rstars = []
-            for i, model in tqdm_notebook(enumerate(self.models), desc=f"Getting R* for {phase}", total=len(self.models)):
-                predictions = model.model_predict(getattr(model, data_attr))
+            all_predictions = []
+            all_true_values = []
+            
+            for model in tqdm_notebook(self.models, desc=f"Getting R* for {phase}", total=len(self.models)):
+                predictions = model.model_predict(getattr(model, f"scaled_{phase}_data"))
+                all_predictions.extend(predictions)
+                all_true_values.extend(getattr(model, f"scaled_{phase}_labels"))
                 
-                rstar = self.get_rstar_single_iter(predictions, getattr(model, label_attr), full_report=False, verbose=False)                
-                
-                if print_all_confusion or i==0:
-                    MLDiagnostics.confusion_matrix(predictions, getattr(model, label_attr),
-                                                outfile=f"{phase}_{i}_confusion_matrix.pdf", normalise=True)
-
+                rstar = self.get_rstar_single_iter(predictions, getattr(model, f"scaled_{phase}_labels"), full_report=False, verbose=False)                                
                 rstars.append(rstar)
+            
+            
+            # Get confusion matrix for all models
+            MLDiagnostics.confusion_matrix(all_predictions, all_true_values, outfile=f"confusion_matrix_{phase}.pdf", normalise=True)
 
             rprint(f"[bold green]Average R* for {phase} data: [bold cyan]{np.mean(rstars):.4f}±{np.std(rstars):.4f}[/bold cyan][/bold green]")
             rprint(f"[dim green] For [cyan]{self._n_files}[/cyan] files, an R* of ~[cyan]1.0[cyan] indicates a model that cannot distinguish between chains (i.e. they're similarly mixed).\n\
@@ -179,8 +197,9 @@ class RStar:
 
             return rstars
 
-        train_rstar = run_phase("training_data", "scaled_training_labels", "train", print_all_confusion)
-        test_rstar = run_phase("test_data", "scaled_test_labels", "test", print_all_confusion)
+        train_rstar = run_phase("train")
+        test_rstar = run_phase("test")
+
 
         return {
             "train_rstar": train_rstar,

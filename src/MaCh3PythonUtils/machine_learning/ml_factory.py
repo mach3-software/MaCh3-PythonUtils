@@ -3,6 +3,7 @@ ML Factory implementation, effectively a selector for making models
 """
 
 from MaCh3PythonUtils.machine_learning.scikit.scikit_interface import SciKitInterface
+from MaCh3PythonUtils.machine_learning.xgboost.xgboost_interface import XGBoostInterface
 # from MaCh3PythonUtils.machine_learning.tensorflow.tf_autotune_interface import TfAutotuneInterface
 # from MaCh3PythonUtils.machine_learning.tensorflow.tf_sequential_model import TfSequentialModel
 # from MaCh3PythonUtils.machine_learning.tensorflow.tf_residual_model import TfResidualModel
@@ -15,6 +16,7 @@ from MaCh3PythonUtils.machine_learning.torch.torch_interface import TorchInterfa
 
 from MaCh3PythonUtils.file_handling.chain_handler import ChainProtocol
 import sklearn.ensemble as ske
+import xgboost as xgb
 
 class MLFactory:
     # Implement algorithms here
@@ -25,6 +27,12 @@ class MLFactory:
             "adaboost"      : ske.AdaBoostRegressor,
             "histboost"     : ske.HistGradientBoostingRegressor,
             "histboostclassifier": ske.HistGradientBoostingClassifier,
+        },
+        "xgboost": {
+            "xgbregressor"     : xgb.XGBRegressor,
+            "xgbclassifier"    : xgb.XGBClassifier,
+            "xgbrfregressor"   : xgb.XGBRFRegressor,
+            "xgbrfclassifier"  : xgb.XGBRFClassifier,
         },
         # "tensorflow": {
         #     "sequential" : TfSequentialModel,
@@ -90,6 +98,20 @@ class MLFactory:
         interface.add_model(self.__setup_package_factory(package="scikit", algorithm=algorithm, **kwargs))
 
         return interface    
+    
+    def __make_xgboost_model(self, algorithm: str, **kwargs)->XGBoostInterface:
+        """Generates XGBoost model instance
+
+        :param algorithm: Algorithm from XGBoost
+        :type algorithm: str
+        :return: XGBoostInterface wrapper around model
+        :rtype: XGBoostInterface
+        """        
+        # Simple wrapper for XGBoost packages
+        interface = XGBoostInterface(self._chain, self._prediction_variable, self._plot_name)
+        interface.add_model(self.__setup_package_factory(package="xgboost", algorithm=algorithm, **kwargs))
+ 
+        return interface
         
     
     # def __make_tensorflow_layered_model(self, interface: TfManualLayeredInterface, layers: dict)->TfManualLayeredInterface:
@@ -137,6 +159,8 @@ class MLFactory:
         match(interface_type):
             case "scikit":
                 return self.__make_scikit_model(algorithm, **kwargs)
+            case "xgboost":
+                return self.__make_xgboost_model(algorithm, **kwargs)
             case "tensorflow":
                 raise NotImplementedError("TensorFlow interface is not implemented in this version.")
                 # return self.__make_tensorflow_model(algorithm, **kwargs)

@@ -13,7 +13,7 @@ def main() -> None:
 
     config_reader = ConfigReader(args.config)
     
-    rstar = RStar(args.files, n_iterations=args.n_iterations, **config_reader.get_settings()['MLSettings']['FitterKwargs'])
+    rstar = RStar(args.files, n_fitters=args.n_iterations, **config_reader.get_settings()['MLSettings']['FitterKwargs'])
     rstar.train_models()
     rstar()
     
