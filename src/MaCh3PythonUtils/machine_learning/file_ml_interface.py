@@ -58,10 +58,10 @@ class FileMLInterface(ABC):
         self._test_labels=None
 
         # Scaling components
-        self._scaler = StandardScaler()
+        self._scaler = StandardScaler(with_mean=False, with_std=False)
         # self._pca_matrix = PCA(n_components=0.95)
         
-        self._label_scaler = StandardScaler()
+        self._label_scaler = StandardScaler(with_mean=False, with_std=False)
         
         
             
@@ -88,18 +88,21 @@ class FileMLInterface(ABC):
         self._training_data, self._test_data, self._training_labels, self._test_labels =  train_test_split(features, labels, test_size=test_size)
 
         # Fit scaling pre-processors. These get applied properly when scale_data is called
-        self._scaler.fit(self._training_data)
-        self._label_scaler.fit(self._training_labels)
+        # self._scaler.fit(self._training_data)
+        # self._label_scaler.fit(self._training_labels)
         
         # self._pca_matrix.fit(scaled_training)
 
     def scale_data(self, input_data):
         # Applies transformations to data set
-        scale_data = self._scaler.transform(input_data)
-        return scale_data
+        raise Exception("Deprecated")
+        # scale_data = self._scaler.transform(input_data)
+        # return scale_data
     
     def scale_labels(self, labels):
-        return self._label_scaler.transform(labels)
+        raise Exception("Deprecated")
+
+        # return self._label_scaler.transform(labels)
         # return labels.values.reshape(-1, 1)
 
     def invert_scaling(self, input_data):
@@ -215,14 +218,18 @@ class FileMLInterface(ABC):
 
         print("Training Results!")
         train_prediction = self.model_predict(self._training_data)
-        train_as_numpy = self.scale_labels(self._training_labels).T[0]
+        train_as_numpy = self._training_labels.to_numpy().flatten()
+        print(train_prediction, train_as_numpy)
+        
         self.evaluate_model(train_prediction, train_as_numpy, "train_qq_plot.pdf")
 
         print("=====")
         print("Testing Results!")
 
         test_prediction = self.model_predict(self._test_data)
-        test_as_numpy = self.scale_labels(self._test_labels).T[0]
+        test_as_numpy = self._test_labels.to_numpy().flatten()
+        
+        print(test_prediction, test_as_numpy)
         
         self.evaluate_model(test_prediction, test_as_numpy, outfile=f"{self._fit_name}")
         print("=====")

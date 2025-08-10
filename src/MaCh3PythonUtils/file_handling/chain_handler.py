@@ -208,8 +208,8 @@ class ChainHandler:
         :type new_array: Any
         '''
         # Implemented in case someone tries to do something daft!
-        raise NotImplementedError("Cannot set converted TTree array to new type")        
- 
+        self._ttree_array = new_array
+    
     @property
     def ndim(self)->int:
         if self._ttree_array is None:    

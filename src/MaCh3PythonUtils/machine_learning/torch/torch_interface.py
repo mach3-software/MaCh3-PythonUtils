@@ -66,8 +66,8 @@ class TorchInterface(FileMLInterface):
 
 
     def train_model(self):
-        scaled_data = self.to_tensor(self.scale_data(self._training_data))
-        scaled_labels = self.to_tensor(self.scale_labels(self._training_labels))
+        scaled_data = self.to_tensor(self._training_data)
+        scaled_labels = self.to_tensor(self._training_labels)
 
         loss = torch.nn.MSELoss()
         self._learning_rate = self._fit_settings.get("learning_rate", 1e-5)
@@ -84,7 +84,6 @@ class TorchInterface(FileMLInterface):
         self._mean_abs_weights_per_epoch = []*num_epochs
 
         self._loss_vals = np.zeros(num_epochs)
-
 
         for i in (pbar:=tqdm_notebook(range(num_epochs), desc="Training model", unit="epoch")):
             self.model_training_iter(scaled_data, scaled_labels, loss, self._learning_rate, debug, i)
