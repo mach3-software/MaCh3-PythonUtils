@@ -58,10 +58,10 @@ class FileMLInterface(ABC):
         self._test_labels=None
 
         # Scaling components
-        self._scaler = StandardScaler(with_mean=False, with_std=False)
+        # self._scaler = StandardScaler(with_mean=False, with_std=False)
         # self._pca_matrix = PCA(n_components=0.95)
         
-        self._label_scaler = StandardScaler(with_mean=False, with_std=False)
+        # self._label_scaler = StandardScaler(with_mean=False, with_std=False)
         
         
             
@@ -108,8 +108,7 @@ class FileMLInterface(ABC):
     def invert_scaling(self, input_data):
         # Inverts transform
         # unscaled_data = self._pca_matrix.inverse_transform(input_data)
-        unscaled_data = self._scaler.inverse_transform(input_data)
-        return unscaled_data
+        raise Exception("Deprecated")
 
     @property
     def model(self)->Any:
