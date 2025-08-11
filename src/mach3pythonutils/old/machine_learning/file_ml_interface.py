@@ -1,4 +1,4 @@
-from MaCh3PythonUtils.file_handling.chain_handler import ChainHandler
+from mach3pythonutils.file_handling.chain_handler import ChainHandler
 
 from abc import ABC, abstractmethod
 from typing import Any, Tuple, Iterable
@@ -9,6 +9,7 @@ from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 import pickle
 from typing import List, Dict
+import tensorflow as tf
 import warnings
 from tqdm import tqdm
 from scipy.optimize import minimize, OptimizeResult
@@ -57,10 +58,10 @@ class FileMLInterface(ABC):
         self._test_labels=None
 
         # Scaling components
-        # self._scaler = StandardScaler(with_mean=False, with_std=False)
+        self._scaler = StandardScaler()
         # self._pca_matrix = PCA(n_components=0.95)
         
-        # self._label_scaler = StandardScaler(with_mean=False, with_std=False)
+        self._label_scaler = StandardScaler()
         
         
             
@@ -87,27 +88,25 @@ class FileMLInterface(ABC):
         self._training_data, self._test_data, self._training_labels, self._test_labels =  train_test_split(features, labels, test_size=test_size)
 
         # Fit scaling pre-processors. These get applied properly when scale_data is called
-        # self._scaler.fit(self._training_data)
-        # self._label_scaler.fit(self._training_labels)
+        self._scaler.fit(self._training_data)
+        self._label_scaler.fit(self._training_labels)
         
         # self._pca_matrix.fit(scaled_training)
 
     def scale_data(self, input_data):
         # Applies transformations to data set
-        raise Exception("Deprecated")
-        # scale_data = self._scaler.transform(input_data)
-        # return scale_data
+        scale_data = self._scaler.transform(input_data)
+        return scale_data
     
     def scale_labels(self, labels):
-        raise Exception("Deprecated")
-
-        # return self._label_scaler.transform(labels)
+        return self._label_scaler.transform(labels)
         # return labels.values.reshape(-1, 1)
 
     def invert_scaling(self, input_data):
         # Inverts transform
         # unscaled_data = self._pca_matrix.inverse_transform(input_data)
-        raise Exception("Deprecated")
+        unscaled_data = self._scaler.inverse_transform(input_data)
+        return unscaled_data
 
     @property
     def model(self)->Any:
@@ -216,18 +215,14 @@ class FileMLInterface(ABC):
 
         print("Training Results!")
         train_prediction = self.model_predict(self._training_data)
-        train_as_numpy = self._training_labels.to_numpy().flatten()
-        print(train_prediction, train_as_numpy)
-        
+        train_as_numpy = self.scale_labels(self._training_labels).T[0]
         self.evaluate_model(train_prediction, train_as_numpy, "train_qq_plot.pdf")
 
         print("=====")
         print("Testing Results!")
 
         test_prediction = self.model_predict(self._test_data)
-        test_as_numpy = self._test_labels.to_numpy().flatten()
-        
-        print(test_prediction, test_as_numpy)
+        test_as_numpy = self.scale_labels(self._test_labels).T[0]
         
         self.evaluate_model(test_prediction, test_as_numpy, outfile=f"{self._fit_name}")
         print("=====")
