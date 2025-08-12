@@ -57,7 +57,7 @@ class FileMLInterface(ABC):
         self._test_labels=None
 
         # Scaling components
-        # self._scaler = StandardScaler(with_mean=False, with_std=False)
+        self._scaler = StandardScaler()
         # self._pca_matrix = PCA(n_components=0.95)
         
         # self._label_scaler = StandardScaler(with_mean=False, with_std=False)
@@ -87,16 +87,16 @@ class FileMLInterface(ABC):
         self._training_data, self._test_data, self._training_labels, self._test_labels =  train_test_split(features, labels, test_size=test_size)
 
         # Fit scaling pre-processors. These get applied properly when scale_data is called
-        # self._scaler.fit(self._training_data)
+        self._scaler.fit(self._training_data)
         # self._label_scaler.fit(self._training_labels)
         
         # self._pca_matrix.fit(scaled_training)
 
     def scale_data(self, input_data):
         # Applies transformations to data set
-        raise Exception("Deprecated")
-        # scale_data = self._scaler.transform(input_data)
-        # return scale_data
+        # raise Exception("Deprecated")
+        scale_data = self._scaler.transform(input_data)
+        return scale_data
     
     def scale_labels(self, labels):
         raise Exception("Deprecated")
@@ -107,7 +107,7 @@ class FileMLInterface(ABC):
     def invert_scaling(self, input_data):
         # Inverts transform
         # unscaled_data = self._pca_matrix.inverse_transform(input_data)
-        raise Exception("Deprecated")
+        return self._scaler.inverse_transform(input_data)
 
     @property
     def model(self)->Any:
@@ -215,7 +215,8 @@ class FileMLInterface(ABC):
 
 
         print("Training Results!")
-        train_prediction = self.model_predict(self._training_data)
+
+        train_prediction = self.model_predict(self.scale_data(self._training_data))
         train_as_numpy = self._training_labels.to_numpy().flatten()
         print(train_prediction, train_as_numpy)
         
@@ -224,7 +225,7 @@ class FileMLInterface(ABC):
         print("=====")
         print("Testing Results!")
 
-        test_prediction = self.model_predict(self._test_data)
+        test_prediction = self.model_predict(self.scale_data(self._test_data))
         test_as_numpy = self._test_labels.to_numpy().flatten()
         
         print(test_prediction, test_as_numpy)
@@ -251,36 +252,31 @@ class FileMLInterface(ABC):
     def run_likelihood_scan(self, n_divisions: int = 500):
         # Get nominals
         print("Running LLH Scan")
-        maximal_likelihood = self.get_maxlikelihood()
-        maximal_nominal=maximal_likelihood.x        
-    
-        errors = np.sqrt(np.diag(maximal_likelihood.hess_inv(np.identity(self.chain.ndim-1))))
-
-        print("[bold red3]Maximal Pars :")
-        for i in range(self.chain.ndim-1):
-            print(f"[bold red3]Param :[/bold red3] [yellow3]{self.chain.plot_branches[i]} : {maximal_likelihood.x[i]}±{errors[i]}")
-
 
         with PdfPages("llh_scan.pdf") as pdf:
             for i in tqdm(range(self.chain.ndim-1), total=self.chain.ndim-1):
                 # Make copy since we'll be modifying!
+                parval = np.zeros((n_divisions, self.chain.ndim-1))
+                lower_bound = -3
+                upper_bound = 3
                 
-                lower_bound = self.chain.lower_bounds[i]
-                upper_bound = self.chain.upper_bounds[i]
-                
-                param_range = np.linspace(lower_bound, upper_bound, n_divisions)
-                modified_values = [maximal_nominal.copy() for _ in range(n_divisions)]
-                
-                
+                param_range = np.linspace(lower_bound, upper_bound, n_divisions)                
+
                 for j, div in enumerate(param_range):
-                    modified_values[j][i]=div
-                                        
-                prediction = self.model_predict(modified_values)
+                    parval[j][i] = div
+                
+
+                parval_unscaled = self.invert_scaling(parval)
+                par_val_range = parval_unscaled[:,i]
+
+                prediction = self.model_predict(parval)
                 # Save as histogram
-                plt.plot(param_range, prediction)
+
+                plt.plot(par_val_range, prediction)
                 plt.xlabel(self.chain.plot_branches[i])
                 plt.ylabel("-2*loglikelihood")
                 pdf.savefig()
+                plt.show()
                 plt.close()
             
         

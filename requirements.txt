@@ -10,20 +10,12 @@ pandas>=2.0.0
 PyYAML>=6.0.2
 scikit-learn>=1.4.0
 scipy>=1.10.0
-tensorflow
-torch>=1.0.0
-normflows
-tqdm>=4.0.0
 uproot>=5.3.0
-tensorflow_probability
-tf_keras
-keras_tuner
 mplhep
 seaborn
 psutil
-
-# Documentation generation
-sphinx
-sphinx_rtd_theme
-sphinx-autoapi
-ghp-import
+ipython
+rich
+gdown
+ipywidgets
+ipykernel
